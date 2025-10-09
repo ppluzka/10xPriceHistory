@@ -134,4 +134,6 @@ Features defined in the Product Requirements Document are being implemented. Con
 
 ## License
 
-No license has been specified. Please add a `LICENSE` file (e.g., MIT License) to clarify terms of use.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
