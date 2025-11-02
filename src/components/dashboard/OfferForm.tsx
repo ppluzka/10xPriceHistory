@@ -17,21 +17,28 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
     setValidationError(null);
 
     if (!value.trim()) {
-      setValidationError("URL is required");
+      setValidationError("Wprowadź adres URL.");
       return false;
     }
 
     try {
       const urlObj = new URL(value);
       
+      // Validate protocol (must be http or https)
+      if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
+        setValidationError("Wprowadź adres URL.");
+        return false;
+      }
+      
+      // Validate domain (must be from otomoto.pl)
       if (!urlObj.hostname.includes("otomoto.pl")) {
-        setValidationError("URL must be from otomoto.pl");
+        setValidationError("URL musi być z otomoto.pl");
         return false;
       }
       
       return true;
     } catch {
-      setValidationError("Please enter a valid URL");
+      setValidationError("Wprowadź adres URL.");
       return false;
     }
   }, []);
@@ -90,7 +97,7 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
   }, [validationError, error]);
 
   return (
-    <div className="rounded-lg border bg-card p-6 shadow-xs">
+    <div className="rounded-lg border bg-card p-6 shadow-xs" data-testid="offer-form">
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold">Add New Offer</h2>
@@ -109,14 +116,15 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
               disabled={isSubmitting}
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive md:text-sm"
               aria-invalid={!!(validationError || error)}
+              data-testid="offer-url-input"
             />
             
             {validationError && (
-              <p className="text-sm text-destructive">{validationError}</p>
+              <p className="text-sm text-destructive" data-testid="offer-validation-error">{validationError}</p>
             )}
             
             {error && (
-              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-sm text-destructive" data-testid="offer-submit-error">{error}</p>
             )}
           </div>
 
@@ -124,6 +132,7 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
             type="submit"
             disabled={isSubmitting || !url.trim()}
             className="w-full sm:w-auto"
+            data-testid="offer-submit-button"
           >
             {isSubmitting ? "Adding..." : "Add Offer"}
           </Button>

@@ -19,7 +19,27 @@ Frontend - Astro z React dla komponentów interaktywnych:
 - Cheerio.js dla web scrapingu
 - Rotacja User-Agents i opóźnienia 2-5s między requestami
 
-1.4.4 Infrastruktura
+1.4.4 Testing - Kompleksowe testowanie aplikacji:
+- Vitest dla testów jednostkowych i integracyjnych
+  - Natywna integracja z Vite/Astro
+  - Szybkie wykonanie dzięki parallelizacji
+  - Compatible z TypeScript
+  - Jest-like API
+- Testing Library dla testowania komponentów React
+  - @testing-library/react dla renderowania komponentów
+  - @testing-library/user-event dla symulacji interakcji
+  - @testing-library/jest-dom dla rozszerzonych asercji
+- Playwright dla testów E2E
+  - Cross-browser testing (Chromium, Firefox, WebKit)
+  - Auto-wait mechanism
+  - Screenshots i video recording
+  - Parallel execution
+- MSW (Mock Service Worker) dla mockowania API requests
+  - Przechwytywanie requestów na poziomie sieci
+  - Realistyczne testowanie bez prawdziwych endpointów
+  - Wspólne handlery dla testów i development
+
+1.4.5 Infrastruktura
 - Hosting: VPS
 - CI/CD: Github Actions
 - Scheduled jobs: pg_cron w Supabase

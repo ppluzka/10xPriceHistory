@@ -19,11 +19,13 @@ function StatCard({ label, value, description, variant = "default" }: StatCardPr
     negative: "text-red-600 dark:text-red-400",
   };
 
+  const testId = label.toLowerCase().replace(/\s+/g, "-");
+
   return (
-    <div className="rounded-lg border bg-card p-6 shadow-xs">
+    <div className="rounded-lg border bg-card p-6 shadow-xs" data-testid={`stat-card-${testId}`}>
       <div className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className={`text-3xl font-bold ${variantClasses[variant]}`}>
+        <p className={`text-3xl font-bold ${variantClasses[variant]}`} data-testid={`stat-value-${testId}`}>
           {value}
         </p>
         {description && (
@@ -47,7 +49,7 @@ export default function DashboardStats({ summary, offerLimit }: DashboardStatsPr
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="dashboard-stats">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">

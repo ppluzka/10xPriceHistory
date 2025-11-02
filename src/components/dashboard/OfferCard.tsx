@@ -63,10 +63,11 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
   };
 
   return (
-    <div className="group relative">
+    <div className="group relative" data-testid="offer-card" data-offer-id={offer.id}>
       <a
         href={`/offer/${offer.id}`}
         className="block rounded-lg border bg-card shadow-xs transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        data-testid="offer-card-link"
       >
         {/* Image */}
         <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
@@ -76,6 +77,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
               alt={offer.title}
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
               loading="lazy"
+              data-testid="offer-card-image"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-muted-foreground">
@@ -99,7 +101,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
 
           {/* Status Badge */}
           <div className="absolute top-2 left-2">
-            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(offer.status)}`}>
+            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(offer.status)}`} data-testid="offer-card-status">
               {offer.status}
             </span>
           </div>
@@ -112,6 +114,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
               onClick={handleDeleteClick}
               className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
               aria-label="Delete offer"
+              data-testid="offer-card-delete-button"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -135,13 +138,13 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
         {/* Content */}
         <div className="p-4 space-y-3">
           {/* Title */}
-          <h3 className="font-semibold line-clamp-2 text-sm leading-tight">
+          <h3 className="font-semibold line-clamp-2 text-sm leading-tight" data-testid="offer-card-title">
             {offer.title}
           </h3>
 
           {/* City */}
           {offer.city && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="offer-card-city">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -162,12 +165,12 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
 
           {/* Price */}
           <div className="flex items-baseline justify-between">
-            <p className="text-lg font-bold">
+            <p className="text-lg font-bold" data-testid="offer-card-price">
               {formatPrice(offer.currentPrice, offer.currency)}
             </p>
             
             {offer.percentChangeFromFirst !== 0 && (
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPriceChangeVariant(offer.percentChangeFromFirst)}`}>
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPriceChangeVariant(offer.percentChangeFromFirst)}`} data-testid="offer-card-price-change">
                 {formatPercentage(offer.percentChangeFromFirst)}
               </span>
             )}
@@ -175,7 +178,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
 
           {/* Last Checked */}
           {offer.lastChecked && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground" data-testid="offer-card-last-checked">
               Last checked: {new Date(offer.lastChecked).toLocaleDateString("pl-PL")}
             </p>
           )}
@@ -187,6 +190,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           onClick={handleCancelDelete}
+          data-testid="offer-delete-modal"
         >
           <div
             className="bg-card rounded-lg shadow-lg p-6 max-w-sm mx-4 space-y-4"
@@ -203,12 +207,14 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
               <Button
                 variant="outline"
                 onClick={handleCancelDelete}
+                data-testid="offer-delete-cancel-button"
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleConfirmDelete}
+                data-testid="offer-delete-confirm-button"
               >
                 Delete
               </Button>

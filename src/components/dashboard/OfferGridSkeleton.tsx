@@ -1,6 +1,6 @@
 export default function OfferGridSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="offers-loading">
       <div className="h-7 w-48 bg-muted animate-pulse rounded" />
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

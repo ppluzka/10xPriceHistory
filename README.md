@@ -29,17 +29,23 @@ A web application for tracking and visualizing price history of car listings on 
 - Supabase (PostgreSQL + BaaS)  
   - Supabase Authentication  
   - Supabase SDK  
-  - Row-Level Security (RLS)  
+  - Row-Level Security (RLS)
 
 **AI & Scraping**  
 - OpenRouter.ai (GPT-4o-mini, Claude Haiku) for AI-powered data extraction  
 - Cheerio.js for HTML parsing  
 - User-Agent rotation and 2–5s request delays  
 
+**Testing**  
+- Vitest for unit and integration tests  
+- Testing Library (React) for component testing  
+- Playwright for E2E testing  
+- MSW (Mock Service Worker) for API mocking  
+
 **Infrastructure**  
 - VPS hosting  
 - CI/CD via GitHub Actions  
-- Scheduled jobs with `pg_cron` in Supabase  
+- Scheduled jobs with `pg_cron` in Supabase
 
 ---
 
@@ -107,6 +113,18 @@ All commands are run from the project root:
 
 - `npm run format`  
   Runs Prettier to format code and markdown.
+
+- `npm run test`  
+  Runs unit and integration tests with Vitest.
+
+- `npm run test:ui`  
+  Opens Vitest UI for interactive test debugging.
+
+- `npm run test:coverage`  
+  Runs tests with coverage report.
+
+- `npm run test:e2e`  
+  Runs E2E tests with Playwright.
 
 ---
 

@@ -131,7 +131,11 @@ export default function LoginForm({
         <form id="login-form" onSubmit={handleSubmit} className="space-y-4">
           {/* General error message */}
           {error && (
-            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+            <div 
+              className="rounded-md bg-destructive/10 border border-destructive/20 p-3" 
+              role="alert"
+              data-testid="login-error-message"
+            >
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
@@ -155,6 +159,7 @@ export default function LoginForm({
               disabled={isLoading}
               aria-invalid={!!validationErrors.email}
               autoComplete="email"
+              data-testid="login-email-input"
             />
             {validationErrors.email && (
               <p className="text-sm text-destructive">{validationErrors.email}</p>
@@ -188,6 +193,7 @@ export default function LoginForm({
               disabled={isLoading}
               aria-invalid={!!validationErrors.password}
               autoComplete="current-password"
+              data-testid="login-password-input"
             />
             {validationErrors.password && (
               <p className="text-sm text-destructive">{validationErrors.password}</p>
@@ -201,6 +207,7 @@ export default function LoginForm({
           form="login-form"
           disabled={isLoading || !email.trim() || !password}
           className="w-full"
+          data-testid="login-submit-button"
         >
           {isLoading ? "Logowanie..." : "Zaloguj się"}
         </Button>

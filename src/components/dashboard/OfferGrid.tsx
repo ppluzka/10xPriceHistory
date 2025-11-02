@@ -28,10 +28,10 @@ export default function OfferGrid({ offers, isLoading, onDeleteOffer }: OfferGri
 
   // Show offers grid
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="offers-section">
       <h2 className="text-xl font-semibold">Your Watched Offers</h2>
       
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="offers-grid">
         {offers.map((offer) => (
           <OfferCard
             key={offer.id}
