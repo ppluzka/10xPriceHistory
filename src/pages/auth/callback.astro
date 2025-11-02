@@ -1,0 +1,42 @@
+---
+import { createSupabaseServerInstance } from "@/db/supabase.client";
+
+export const prerender = false;
+
+// Get the code from URL (sent by Supabase after email verification)
+const code = Astro.url.searchParams.get("code");
+const error = Astro.url.searchParams.get("error");
+const errorDescription = Astro.url.searchParams.get("error_description");
+
+// Handle error from Supabase
+if (error) {
+  console.error("Auth callback error:", error, errorDescription);
+  return Astro.redirect(`/login?error=verification_failed`);
+}
+
+// Exchange code for session
+if (code) {
+  try {
+    const supabase = createSupabaseServerInstance({
+      headers: Astro.request.headers,
+      cookies: Astro.cookies,
+    });
+
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (exchangeError) {
+      console.error("Error exchanging code for session:", exchangeError);
+      return Astro.redirect(`/login?error=verification_failed`);
+    }
+
+    // Success! User is now logged in and email is verified
+    return Astro.redirect("/login?verified=true");
+  } catch (err) {
+    console.error("Unexpected error in callback:", err);
+    return Astro.redirect(`/login?error=verification_failed`);
+  }
+}
+
+// No code provided - redirect to login
+return Astro.redirect("/login");
+---

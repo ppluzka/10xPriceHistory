@@ -1,0 +1,59 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import LoginForm from "@/components/auth/LoginForm";
+
+export const prerender = false;
+
+// Check if user is already logged in - redirect to dashboard
+if (Astro.locals.user) {
+  return Astro.redirect("/dashboard");
+}
+
+// Get query params for messages and redirect
+const verified = Astro.url.searchParams.get("verified");
+const error = Astro.url.searchParams.get("error");
+const passwordReset = Astro.url.searchParams.get("password_reset");
+const returnUrl = Astro.url.searchParams.get("returnUrl") || "/dashboard";
+---
+
+<AuthLayout title="Logowanie">
+  <div class="space-y-4">
+    <!-- Success message for verified email -->
+    {
+      verified === "true" && (
+        <div class="rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 p-3">
+          <p class="text-sm text-green-800 dark:text-green-200">
+            ✓ Email został zweryfikowany. Możesz się teraz zalogować.
+          </p>
+        </div>
+      )
+    }
+
+    <!-- Success message for password reset -->
+    {
+      passwordReset === "true" && (
+        <div class="rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 p-3">
+          <p class="text-sm text-green-800 dark:text-green-200">
+            ✓ Hasło zostało zmienione. Możesz się teraz zalogować.
+          </p>
+        </div>
+      )
+    }
+
+    <!-- Error message -->
+    {
+      error && (
+        <div class="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+          <p class="text-sm text-destructive">
+            {error === "verification_failed" && "Weryfikacja nie powiodła się. Spróbuj ponownie."}
+            {error === "session_expired" && "Twoja sesja wygasła. Zaloguj się ponownie."}
+            {!["verification_failed", "session_expired"].includes(error) && "Wystąpił błąd. Spróbuj ponownie."}
+          </p>
+        </div>
+      )
+    }
+
+    <!-- Login form -->
+    <LoginForm client:load redirectTo={returnUrl} />
+  </div>
+</AuthLayout>

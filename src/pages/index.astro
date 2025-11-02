@@ -1,8 +1,49 @@
 ---
 import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+import PublicHeader from "@/components/navigation/PublicHeader";
+
+export const prerender = false;
+
+// Check if user is logged in (will work after middleware implementation)
+const user = Astro.locals.user;
 ---
 
 <Layout>
-  <Welcome />
+  <PublicHeader client:load currentPath={Astro.url.pathname} />
+
+  <div class="container mx-auto px-4 py-8">
+    {
+      user ? (
+        <div class="text-center space-y-4 mb-8">
+          <p class="text-muted-foreground">Jesteś zalogowany jako: {user.email}</p>
+          <a
+            href="/dashboard"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Przejdź do Dashboard
+          </a>
+        </div>
+      ) : (
+        <div class="text-center space-y-4 mb-8">
+          <h1 class="text-4xl font-bold">Witaj w PriceHistory</h1>
+          <p class="text-lg text-muted-foreground">Śledź zmiany cen ogłoszeń na Otomoto.pl</p>
+          <div class="flex gap-4 justify-center">
+            <a
+              href="/register"
+              class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Zacznij za darmo
+            </a>
+            <a
+              href="/login"
+              class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+            >
+              Zaloguj się
+            </a>
+          </div>
+        </div>
+      )
+    }
+  </div>
 </Layout>

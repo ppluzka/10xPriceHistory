@@ -1,0 +1,80 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import ResendVerificationButton from "@/components/auth/ResendVerificationButton";
+
+export const prerender = false;
+
+// Get email from query params
+const email = Astro.url.searchParams.get("email") || "";
+
+// If user is already logged in, redirect to dashboard
+if (Astro.locals.user) {
+  return Astro.redirect("/dashboard");
+}
+---
+
+<AuthLayout title="Weryfikacja Email">
+  <div class="space-y-6">
+    <!-- Success icon -->
+    <div class="flex justify-center">
+      <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"
+          ></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Main message -->
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-50">Sprawdź swoją skrzynkę email</h2>
+      <p class="text-muted-foreground">Wysłaliśmy link weryfikacyjny na adres:</p>
+      {email && <p class="font-medium text-gray-900 dark:text-gray-50">{email}</p>}
+    </div>
+
+    <!-- Instructions -->
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 p-4 space-y-3">
+      <h3 class="font-medium text-sm text-gray-900 dark:text-gray-50">Co dalej?</h3>
+      <ol class="space-y-2 text-sm text-muted-foreground">
+        <li class="flex gap-2">
+          <span class="font-medium">1.</span>
+          <span>Otwórz swoją skrzynkę email</span>
+        </li>
+        <li class="flex gap-2">
+          <span class="font-medium">2.</span>
+          <span>Znajdź wiadomość od PriceHistory</span>
+        </li>
+        <li class="flex gap-2">
+          <span class="font-medium">3.</span>
+          <span>Kliknij w link weryfikacyjny</span>
+        </li>
+        <li class="flex gap-2">
+          <span class="font-medium">4.</span>
+          <span>Zostaniesz automatycznie zalogowany</span>
+        </li>
+      </ol>
+    </div>
+
+    <!-- Tips -->
+    <div class="text-sm text-muted-foreground space-y-2">
+      <p>💡 <strong>Nie widzisz emaila?</strong></p>
+      <ul class="list-disc list-inside space-y-1 ml-4">
+        <li>Sprawdź folder SPAM</li>
+        <li>Poczekaj kilka minut (może trochę potrwać)</li>
+        <li>Sprawdź czy podałeś prawidłowy adres email</li>
+      </ul>
+    </div>
+
+    <!-- Resend button -->
+    {email && <ResendVerificationButton client:load email={email} />}
+
+    <!-- Back to login -->
+    <div class="text-center pt-4">
+      <a href="/login" class="text-sm text-primary hover:underline font-medium"> ← Powrót do logowania </a>
+    </div>
+  </div>
+</AuthLayout>

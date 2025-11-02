@@ -1,0 +1,48 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DashboardView from "../components/views/DashboardView";
+import Header from "../components/navigation/Header";
+import type { DashboardDto } from "../types";
+
+export const prerender = false;
+
+// Get user from middleware (added by auth middleware)
+// Middleware ensures user is always present on protected routes
+const user = Astro.locals.user!;
+
+// Fetch initial dashboard data server-side
+let initialData: DashboardDto | null = null;
+let error: string | null = null;
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/dashboard`, {
+    headers: {
+      Cookie: Astro.request.headers.get("Cookie") || "",
+    },
+  });
+
+  if (response.ok) {
+    initialData = await response.json();
+  } else {
+    error = "Failed to load dashboard data";
+  }
+} catch (e) {
+  console.error("Error fetching dashboard data:", e);
+  error = "Failed to load dashboard data";
+}
+---
+
+<Layout title="Dashboard - PriceHistory">
+  <Header client:load user={{ email: user.email, id: user.id }} />
+  {
+    error ? (
+      <div class="container mx-auto px-4 py-8">
+        <div class="text-center text-destructive">
+          <p>{error}</p>
+        </div>
+      </div>
+    ) : (
+      <DashboardView client:load initialData={initialData} />
+    )
+  }
+</Layout>

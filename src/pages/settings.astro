@@ -1,0 +1,48 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SettingsView from "../components/views/SettingsView";
+import Header from "../components/navigation/Header";
+import type { PreferencesDto } from "../types";
+
+export const prerender = false;
+
+// Get user from middleware (added by auth middleware)
+// Middleware ensures user is always present on protected routes
+const user = Astro.locals.user!;
+
+// Fetch initial preferences data server-side
+let initialPreferences: PreferencesDto | null = null;
+let error: string | null = null;
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/preferences`, {
+    headers: {
+      Cookie: Astro.request.headers.get("Cookie") || "",
+    },
+  });
+
+  if (response.ok) {
+    initialPreferences = await response.json();
+  } else {
+    error = "Failed to load preferences";
+  }
+} catch (e) {
+  console.error("Error fetching preferences:", e);
+  error = "Failed to load preferences";
+}
+---
+
+<Layout title="Ustawienia - PriceHistory">
+  <Header client:load user={{ email: user.email, id: user.id }} />
+  {
+    error ? (
+      <div class="container mx-auto px-4 py-8">
+        <div class="text-center text-destructive">
+          <p>{error}</p>
+        </div>
+      </div>
+    ) : (
+      <SettingsView client:load initialPreferences={initialPreferences} />
+    )
+  }
+</Layout>
