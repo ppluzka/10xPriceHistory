@@ -64,7 +64,7 @@ export class DashboardPage extends BasePage {
    */
   async waitForDashboardLoaded() {
     await this.stats.waitForLoaded();
-    await this.offerForm.isVisible();
+    await this.offerForm.container.waitFor({ state: 'visible', timeout: 5000 });
   }
 
   // ====================================

@@ -7,9 +7,10 @@ interface OfferGridProps {
   offers: OfferDto[];
   isLoading: boolean;
   onDeleteOffer: (offerId: string) => void;
+  onRecheckOffer?: (offerId: string) => Promise<void>;
 }
 
-export default function OfferGrid({ offers, isLoading, onDeleteOffer }: OfferGridProps) {
+export default function OfferGrid({ offers, isLoading, onDeleteOffer, onRecheckOffer }: OfferGridProps) {
   // Show skeleton during initial load
   if (isLoading) {
     return <OfferGridSkeleton />;
@@ -19,8 +20,8 @@ export default function OfferGrid({ offers, isLoading, onDeleteOffer }: OfferGri
   if (offers.length === 0) {
     return (
       <EmptyState
-        title="No offers yet"
-        description="Add your first offer from otomoto.pl to start tracking price changes"
+        title="Brak ofert"
+        description="Dodaj pierwszą ofertę z otomoto.pl, aby rozpocząć śledzenie zmian cen"
         icon="package"
       />
     );
@@ -29,7 +30,7 @@ export default function OfferGrid({ offers, isLoading, onDeleteOffer }: OfferGri
   // Show offers grid
   return (
     <div className="space-y-4" data-testid="offers-section">
-      <h2 className="text-xl font-semibold">Your Watched Offers</h2>
+      <h2 className="text-xl font-semibold">Twoje obserwowane oferty</h2>
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="offers-grid">
         {offers.map((offer) => (
@@ -37,6 +38,7 @@ export default function OfferGrid({ offers, isLoading, onDeleteOffer }: OfferGri
             key={offer.id}
             offer={offer}
             onDelete={onDeleteOffer}
+            onRecheck={onRecheckOffer}
           />
         ))}
       </div>

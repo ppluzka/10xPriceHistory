@@ -56,10 +56,10 @@ export default function PriceHistoryTable({ history }: PriceHistoryTableProps) {
                   <TableRow key={`${entry.checkedAt}-${index}`} className={priceChanged ? "bg-muted/50" : ""}>
                     <TableCell className="font-medium">{formattedDate}</TableCell>
                     <TableCell className="text-right">
-                      <span className={priceChanged ? "font-semibold" : ""}>{formattedPrice}</span>
                       {priceChanged && previousEntry && (
                         <PriceChangeIndicator currentPrice={entry.price} previousPrice={previousEntry.price} />
                       )}
+                      <span className={priceChanged ? "font-semibold" : ""}> {formattedPrice}</span>
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">{entry.currency}</TableCell>
                   </TableRow>

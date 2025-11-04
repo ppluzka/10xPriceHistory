@@ -21,22 +21,22 @@ describe("OfferForm", () => {
 
   describe("Rendering", () => {
     it("should render the form with all elements", () => {
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
-      expect(screen.getByText("Add New Offer")).toBeInTheDocument();
+      expect(screen.getByText("Dodaj nową ofertę")).toBeInTheDocument();
       expect(
-        screen.getByText(/Paste an otomoto.pl URL to start tracking/i)
+        screen.getByText(/Wklej adres URL z otomoto.pl, aby rozpocząć śledzenie/i)
       ).toBeInTheDocument();
       expect(
         screen.getByPlaceholderText("https://www.otomoto.pl/...")
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /add offer/i })
+        screen.getByRole("button", { name: /dodaj ofertę/i })
       ).toBeInTheDocument();
     });
 
     it("should render input with correct attributes", () => {
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       expect(input).toHaveAttribute("type", "url");
@@ -44,9 +44,9 @@ describe("OfferForm", () => {
     });
 
     it("should have submit button disabled when URL is empty", () => {
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       expect(submitButton).toBeDisabled();
     });
   });
@@ -56,10 +56,10 @@ describe("OfferForm", () => {
   describe("URL Validation", () => {
     it("should prevent submission when URL is empty (button disabled)", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
 
       // Type and clear - button should become disabled
       await user.type(input, "a");
@@ -72,17 +72,17 @@ describe("OfferForm", () => {
 
     it("should show error for invalid URL format", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.clear(input);
       await user.type(input, "ftp://otomoto.pl/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
-        const errorMessage = screen.queryByText("Please enter a valid URL");
+        const errorMessage = screen.queryByText("Wprowadź adres URL.");
         expect(errorMessage).toBeInTheDocument();
       });
       
@@ -91,32 +91,32 @@ describe("OfferForm", () => {
 
     it("should show error when URL is not from otomoto.pl", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.google.com/search");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       expect(
-        screen.getByText("URL must be from otomoto.pl")
+        screen.getByText("URL musi być z otomoto.pl")
       ).toBeInTheDocument();
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
     it("should show error when URL is from similar but wrong domain", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.com/offer/123");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       expect(
-        screen.getByText("URL must be from otomoto.pl")
+        screen.getByText("URL musi być z otomoto.pl")
       ).toBeInTheDocument();
     });
 
@@ -127,12 +127,12 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Offer added successfully" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test-car-123");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -152,12 +152,12 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://otomoto.pl/oferta/bmw-x5-2024");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -172,7 +172,7 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(
@@ -180,7 +180,7 @@ describe("OfferForm", () => {
         "https://www.otomoto.pl/oferta/test?utm_source=facebook&ref=share"
       );
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -195,12 +195,12 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "  https://www.otomoto.pl/oferta/test  ");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -227,12 +227,12 @@ describe("OfferForm", () => {
         json: async () => mockResponse,
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/bmw-x5");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -253,14 +253,14 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText(
         "https://www.otomoto.pl/..."
       ) as HTMLInputElement;
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -275,12 +275,12 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -295,12 +295,12 @@ describe("OfferForm", () => {
         json: async () => ({ error: "Offer already exists" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/duplicate");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -317,16 +317,16 @@ describe("OfferForm", () => {
         },
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to add offer")).toBeInTheDocument();
+        expect(screen.getByText("Nie udało się dodać oferty")).toBeInTheDocument();
       });
     });
 
@@ -334,12 +334,12 @@ describe("OfferForm", () => {
       const user = userEvent.setup();
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -354,12 +354,12 @@ describe("OfferForm", () => {
         json: async () => ({ error: "Server error" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -389,19 +389,19 @@ describe("OfferForm", () => {
           )
       );
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       // Check loading state
       expect(
-        screen.getByRole("button", { name: /adding/i })
+        screen.getByRole("button", { name: /dodawanie/i })
       ).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /adding/i })).toBeDisabled();
+      expect(screen.getByRole("button", { name: /dodawanie/i })).toBeDisabled();
     });
 
     it("should disable input during submission", async () => {
@@ -420,12 +420,12 @@ describe("OfferForm", () => {
           )
       );
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       expect(input).toBeDisabled();
@@ -438,12 +438,12 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -458,18 +458,18 @@ describe("OfferForm", () => {
         json: async () => ({ error: "Error" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(input).not.toBeDisabled();
         expect(
-          screen.getByRole("button", { name: /add offer/i })
+          screen.getByRole("button", { name: /dodaj ofertę/i })
         ).not.toBeDisabled();
       });
     });
@@ -480,10 +480,10 @@ describe("OfferForm", () => {
   describe("Error State Management", () => {
     it("should clear validation error when user starts typing", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
 
       // Trigger validation error
       await user.clear(input);
@@ -491,7 +491,7 @@ describe("OfferForm", () => {
       await user.click(submitButton);
       
       await waitFor(() => {
-        const errorMessage = screen.queryByText("Please enter a valid URL");
+        const errorMessage = screen.queryByText("Wprowadź adres URL.");
         expect(errorMessage).toBeInTheDocument();
       });
 
@@ -500,7 +500,7 @@ describe("OfferForm", () => {
       
       await waitFor(() => {
         expect(
-          screen.queryByText("Please enter a valid URL")
+          screen.queryByText("Wprowadź adres URL.")
         ).not.toBeInTheDocument();
       });
     });
@@ -512,12 +512,12 @@ describe("OfferForm", () => {
         json: async () => ({ error: "Server error" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -536,12 +536,12 @@ describe("OfferForm", () => {
         json: async () => ({ error: "API error" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -561,7 +561,7 @@ describe("OfferForm", () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        const errorMessage = screen.queryByText("Please enter a valid URL");
+        const errorMessage = screen.queryByText("Wprowadź adres URL.");
         expect(errorMessage).toBeInTheDocument();
       });
     });
@@ -572,10 +572,10 @@ describe("OfferForm", () => {
   describe("Accessibility", () => {
     it("should set aria-invalid on input when validation error exists", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
 
       await user.clear(input);
       await user.type(input, "ftp://example.com/test");
@@ -583,7 +583,7 @@ describe("OfferForm", () => {
 
       // Wait for validation error message to appear first
       await waitFor(() => {
-        const errorMessage = screen.queryByText("Please enter a valid URL");
+        const errorMessage = screen.queryByText("Wprowadź adres URL.");
         expect(errorMessage).toBeInTheDocument();
       });
 
@@ -598,12 +598,12 @@ describe("OfferForm", () => {
         json: async () => ({ error: "Error" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -612,16 +612,16 @@ describe("OfferForm", () => {
     });
 
     it("should not set aria-invalid when no errors", () => {
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       expect(input).toHaveAttribute("aria-invalid", "false");
     });
 
     it("should have proper heading hierarchy", () => {
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
-      const heading = screen.getByText("Add New Offer");
+      const heading = screen.getByText("Dodaj nową ofertę");
       expect(heading.tagName).toBe("H2");
     });
   });
@@ -639,12 +639,12 @@ describe("OfferForm", () => {
       const longUrl =
         "https://www.otomoto.pl/oferta/" + "a".repeat(500) + "?param=value";
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, longUrl);
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -659,7 +659,7 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(
@@ -667,7 +667,7 @@ describe("OfferForm", () => {
         "https://www.otomoto.pl/oferta/bmw-x5-2024-śląskie-górny"
       );
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -682,12 +682,12 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test1");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
 
       // Try to submit multiple times
       await user.click(submitButton);
@@ -707,7 +707,7 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test{Enter}");
@@ -724,12 +724,12 @@ describe("OfferForm", () => {
         json: async () => ({}),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -743,39 +743,39 @@ describe("OfferForm", () => {
   describe("Button State", () => {
     it("should keep button disabled when URL is only whitespace", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "   ");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       expect(submitButton).toBeDisabled();
     });
 
     it("should enable button when valid URL is entered", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       expect(submitButton).not.toBeDisabled();
     });
 
     it("should disable button again when URL is cleared", async () => {
       const user = userEvent.setup();
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      let submitButton = screen.getByRole("button", { name: /add offer/i });
+      let submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       expect(submitButton).not.toBeDisabled();
 
       await user.clear(input);
 
-      submitButton = screen.getByRole("button", { name: /add offer/i });
+      submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       expect(submitButton).toBeDisabled();
     });
   });
@@ -799,20 +799,20 @@ describe("OfferForm", () => {
           )
       );
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       // Step 1: User types URL
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/mercedes-s-class");
 
       // Step 2: User submits
-      const submitButton = screen.getByRole("button", { name: /add offer/i });
+      const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       expect(submitButton).not.toBeDisabled();
       await user.click(submitButton);
 
       // Step 3: Loading state
       await waitFor(() => {
-        expect(screen.getByText(/adding/i)).toBeInTheDocument();
+        expect(screen.getByText(/dodawanie/i)).toBeInTheDocument();
       });
 
       // Step 4: Success
@@ -844,12 +844,12 @@ describe("OfferForm", () => {
         json: async () => ({ error: "Server temporarily unavailable" }),
       });
 
-      render(<OfferForm onOfferAdded={mockOnOfferAdded} />);
+      render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
-      let submitButton = screen.getByRole("button", { name: /add offer/i });
+      let submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -864,7 +864,7 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      submitButton = screen.getByRole("button", { name: /add offer/i });
+      submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
       await waitFor(() => {

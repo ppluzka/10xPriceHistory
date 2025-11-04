@@ -254,37 +254,37 @@ export class OfferService {
    * @returns true if unsubscribed successfully, false if not found or already unsubscribed
    */
   async unsubscribe(userId: string, offerId: number): Promise<boolean> {
-    // First, check if active subscription exists
-    const { data: subscription, error: selectError } = await this.supabase
-      .from("user_offer")
-      .select("deleted_at")
-      .eq("user_id", userId)
-      .eq("offer_id", offerId)
-      .maybeSingle();
+    // Verify the Supabase client has a valid session
+    // This ensures auth.uid() will work correctly in the database function
+    const {
+      data: { user },
+      error: authError,
+    } = await this.supabase.auth.getUser();
 
-    if (selectError) {
-      console.error("Error checking subscription:", selectError);
-      throw new Error(`Failed to check subscription: ${selectError.message}`);
+    if (authError || !user) {
+      console.error("Error getting authenticated user:", authError);
+      throw new Error("Authentication required");
     }
 
-    // If subscription doesn't exist or is already deleted, return false
-    if (!subscription || subscription.deleted_at !== null) {
-      return false;
+    // Verify the userId matches the authenticated user
+    if (user.id !== userId) {
+      throw new Error("User ID mismatch");
     }
 
-    // Perform soft-delete by setting deleted_at timestamp
-    const { error: updateError } = await this.supabase
-      .from("user_offer")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("user_id", userId)
-      .eq("offer_id", offerId);
+    // Use the database function to handle soft-delete
+    // This function uses SECURITY DEFINER to bypass RLS but verifies auth.uid() internally
+    // This is necessary because RLS with check clauses can fail on UPDATE operations
+    const { data, error } = await this.supabase.rpc("soft_delete_user_offer", {
+      p_offer_id: offerId,
+    });
 
-    if (updateError) {
-      console.error("Error unsubscribing from offer:", updateError);
-      throw new Error(`Failed to unsubscribe: ${updateError.message}`);
+    if (error) {
+      console.error("Error unsubscribing from offer:", error);
+      throw new Error(`Failed to unsubscribe: ${error.message}`);
     }
 
-    return true;
+    // The function returns true if the subscription was soft-deleted, false if not found
+    return data === true;
   }
 
   /**
@@ -448,63 +448,38 @@ export class OfferService {
       throw new Error(`Failed to check existing offer: ${offerError.message}`);
     }
 
-    // Step 3: If offer exists, check user subscription
+    // Step 3: If offer exists, handle user subscription using database function
+    // This function bypasses RLS to check for soft-deleted subscriptions and handles reactivation
     if (existingOffer) {
       const offerId = existingOffer.id;
 
-      // Check if user already has this subscription
-      const { data: existingSubscription, error: subError } = await this.supabase
-        .from("user_offer")
-        .select("deleted_at")
-        .eq("user_id", userId)
-        .eq("offer_id", offerId)
-        .maybeSingle();
+      // Validate price change if offer has history (PRD requirement: warn if >50% change)
+      await this.validatePriceChange(offerId, url);
 
-      if (subError) {
-        console.error("Error checking existing subscription:", subError);
-        throw new Error(`Failed to check subscription: ${subError.message}`);
+      // Use database function to handle subscription creation/reactivation
+      // This bypasses RLS to properly handle soft-deleted subscriptions
+      const { data: result, error: upsertError } = await this.supabase.rpc("upsert_user_offer", {
+        p_offer_id: offerId,
+      });
+
+      if (upsertError) {
+        console.error("Error upserting subscription:", upsertError);
+        throw new Error(`Failed to create subscription: ${upsertError.message}`);
       }
 
-      if (existingSubscription) {
-        // If active subscription exists, return conflict
-        if (existingSubscription.deleted_at === null) {
-          throw new Error("Offer already subscribed");
-        }
+      // Handle function return values
+      if (result === "exists") {
+        throw new Error("Offer already subscribed");
+      }
 
-        // If deleted subscription exists, reactivate it
-        const { error: reactivateError } = await this.supabase
-          .from("user_offer")
-          .update({ deleted_at: null })
-          .eq("user_id", userId)
-          .eq("offer_id", offerId);
-
-        if (reactivateError) {
-          console.error("Error reactivating subscription:", reactivateError);
-          throw new Error(`Failed to reactivate subscription: ${reactivateError.message}`);
-        }
-
+      if (result === "reactivated") {
         return {
           id: offerId,
           message: "Offer subscription reactivated",
         };
       }
 
-      // Subscription doesn't exist for this user, but offer exists (assigned to other users)
-      // Create new subscription - user will only see price history from this point forward
-      // (RLS policies will filter price_history based on user_offer.created_at)
-      
-      // Validate price change if offer has history (PRD requirement: warn if >50% change)
-      await this.validatePriceChange(offerId, url);
-      
-      const { error: insertSubError } = await this.supabase
-        .from("user_offer")
-        .insert({ user_id: userId, offer_id: offerId });
-
-      if (insertSubError) {
-        console.error("Error creating subscription:", insertSubError);
-        throw new Error(`Failed to create subscription: ${insertSubError.message}`);
-      }
-
+      // result === "created"
       return {
         id: offerId,
         message: "Offer added",
@@ -622,49 +597,198 @@ export class OfferService {
   }
 
   /**
-   * Extract offer data using LLM (OpenRouter)
-   * @param html - HTML content of the page
-   * @param url - URL of the offer
-   * @returns Extracted offer data
+   * Extract location context from HTML for LLM processing
+   * @param $ - Cheerio instance with loaded HTML
+   * @returns Object with locationInfo and uniqueLocationContext
    */
-  private async extractWithLLM(html: string, url: string): Promise<ExtractedOfferData> {
-    if (!this.openRouterService) {
-      throw new Error("OpenRouter service not initialized");
+  private extractLocationContextForLLM($: cheerio.CheerioAPI): {
+    locationInfo: string;
+    uniqueLocationContext: string[];
+  } {
+    // Extract location-specific elements to improve city extraction
+    // First, try standard selectors
+    let locationInfo = "";
+    const locationSelectors = [
+      'a[data-testid="ad-location"]',
+      '[data-testid*="location"]',
+      '[data-testid*="address"]',
+      ".seller-card__links a",
+      'p:contains("Lokalizacja")',
+      'span:contains("Lokalizacja")',
+      ".breadcrumb li",
+      '[class*="location"]',
+      '[class*="address"]',
+    ];
+
+    for (const selector of locationSelectors) {
+      try {
+        const element = $(selector).first();
+        if (element.length) {
+          locationInfo = element.text().trim();
+          if (locationInfo && locationInfo.length > 2) {
+            console.log(`Found location with selector ${selector}: ${locationInfo}`);
+            break;
+          }
+        }
+      } catch {
+        // Skip invalid selectors
+      }
     }
 
-    console.log("Using LLM extraction for offer data");
+    // Enhanced location context extraction (text near SVG icons and location elements)
+    const locationContext: string[] = [];
 
-    // Load HTML with cheerio to extract relevant parts and reduce token usage
-      const $ = cheerio.load(html);
+    // Find all SVG elements that might be location icons - check multiple levels
+    $("svg").each((_, el) => {
+      const $svg = $(el);
 
-    // Extract the main content area and meta tags (reduce HTML size)
-    const title = $("title").text();
-    const metaTags = $("meta")
-      .map((_, el) => {
-        const property = $(el).attr("property") || $(el).attr("name");
-        const content = $(el).attr("content");
-        return property && content ? `${property}: ${content}` : "";
-      })
-      .get()
-      .filter(Boolean)
-      .join("\n");
+      // Check parent, grandparent, and great-grandparent for location text
+      const $parent = $svg.parent();
+      const $gparent = $parent.parent();
+      const $ggparent = $gparent.parent();
 
-    // Get main content area (limit to first 5000 chars to save tokens)
-    const mainContent = $("body").text().substring(0, 5000);
+      // Get text from multiple levels
+      const parentText = $parent.text().trim();
+      const gparentText = $gparent.text().trim();
+      const ggparentText = $ggparent.text().trim();
 
-    // Build compact HTML representation
+      // Check if any contain location-like patterns
+      const allTexts = [parentText, gparentText, ggparentText];
+      for (const text of allTexts) {
+        if (text && text.length > 2) {
+          // Check if it looks like a location (contains postal code, street, city patterns)
+          if (
+            text.match(
+              /\d{2}-\d{3}|ul\.|ulica|gmina|powiat|województwo|Białuń|Marki|goleniowski|wołomiński|Zachodniopomorskie|Mazowieckie/i
+            )
+          ) {
+            locationContext.push(`Context near SVG icon: ${text}`);
+            break; // Found good match, move to next SVG
+          }
+        }
+      }
+    });
+
+    // Look for common location-related patterns with more aggressive search
+    const locationPatternSelectors = [
+      'a[href*="lokalizacja"]',
+      'a[href*="address"]',
+      '[data-testid*="location"]',
+      '[data-testid*="address"]',
+      '[class*="location"]',
+      '[class*="address"]',
+      '[aria-label*="lokalizacja"]',
+      '[aria-label*="location"]',
+      '[title*="lokalizacja"]',
+      '[title*="location"]',
+    ];
+
+    locationPatternSelectors.forEach((selector) => {
+      try {
+        $(selector).each((_, el) => {
+          const text = $(el).text().trim();
+          if (text && text.length > 2) {
+            locationContext.push(`Location element (${selector}): ${text}`);
+          }
+        });
+      } catch {
+        // Skip invalid selectors
+      }
+    });
+
+    // Look for text near map containers with more levels
+    $('[class*="map"], [id*="map"], [class*="google-map"], [class*="Map"]').each((_, el) => {
+      const $el = $(el);
+      const $parent = $el.parent();
+      const $gparent = $parent.parent();
+
+      const parentText = $parent.text().trim();
+      const gparentText = $gparent.text().trim();
+
+      for (const text of [parentText, gparentText]) {
+        if (text && text.length > 2) {
+          locationContext.push(`Near map container: ${text}`);
+          break;
+        }
+      }
+    });
+
+    // Look for specific sections that might contain location (more targeted approach)
+    const locationSections = [
+      '[data-testid*="seller"]',
+      '[class*="seller"]',
+      '[class*="contact"]',
+      '[class*="info"]',
+      '[id*="location"]',
+      '[id*="address"]',
+    ];
+
+    locationSections.forEach((sectionSelector) => {
+      try {
+        $(sectionSelector).each((_, el) => {
+          const $section = $(el);
+          const text = $section.text().trim();
+          if (text && text.length > 10) {
+            // Check if it contains location patterns
+            if (text.match(/\d{2}-\d{3}|ul\.|ulica|gmina|powiat|województwo|Białuń|Marki/i)) {
+              // Extract just the location part (more focused)
+              const lines = text
+                .split("\n")
+                .filter(
+                  (line) => line.trim().length > 5 && line.match(/\d{2}-\d{3}|ul\.|ulica|gmina|powiat|województwo/i)
+                );
+              if (lines.length > 0) {
+                const locationText = lines.join(", ");
+                if (!locationContext.some((ctx) => ctx.includes(locationText))) {
+                  locationContext.push(`Location in ${sectionSelector}: ${locationText}`);
+                }
+              }
+            }
+          }
+        });
+      } catch {
+        // Skip invalid selectors
+      }
+    });
+
+    // Remove duplicates (no limit on count)
+    const uniqueLocationContext = Array.from(new Set(locationContext));
+
+    console.log(`Location extraction - standard selector: ${locationInfo || "not found"}`);
+    console.log(`Location extraction - context items found: ${uniqueLocationContext.length}`);
+    if (uniqueLocationContext.length > 0) {
+      console.log(`Location context samples: ${uniqueLocationContext.slice(0, 3).join(" | ")}`);
+    }
+
+    return {
+      locationInfo,
+      uniqueLocationContext,
+    };
+  }
+
+  /**
+   * Build LLM extraction prompt and response format
+   * @param url - URL of the offer
+   * @param title - Page title
+   * @param mainContent - Main content text from body
+   * @returns Object with messages and responseFormat
+   */
+  private buildLLMExtractionPrompt(
+    url: string,
+    title: string,
+    mainContent: string
+  ): {
+    messages: { role: "system" | "user"; content: string }[];
+    responseFormat: ResponseFormat;
+  } {
     const compactHtml = `
 URL: ${url}
 Title: ${title}
 
-Meta Tags:
-${metaTags}
-
-Main Content:
+Main Content (text only):
 ${mainContent}
 `;
 
-    // Define JSON schema for structured extraction
     const responseFormat: ResponseFormat = {
       type: "json_schema",
       json_schema: {
@@ -688,19 +812,23 @@ ${mainContent}
             currency: {
               type: "string",
               enum: ["PLN", "EUR", "USD", "GBP"],
-              description: "Currency code (PLN for Polish Zloty, EUR for Euro, USD for US Dollar, GBP for British Pound)",
+              description:
+                "Currency code (PLN for Polish Zloty, EUR for Euro, USD for US Dollar, GBP for British Pound)",
             },
             city: {
               type: "string",
-              description: "City/location of the offer (just city name, no extra text)",
+              description:
+                "Full location/address of the offer. Extract the complete location information including street address, postal code, city, county, and voivodeship if available. Examples: 'ul. Wiśniowa 15 - 72-100 Białuń, goleniowski, Zachodniopomorskie (Polska)', 'Marki, wołomiński, Mazowieckie'. If only city name is available, use that. This is CRITICAL to find - check Location Context section first.",
             },
             confidence: {
               type: "number",
-              description: "Confidence score (0.0 to 1.0) indicating certainty of extracted data. 1.0 = very confident, 0.8-0.9 = confident, <0.8 = uncertain",
+              description:
+                "Confidence score (0.0 to 1.0) indicating certainty of extracted data. 1.0 = very confident, 0.8-0.9 = confident, <0.8 = uncertain",
             },
             selector: {
               type: "string",
-              description: "CSS selector where the price was found (e.g., 'h3[data-testid=\"ad-price\"]', '.offer-price__number')",
+              description:
+                "CSS selector where the price was found (e.g., 'h3[data-testid=\"ad-price\"]', '.offer-price__number')",
             },
           },
           required: ["title", "imageUrl", "price", "currency", "city", "confidence", "selector"],
@@ -709,8 +837,7 @@ ${mainContent}
       },
     };
 
-    // Send request to LLM with timeout (PRD requirement: 30 seconds)
-    const llmPromise = this.openRouterService.sendChatCompletion({
+    return {
       messages: [
         {
           role: "system",
@@ -720,8 +847,40 @@ Extract the following information from the provided HTML content:
 - title: Full vehicle title/name
 - imageUrl: Main image URL (from og:image meta tag or first photo)
 - price: Numeric price value (remove all spaces and currency symbols)
-- currency: Currency code (PLN, EUR, USD, or GBP)
-- city: City/location name (clean, without extra text)
+- currency: Currency code (PLN, EUR, USD, or GBP) - THIS IS THE MOST CRITICAL FIELD TO EXTRACT
+- city: FULL location/address of the offer 
+  * **SEARCH ORDER (follow this exactly):**
+    Search "Main Content" text carefully - look for patterns like:
+       - Postal codes: "72-100", "00-000" format
+       - Street addresses: "ul.", "ulica", street names
+       - City names followed by county and voivodeship
+       - Patterns like "City, county, Voivodeship" or "Street - Postal Code City, county, Voivodeship"
+  
+  * **WHAT TO EXTRACT:**
+    Extract the COMPLETE location information if available:
+    - Street address (e.g., "ul. Wiśniowa 15")
+    - Postal code and city (e.g., "72-100 Białuń")
+    - County (e.g., "goleniowski", "wołomiński")
+    - Voivodeship (e.g., "Zachodniopomorskie", "Mazowieckie")
+    - Country if mentioned (e.g., "(Polska)")
+  
+  * **EXAMPLES OF CORRECT OUTPUT:**
+    - "ul. Wiśniowa 15 - 72-100 Białuń, goleniowski, Zachodniopomorskie (Polska)"
+    - "Marki, wołomiński, Mazowieckie"
+    - "Warszawa, mazowieckie"
+    - "Kraków, małopolskie"
+  
+  * **IF PARTIAL INFO AVAILABLE:**
+    - If you find city + county + voivodeship: combine them (e.g., "Marki, wołomiński, Mazowieckie")
+    - If you find full address with postal code: include everything (e.g., "ul. Wiśniowa 15 - 72-100 Białuń, goleniowski, Zachodniopomorskie")
+    - If only city name: use that (e.g., "Warszawa")
+    - ONLY use "Nieznana" if you absolutely cannot find ANY location information after searching ALL sections
+  
+  * **IMPORTANT:**
+    - Location information may be split across multiple elements in HTML
+    - Look for patterns: postal codes (XX-XXX), street names, city names, administrative divisions
+    - Polish location names use special characters: ą, ć, ę, ł, ń, ó, ś, ź, ż
+    - Be thorough - search the entire provided content before giving up
 - confidence: Your confidence score (0.0 to 1.0) about the accuracy of extracted data
   * 1.0 = Very confident, all data clearly visible and unambiguous
   * 0.8-0.9 = Confident, data found with minor ambiguity
@@ -730,7 +889,7 @@ Extract the following information from the provided HTML content:
 
 Be precise and extract only the requested information. If a field cannot be found, use reasonable defaults:
 - imageUrl: empty string if not found
-- city: "Nieznana" if not found
+- city: "Nieznana" if not found (only use this as last resort after checking all Location Context)
 - confidence: should reflect your certainty about ALL extracted fields`,
         },
         {
@@ -738,6 +897,169 @@ Be precise and extract only the requested information. If a field cannot be foun
           content: compactHtml,
         },
       ],
+      responseFormat,
+    };
+  }
+
+  /**
+   * Validate LLM extraction response
+   * @param extractedData - Data extracted by LLM
+   * @throws Error if validation fails
+   */
+  private validateLLMResponse(extractedData: LLMExtractionResponse): void {
+    if (!extractedData.title) {
+      throw new Error("LLM failed to extract title");
+    }
+
+    if (extractedData.price <= 0 || extractedData.price > 10000000) {
+      throw new Error(`Invalid price value extracted by LLM: ${extractedData.price}`);
+    }
+  }
+
+  /**
+   * Extract offer data using LLM (OpenRouter)
+   * @param html - HTML content of the page
+   * @param url - URL of the offer
+   * @returns Extracted offer data
+   */
+  private async extractWithLLM(html: string, url: string): Promise<ExtractedOfferData> {
+    if (!this.openRouterService) {
+      throw new Error("OpenRouter service not initialized");
+    }
+
+    console.log("Using LLM extraction for offer data");
+
+    // Load HTML with cheerio to extract relevant parts and reduce token usage
+    const $ = cheerio.load(html);
+
+    // Extract the main content area
+    const title = $("title").text();
+
+    // Extract location context for LLM (for logging/debugging)
+    this.extractLocationContextForLLM($);
+
+    // Extract main image URL before removing CSS/JS (use same fallbacks as extractWithCheerio)
+    let mainImageUrl = "";
+
+    // Try og:image meta tag first (most reliable)
+    mainImageUrl = $('meta[property="og:image"]').attr("content") || "";
+
+    // Fallback to photo viewer image
+    if (!mainImageUrl) {
+      const $photoViewer = $('img[data-testid="photo-viewer-image"]').first();
+      if ($photoViewer.length) {
+        mainImageUrl =
+          $photoViewer.attr("src") || $photoViewer.attr("data-src") || $photoViewer.attr("data-lazy-src") || "";
+      }
+    }
+
+    // Fallback to offer photos gallery
+    if (!mainImageUrl) {
+      const $offerPhoto = $(".offer-photos img").first();
+      if ($offerPhoto.length) {
+        mainImageUrl =
+          $offerPhoto.attr("src") || $offerPhoto.attr("data-src") || $offerPhoto.attr("data-lazy-src") || "";
+      }
+    }
+
+    // Last resort: first image in the page (but exclude common logo/icon patterns)
+    if (!mainImageUrl) {
+      $("img").each((_, el) => {
+        const $img = $(el);
+        const src = $img.attr("src") || $img.attr("data-src") || $img.attr("data-lazy-src") || "";
+        // Skip common logo/icon patterns
+        if (src && !src.match(/(logo|icon|favicon|sprite|banner|advertisement)/i)) {
+          mainImageUrl = src;
+          return false; // break
+        }
+      });
+    }
+
+    console.log(`Extracted image URL: ${mainImageUrl || "NOT FOUND"}`);
+
+    // Remove all CSS and JS to reduce token usage and noise
+    $("script").remove();
+    $("style").remove();
+    // Remove inline CSS from all elements
+    $("*").removeAttr("style");
+    // Remove inline JavaScript event handlers (onclick, onload, etc.)
+    const inlineJsAttrs = [
+      "onclick",
+      "onload",
+      "onerror",
+      "onmouseover",
+      "onmouseout",
+      "onfocus",
+      "onblur",
+      "onsubmit",
+      "onchange",
+      "onkeydown",
+      "onkeyup",
+      "onkeypress",
+      "onselect",
+      "oninput",
+      "onreset",
+      "ondblclick",
+      "onmousedown",
+      "onmouseup",
+      "onmousemove",
+      "oncontextmenu",
+      "ondrag",
+      "ondragend",
+      "ondragenter",
+      "ondragleave",
+      "ondragover",
+      "ondragstart",
+      "ondrop",
+      "onscroll",
+      "onwheel",
+    ];
+    inlineJsAttrs.forEach((attr) => {
+      $("*").removeAttr(attr);
+    });
+
+    // Remove class and id attributes (CSS classes) to reduce noise
+    $("*").removeAttr("class");
+    $("*").removeAttr("id");
+
+    let mainContent = $("body").text();
+
+    // Remove CSS fragments from text (e.g., .ooa-106z5u6{display:-webkit-box;...})
+    // Function to remove CSS blocks by finding matching braces
+    const removeCSSBlocks = (text: string): string => {
+      let result = text;
+      let changed = true;
+
+      // Iteratively remove CSS blocks until no more changes
+      while (changed) {
+        const before = result;
+        // Remove CSS class definitions starting with .className{
+        result = result.replace(/\.\w+[-\w]*\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, "");
+        // Remove @media queries
+        result = result.replace(/@media[^{]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, "");
+        // Remove standalone blocks with CSS properties
+        result = result.replace(
+          /\{[^{}]*(?:display|position|margin|padding|width|height|color|background|border|z-index|flex|align|justify|gap|webkit|ms-)[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g,
+          ""
+        );
+        changed = before !== result;
+      }
+      return result;
+    };
+
+    mainContent = removeCSSBlocks(mainContent);
+    // Clean up multiple spaces and newlines
+    mainContent = mainContent.replace(/\s+/g, " ").trim();
+
+    // Append main image URL to content if found
+    const contentWithMainImage = mainImageUrl ? `${mainContent}\n\nMain image URL: ${mainImageUrl}` : mainContent;
+
+    // Build LLM prompt and response format
+    const { messages, responseFormat } = this.buildLLMExtractionPrompt(url, title, contentWithMainImage);
+
+    // Send request to LLM with timeout (PRD requirement: 30 seconds)
+    const llmPromise = this.openRouterService.sendChatCompletion({
+      messages,
       response_format: responseFormat,
       temperature: 0.1, // Low temperature for consistent extraction
       max_tokens: 500,
@@ -768,13 +1090,7 @@ Be precise and extract only the requested information. If a field cannot be foun
     const extractedData = validated.data;
 
     // Validate extracted data
-    if (!extractedData.title) {
-      throw new Error("LLM failed to extract title");
-    }
-
-    if (extractedData.price <= 0 || extractedData.price > 10000000) {
-      throw new Error(`Invalid price value extracted by LLM: ${extractedData.price}`);
-    }
+    this.validateLLMResponse(extractedData);
 
     // Check confidence score (PRD requirement: minimum 0.8)
     if (extractedData.confidence < 0.8) {
@@ -799,9 +1115,16 @@ Be precise and extract only the requested information. If a field cannot be foun
       correlation_id: `extraction-${Date.now()}`,
     });
 
+    // Use extracted mainImageUrl as fallback if LLM returned empty imageUrl
+    const finalImageUrl = extractedData.imageUrl || mainImageUrl || "";
+
+    if (!finalImageUrl) {
+      console.warn("⚠️  WARNING: No image URL extracted from offer");
+    }
+
     return {
       title: extractedData.title,
-      imageUrl: extractedData.imageUrl,
+      imageUrl: finalImageUrl,
       price: extractedData.price,
       currency: extractedData.currency,
       city: extractedData.city,
@@ -819,91 +1142,128 @@ Be precise and extract only the requested information. If a field cannot be foun
 
     const $ = cheerio.load(html);
 
-      // Extract title
-      let title = $('h1[data-testid="ad-title"]').text().trim();
-      if (!title) {
-        title = $("h1.offer-title").text().trim();
-      }
-      if (!title) {
-        title = $('meta[property="og:title"]').attr("content")?.trim() || "";
-      }
-      if (!title) {
-        throw new Error("Failed to extract title from page");
-      }
+    // Extract title
+    let title = $('h1[data-testid="ad-title"]').text().trim();
+    if (!title) {
+      title = $("h1.offer-title").text().trim();
+    }
+    if (!title) {
+      title = $('meta[property="og:title"]').attr("content")?.trim() || "";
+    }
+    if (!title) {
+      throw new Error("Failed to extract title from page");
+    }
 
-      // Extract image URL
-      let imageUrl = $('meta[property="og:image"]').attr("content") || "";
-      if (!imageUrl) {
-        imageUrl = $('img[data-testid="photo-viewer-image"]').first().attr("src") || "";
-      }
-      if (!imageUrl) {
-        imageUrl = $(".offer-photos img").first().attr("src") || "";
-      }
+    // Extract image URL (with multiple fallbacks and lazy loading support)
+    let imageUrl = $('meta[property="og:image"]').attr("content") || "";
 
-      // Extract price
-      let priceText = $('h3[data-testid="ad-price"]').text().trim();
-      if (!priceText) {
-        priceText = $(".offer-price__number").text().trim();
+    if (!imageUrl) {
+      const $photoViewer = $('img[data-testid="photo-viewer-image"]').first();
+      if ($photoViewer.length) {
+        imageUrl =
+          $photoViewer.attr("src") || $photoViewer.attr("data-src") || $photoViewer.attr("data-lazy-src") || "";
       }
-      if (!priceText) {
-        priceText = $('span[class*="price"]').first().text().trim();
-      }
+    }
 
-      // Parse price number (remove spaces, PLN, etc.)
-      const priceMatch = priceText.replace(/\s/g, "").match(/(\d+)/);
-      if (!priceMatch) {
-        throw new Error(`Failed to extract price from: "${priceText}"`);
+    if (!imageUrl) {
+      const $offerPhoto = $(".offer-photos img").first();
+      if ($offerPhoto.length) {
+        imageUrl = $offerPhoto.attr("src") || $offerPhoto.attr("data-src") || $offerPhoto.attr("data-lazy-src") || "";
       }
-      const price = parseInt(priceMatch[1], 10);
+    }
 
-      if (price <= 0 || price > 10000000) {
-        throw new Error(`Invalid price value: ${price}`);
-      }
+    // Last resort: first image in the page (but exclude common logo/icon patterns)
+    if (!imageUrl) {
+      $("img").each((_, el) => {
+        const $img = $(el);
+        const src = $img.attr("src") || $img.attr("data-src") || $img.attr("data-lazy-src") || "";
+        // Skip common logo/icon patterns
+        if (src && !src.match(/(logo|icon|favicon|sprite|banner|advertisement)/i)) {
+          imageUrl = src;
+          return false; // break
+        }
+      });
+    }
 
-       // Extract currency (default to PLN for otomoto.pl)
-       let currency: "PLN" | "EUR" | "USD" | "GBP" = "PLN";
-       if (priceText.includes("EUR") || priceText.includes("€")) {
-         currency = "EUR";
-       } else if (priceText.includes("USD") || priceText.includes("$")) {
-         currency = "USD";
-       } else if (priceText.includes("GBP") || priceText.includes("£")) {
-         currency = "GBP";
-       }
+    console.log(`Cheerio extracted image URL: ${imageUrl || "NOT FOUND"}`);
 
-      // Extract city/location
-      let city = $('a[data-testid="ad-location"]').text().trim();
-      if (!city) {
-        city = $(".seller-card__links a").first().text().trim();
-      }
-      if (!city) {
-        city = $('p:contains("Lokalizacja")').next().text().trim();
-      }
-      if (!city) {
-        city = $(".breadcrumb li").last().text().trim();
-      }
-      if (!city) {
+    // Extract price
+    let priceText = $('h3[data-testid="ad-price"]').text().trim();
+    if (!priceText) {
+      priceText = $(".offer-price__number").text().trim();
+    }
+    if (!priceText) {
+      priceText = $('span[class*="price"]').first().text().trim();
+    }
+
+    // Parse price number (remove spaces, PLN, etc.)
+    const priceMatch = priceText.replace(/\s/g, "").match(/(\d+)/);
+    if (!priceMatch) {
+      throw new Error(`Failed to extract price from: "${priceText}"`);
+    }
+    const price = parseInt(priceMatch[1], 10);
+
+    if (price <= 0 || price > 10000000) {
+      throw new Error(`Invalid price value: ${price}`);
+    }
+
+    // Extract currency (default to PLN for otomoto.pl)
+    let currency: "PLN" | "EUR" | "USD" | "GBP" = "PLN";
+    if (priceText.includes("EUR") || priceText.includes("€")) {
+      currency = "EUR";
+    } else if (priceText.includes("USD") || priceText.includes("$")) {
+      currency = "USD";
+    } else if (priceText.includes("GBP") || priceText.includes("£")) {
+      currency = "GBP";
+    }
+
+    // Extract city/location (full address if available)
+    let city = $('a[data-testid="ad-location"]').text().trim();
+    if (!city) {
+      city = $(".seller-card__links a").first().text().trim();
+    }
+    if (!city) {
+      city = $('p:contains("Lokalizacja")').next().text().trim();
+    }
+    if (!city) {
+      // Try to find location near SVG icons (common pattern on Otomoto)
+      $("svg").each((_, el) => {
+        const $svg = $(el);
+        const $container = $svg.parent().parent();
+        const text = $container.text().trim();
+        if (text && text.length < 300 && text.length > 2 && !city) {
+          // Check if text contains location-like patterns (street, postal code, city)
+          if (text.match(/\d{2}-\d{3}|ul\.|ulica|gmina|powiat|województwo/i)) {
+            city = text;
+          }
+        }
+      });
+    }
+    if (!city) {
+      city = $(".breadcrumb li").last().text().trim();
+    }
+    if (!city) {
       city = "Nieznana";
-      }
+    }
 
-      // Clean city name (remove extra text)
-      city = city.split(",")[0].trim();
+    // Keep full location (don't truncate after comma)
 
     // Determine CSS selector used for price
-      let selector = 'h3[data-testid="ad-price"]';
-      if (!$('h3[data-testid="ad-price"]').length) {
-        selector = ".offer-price__number";
-      }
+    let selector = 'h3[data-testid="ad-price"]';
+    if (!$('h3[data-testid="ad-price"]').length) {
+      selector = ".offer-price__number";
+    }
 
     console.log(`Cheerio extraction successful: ${title}, ${price} ${currency}, ${city}`);
 
-      return {
-        title,
-        imageUrl,
-        price,
-        currency,
-        city,
-        selector,
-      };
+    return {
+      title,
+      imageUrl,
+      price,
+      currency,
+      city,
+      selector,
+    };
   }
 
   /**

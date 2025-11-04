@@ -28,9 +28,7 @@ function StatCard({ label, value, description, variant = "default" }: StatCardPr
         <p className={`text-3xl font-bold ${variantClasses[variant]}`} data-testid={`stat-value-${testId}`}>
           {value}
         </p>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
     </div>
   );
@@ -51,41 +49,38 @@ export default function DashboardStats({ summary, offerLimit }: DashboardStatsPr
   return (
     <div className="space-y-4" data-testid="dashboard-stats">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Track your watched offers and price changes
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">Panel główny</h1>
+        <p className="text-muted-foreground">Śledź obserwowane oferty i zmiany cen</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Active Offers"
+          label="Aktywne oferty"
           value={summary.activeCount}
-          description={`${offerLimit - summary.activeCount} slots remaining`}
+          description={`${offerLimit - summary.activeCount} pozostało miejsc`}
         />
-        
+
         <StatCard
-          label="Average Change"
+          label="Średnia zmiana"
           value={formatPercentage(summary.avgChange)}
           variant={getVariant(summary.avgChange)}
-          description="From first price"
+          description="Od pierwszej ceny"
         />
-        
+
         <StatCard
-          label="Largest Drop"
+          label="Największy spadek"
           value={formatPercentage(summary.largestDrop)}
           variant={summary.largestDrop < 0 ? "negative" : "default"}
-          description="Best discount found"
+          description="Najlepsza znaleziona zniżka"
         />
-        
+
         <StatCard
-          label="Largest Rise"
+          label="Największy wzrost"
           value={formatPercentage(summary.largestRise)}
           variant={summary.largestRise > 0 ? "positive" : "default"}
-          description="Highest increase"
+          description="Najwyższy wzrost"
         />
       </div>
     </div>
   );
 }
-

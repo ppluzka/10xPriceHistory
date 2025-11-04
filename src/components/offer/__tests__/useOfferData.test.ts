@@ -51,10 +51,18 @@ describe("useOfferData", () => {
       );
 
       expect(result.current.chartData).toHaveLength(4);
+      // History is reversed, so first element is oldest (first check)
       expect(result.current.chartData[0]).toMatchObject({
         date: expect.stringMatching(/^\d{2}\.\d{2}$/), // DD.MM format
         fullDate: expect.stringMatching(/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/), // DD.MM.YYYY HH:mm
-        price: 95000,
+        price: 100000, // First (oldest) entry
+        currency: "PLN",
+      });
+      // Last element is newest
+      expect(result.current.chartData[3]).toMatchObject({
+        date: expect.stringMatching(/^\d{2}\.\d{2}$/),
+        fullDate: expect.stringMatching(/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/),
+        price: 95000, // Last (newest) entry
         currency: "PLN",
       });
     });
@@ -123,7 +131,7 @@ describe("useOfferData", () => {
       expect(result.current.statsData.observationDurationDays).toBe(9);
     });
 
-    it("should use current date when lastChecked is null", () => {
+    it("should calculate observation duration from history data regardless of lastChecked", () => {
       const offerWithoutLastChecked = {
         ...mockOfferDetail,
         lastChecked: null,
@@ -136,8 +144,9 @@ describe("useOfferData", () => {
         })
       );
 
-      // Should calculate from createdAt to now (will be > 9 days)
-      expect(result.current.statsData.observationDurationDays).toBeGreaterThan(9);
+      // Should calculate from history data (first to last check) = 9 days
+      // This is independent of offer.lastChecked or current date
+      expect(result.current.statsData.observationDurationDays).toBe(9);
     });
 
     it("should use PLN as default currency when history is empty", () => {

@@ -20,7 +20,6 @@ describe("OfferStats", () => {
 
       expect(screen.getByText("Cena minimalna")).toBeInTheDocument();
       expect(screen.getByText("Cena maksymalna")).toBeInTheDocument();
-      expect(screen.getByText("Cena średnia")).toBeInTheDocument();
       expect(screen.getByText("Trend")).toBeInTheDocument();
       expect(screen.getByText("Liczba sprawdzeń")).toBeInTheDocument();
       expect(screen.getByText("Okres obserwacji")).toBeInTheDocument();
@@ -40,7 +39,6 @@ describe("OfferStats", () => {
       // Polish locale uses space as thousand separator
       expect(screen.getByText(/93 000 PLN/)).toBeInTheDocument();
       expect(screen.getByText(/102 000 PLN/)).toBeInTheDocument();
-      expect(screen.getByText(/97 500 PLN/)).toBeInTheDocument();
     });
 
     it("should display currency after price", () => {
@@ -187,7 +185,6 @@ describe("OfferStats", () => {
 
       expect(screen.getByText("⬇️")).toBeInTheDocument(); // Min price
       expect(screen.getByText("⬆️")).toBeInTheDocument(); // Max price
-      expect(screen.getByText("📊")).toBeInTheDocument(); // Avg price
       expect(screen.getByText("📉")).toBeInTheDocument(); // Trend
       expect(screen.getByText("🔍")).toBeInTheDocument(); // Check count
       expect(screen.getByText("📅")).toBeInTheDocument(); // Duration
@@ -286,7 +283,7 @@ describe("OfferStats", () => {
       render(<OfferStats stats={statsWithSamePrice} />);
 
       const prices = screen.getAllByText(/100 000 PLN/);
-      expect(prices.length).toBe(3);
+      expect(prices.length).toBe(2); // Min and max price only, avg is not displayed
     });
   });
 

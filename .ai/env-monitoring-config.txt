@@ -1,0 +1,25 @@
+# ============================================================================
+# Price Monitoring Configuration - Add to your .env file
+# ============================================================================
+
+# CRON Secret for scheduled job authentication
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# ⚠️ REQUIRED - System won't work without this
+CRON_SECRET=your-secure-random-secret-here
+
+# Optional: Webhook URL for system alerts (Slack/Discord)
+# When error rate exceeds 15%, alerts will be sent here
+ALERT_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# ============================================================================
+# Database Configuration (in Supabase SQL Editor):
+# ============================================================================
+# Run these commands:
+#
+# ALTER DATABASE postgres SET app.cron_secret = 'same-as-above';
+# ALTER DATABASE postgres SET app.api_url = 'https://your-domain.com/api/cron/check-prices';
+#
+# Verify:
+# SELECT current_setting('app.cron_secret', true);
+# SELECT current_setting('app.api_url', true);
+

@@ -15,7 +15,7 @@ describe("DashboardStats", () => {
 
       // Assert
       expect(
-        screen.getByRole("heading", { name: /dashboard/i })
+        screen.getByRole("heading", { name: /panel główny/i })
       ).toBeInTheDocument();
     });
 
@@ -28,7 +28,7 @@ describe("DashboardStats", () => {
 
       // Assert
       expect(
-        screen.getByText(/track your watched offers and price changes/i)
+        screen.getByText(/śledź obserwowane oferty i zmiany cen/i)
       ).toBeInTheDocument();
     });
 
@@ -56,7 +56,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Active Offers")).toBeInTheDocument();
+      expect(screen.getByText("Aktywne oferty")).toBeInTheDocument();
       expect(screen.getByText("7")).toBeInTheDocument();
     });
 
@@ -68,7 +68,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("75 slots remaining")).toBeInTheDocument();
+      expect(screen.getByText("75 pozostało miejsc")).toBeInTheDocument();
     });
 
     it("should show 0 slots remaining when at limit", () => {
@@ -79,7 +79,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("0 slots remaining")).toBeInTheDocument();
+      expect(screen.getByText("0 pozostało miejsc")).toBeInTheDocument();
     });
 
     it("should handle zero active offers", () => {
@@ -91,7 +91,7 @@ describe("DashboardStats", () => {
 
       // Assert
       expect(screen.getByText("0")).toBeInTheDocument();
-      expect(screen.getByText("100 slots remaining")).toBeInTheDocument();
+      expect(screen.getByText("100 pozostało miejsc")).toBeInTheDocument();
     });
   });
 
@@ -104,7 +104,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Average Change")).toBeInTheDocument();
+      expect(screen.getByText("Średnia zmiana")).toBeInTheDocument();
       expect(screen.getByText("-5.75%")).toBeInTheDocument();
     });
 
@@ -138,7 +138,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("From first price")).toBeInTheDocument();
+      expect(screen.getByText("Od pierwszej ceny")).toBeInTheDocument();
     });
 
     it("should apply positive variant styling for positive change", () => {
@@ -187,7 +187,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Largest Drop")).toBeInTheDocument();
+      expect(screen.getByText("Największy spadek")).toBeInTheDocument();
       expect(screen.getByText("-15.20%")).toBeInTheDocument();
     });
 
@@ -199,7 +199,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Best discount found")).toBeInTheDocument();
+      expect(screen.getByText("Najlepsza znaleziona zniżka")).toBeInTheDocument();
     });
 
     it("should apply negative variant when drop is negative", () => {
@@ -247,7 +247,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Largest Rise")).toBeInTheDocument();
+      expect(screen.getByText("Największy wzrost")).toBeInTheDocument();
       expect(screen.getByText("+12.50%")).toBeInTheDocument();
     });
 
@@ -259,7 +259,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Highest increase")).toBeInTheDocument();
+      expect(screen.getByText("Najwyższy wzrost")).toBeInTheDocument();
     });
 
     it("should apply positive variant when rise is positive", () => {
@@ -395,7 +395,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={50} />);
 
       // Assert
-      expect(screen.getByText("20 slots remaining")).toBeInTheDocument();
+      expect(screen.getByText("20 pozostało miejsc")).toBeInTheDocument();
     });
 
     it("should handle offer limit of 200", () => {
@@ -406,7 +406,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={200} />);
 
       // Assert
-      expect(screen.getByText("50 slots remaining")).toBeInTheDocument();
+      expect(screen.getByText("50 pozostało miejsc")).toBeInTheDocument();
     });
 
     it("should handle when active count exceeds limit (edge case)", () => {
@@ -417,7 +417,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("-20 slots remaining")).toBeInTheDocument();
+      expect(screen.getByText("-20 pozostało miejsc")).toBeInTheDocument();
     });
   });
 
@@ -430,7 +430,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      const heading = screen.getByRole("heading", { name: /dashboard/i });
+      const heading = screen.getByRole("heading", { name: /panel główny/i });
       expect(heading.tagName).toBe("H1");
     });
 
@@ -442,10 +442,10 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText("Active Offers")).toBeInTheDocument();
-      expect(screen.getByText("Average Change")).toBeInTheDocument();
-      expect(screen.getByText("Largest Drop")).toBeInTheDocument();
-      expect(screen.getByText("Largest Rise")).toBeInTheDocument();
+      expect(screen.getByText("Aktywne oferty")).toBeInTheDocument();
+      expect(screen.getByText("Średnia zmiana")).toBeInTheDocument();
+      expect(screen.getByText("Największy spadek")).toBeInTheDocument();
+      expect(screen.getByText("Największy wzrost")).toBeInTheDocument();
     });
 
     it("should have descriptions for additional context", () => {
@@ -456,10 +456,10 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(screen.getByText(/slots remaining/)).toBeInTheDocument();
-      expect(screen.getByText("From first price")).toBeInTheDocument();
-      expect(screen.getByText("Best discount found")).toBeInTheDocument();
-      expect(screen.getByText("Highest increase")).toBeInTheDocument();
+      expect(screen.getByText(/pozostało miejsc/)).toBeInTheDocument();
+      expect(screen.getByText("Od pierwszej ceny")).toBeInTheDocument();
+      expect(screen.getByText("Najlepsza znaleziona zniżka")).toBeInTheDocument();
+      expect(screen.getByText("Najwyższy wzrost")).toBeInTheDocument();
     });
   });
 
@@ -502,7 +502,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      const label = screen.getByText("Active Offers");
+      const label = screen.getByText("Aktywne oferty");
       expect(label.className).toContain("text-muted-foreground");
     });
   });

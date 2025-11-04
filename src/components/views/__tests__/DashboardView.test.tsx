@@ -19,7 +19,7 @@ vi.mock("../../dashboard/DashboardStats", () => ({
 }));
 
 vi.mock("../../dashboard/OfferForm", () => ({
-  default: ({ onOfferAdded }: any) => (
+  default: ({ onOfferAdded, activeCount, offerLimit }: any) => (
     <button data-testid="offer-form" onClick={onOfferAdded}>
       Add Offer
     </button>
@@ -87,9 +87,9 @@ describe("DashboardView", () => {
 
       // Assert
       expect(
-        screen.getByText(/failed to load dashboard data/i)
+        screen.getByText(/nie udało się załadować danych dashboardu/i)
       ).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /spróbuj ponownie/i })).toBeInTheDocument();
     });
 
     it("should render with empty dashboard", () => {
@@ -119,7 +119,7 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={null} />);
 
       // Act
-      await user.click(screen.getByRole("button", { name: /retry/i }));
+      await user.click(screen.getByRole("button", { name: /spróbuj ponownie/i }));
 
       // Assert
       await waitFor(() => {
@@ -136,7 +136,7 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={null} />);
 
       // Act
-      await user.click(screen.getByRole("button", { name: /retry/i }));
+      await user.click(screen.getByRole("button", { name: /spróbuj ponownie/i }));
 
       // Assert
       await waitFor(() => {
@@ -157,12 +157,12 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={null} />);
 
       // Act
-      await user.click(screen.getByRole("button", { name: /retry/i }));
+      await user.click(screen.getByRole("button", { name: /spróbuj ponownie/i }));
 
       // Assert
       await waitFor(() => {
         expect(
-          screen.getByText(/failed to fetch dashboard data/i)
+          screen.getByText(/nie udało się pobrać danych dashboardu/i)
         ).toBeInTheDocument();
       });
     });
@@ -380,7 +380,7 @@ describe("DashboardView", () => {
       });
 
       // Act
-      const dismissButton = screen.getByRole("button", { name: /dismiss/i });
+      const dismissButton = screen.getByRole("button", { name: /zamknij/i });
       await user.click(dismissButton);
 
       // Assert
@@ -415,7 +415,7 @@ describe("DashboardView", () => {
         "100 active"
       );
       expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-        "limit: 100"
+        "limit: 5"
       );
     });
 

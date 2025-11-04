@@ -40,8 +40,11 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
   const priceRange = maxPrice - minPrice;
-  const yAxisMin = Math.floor(minPrice - priceRange * 0.1);
-  const yAxisMax = Math.ceil(maxPrice + priceRange * 0.1);
+
+  // Handle case when all prices are the same
+  const padding = priceRange === 0 ? minPrice * 0.05 : priceRange * 0.1;
+  const yAxisMin = Math.max(0, Math.floor(minPrice - padding));
+  const yAxisMax = Math.ceil(maxPrice + padding);
 
   // Get currency from first data point
   const currency = data.length > 0 ? data[0].currency : "PLN";
@@ -84,12 +87,14 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
               />
 
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="price"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
+                stroke="var(--color-primary)"
+                strokeWidth={1}
+                dot={{ fill: "var(--color-primary)", r: 5 }}
+                activeDot={{ r: 7, fill: "var(--color-primary)" }}
+                connectNulls={false}
+                isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>

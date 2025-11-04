@@ -5,10 +5,12 @@ import type { OfferDto } from "@/types";
 interface OfferCardProps {
   offer: OfferDto;
   onDelete: (offerId: string) => void;
+  onRecheck?: (offerId: string) => Promise<void>;
 }
 
-export default function OfferCard({ offer, onDelete }: OfferCardProps) {
+export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isRechecking, setIsRechecking] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
   const handleConfirmDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onDelete(offer.id);
+    onDelete(String(offer.id));
     setShowDeleteConfirm(false);
   };
 
@@ -27,6 +29,20 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
     e.preventDefault();
     e.stopPropagation();
     setShowDeleteConfirm(false);
+  };
+
+  const handleRecheckClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!onRecheck || isRechecking) return;
+    
+    setIsRechecking(true);
+    try {
+      await onRecheck(String(offer.id));
+    } finally {
+      setIsRechecking(false);
+    }
   };
 
   const formatPrice = (price: number, currency: string): string => {
@@ -49,16 +65,32 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
     return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
   };
 
-  const getStatusBadge = (status: string): string => {
+  const getStatusBadge = (status: string): { label: string; color: string; icon: string } => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
-      case "inactive":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
+        return {
+          label: "Aktywna",
+          color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+          icon: "✓",
+        };
       case "error":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return {
+          label: "Błąd sprawdzania",
+          color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+          icon: "⚠",
+        };
+      case "removed":
+        return {
+          label: "Oferta usunięta",
+          color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400",
+          icon: "✕",
+        };
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
+        return {
+          label: status,
+          color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400",
+          icon: "",
+        };
     }
   };
 
@@ -101,8 +133,13 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
 
           {/* Status Badge */}
           <div className="absolute top-2 left-2">
-            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(offer.status)}`} data-testid="offer-card-status">
-              {offer.status}
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(offer.status).color}`}
+              data-testid="offer-card-status"
+              aria-label={`Status: ${getStatusBadge(offer.status).label}`}
+            >
+              <span aria-hidden="true">{getStatusBadge(offer.status).icon}</span>
+              {getStatusBadge(offer.status).label}
             </span>
           </div>
 
@@ -113,7 +150,7 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
               size="icon"
               onClick={handleDeleteClick}
               className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-              aria-label="Delete offer"
+              aria-label="Usuń ofertę"
               data-testid="offer-card-delete-button"
             >
               <svg
@@ -178,9 +215,75 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
 
           {/* Last Checked */}
           {offer.lastChecked && (
-            <p className="text-xs text-muted-foreground" data-testid="offer-card-last-checked">
-              Last checked: {new Date(offer.lastChecked).toLocaleDateString("pl-PL")}
+              <p className="text-xs text-muted-foreground" data-testid="offer-card-last-checked">
+              Ostatnie sprawdzenie: {new Date(offer.lastChecked).toLocaleDateString("pl-PL")}
             </p>
+          )}
+
+          {/* Recheck Button for Error Status */}
+          {offer.status === "error" && onRecheck && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRecheckClick}
+              disabled={isRechecking}
+              className="w-full mt-2"
+              data-testid="offer-card-recheck-button"
+            >
+              {isRechecking ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Sprawdzanie...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="-ml-1 mr-2"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                  </svg>
+                  Sprawdź ponownie
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Warning for Removed Status */}
+          {offer.status === "removed" && (
+            <div className="mt-2 rounded-md bg-gray-100 dark:bg-gray-800 p-2 text-xs text-muted-foreground">
+              Ta oferta została usunięta z Otomoto i nie jest już sprawdzana.
+            </div>
           )}
         </div>
       </a>
@@ -197,9 +300,9 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div>
-              <h3 className="text-lg font-semibold">Delete Offer</h3>
+              <h3 className="text-lg font-semibold">Usuń ofertę</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Are you sure you want to stop tracking this offer? This action cannot be undone.
+                Czy na pewno chcesz przestać śledzić tę ofertę? Ta akcja jest nieodwracalna.
               </p>
             </div>
             
@@ -209,14 +312,14 @@ export default function OfferCard({ offer, onDelete }: OfferCardProps) {
                 onClick={handleCancelDelete}
                 data-testid="offer-delete-cancel-button"
               >
-                Cancel
+                Anuluj
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleConfirmDelete}
                 data-testid="offer-delete-confirm-button"
               >
-                Delete
+                Usuń
               </Button>
             </div>
           </div>

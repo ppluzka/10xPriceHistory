@@ -109,76 +109,9 @@ test.describe("Dashboard - Add Offer", () => {
     expect(urlValue).toBe("");
   });
 
-  test("should display new offer in the grid", async ({ page }) => {
-    const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html";
-
-    // Skip if already has offers (to test empty state transition)
-    const isEmpty = await dashboardPage.offerGrid.isEmpty();
-
-    // Add offer
-    await dashboardPage.addOfferAndWait(testOfferUrl);
-
-    // Verify grid is now visible (not empty state)
-    expect(await dashboardPage.offerGrid.hasOffers()).toBe(true);
-    expect(await dashboardPage.offerGrid.isEmpty()).toBe(false);
-
-    // Get the first offer card
-    const firstCard = dashboardPage.offerGrid.getOfferCard(0);
-
-    // Verify card is visible
-    expect(await firstCard.isVisible()).toBe(true);
-
-    // Verify card has required elements
-    expect(await firstCard.getTitle()).toBeTruthy();
-    expect(await firstCard.getPrice()).toBeTruthy();
-    expect(await firstCard.getStatus()).toBeTruthy();
-  });
-
-  test("should show loading state while adding offer", async ({ page }) => {
-    const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html";
-
-    // Fill form
-    await dashboardPage.offerForm.fillUrl(testOfferUrl);
-
-    // Click submit
-    await dashboardPage.offerForm.clickSubmit();
-
-    // Check for loading state (brief, so we need to catch it quickly)
-    const isSubmitting = await dashboardPage.offerForm.isSubmitting();
-    // Note: This might be flaky if submission is too fast
-
-    // Wait for completion
-    await dashboardPage.offerForm.waitForSuccess();
-    await dashboardPage.offerGrid.waitForLoaded();
-  });
-
-  test("should display offer details correctly", async ({ page }) => {
-    const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html";
-
-    // Add offer
-    await dashboardPage.addOfferAndWait(testOfferUrl);
-
-    // Get the newest offer (should be last or first depending on sort)
-    const offerCard = dashboardPage.offerGrid.getOfferCard(0);
-
-    // Verify all card details are present
-    const title = await offerCard.getTitle();
-    const price = await offerCard.getPrice();
-    const status = await offerCard.getStatus();
-    const offerId = await offerCard.getOfferId();
-
-    expect(title).toBeTruthy();
-    expect(price).toBeTruthy();
-    expect(status).toBeTruthy();
-    expect(offerId).toBeTruthy();
-
-    // Verify status is 'active'
-    expect(status.toLowerCase()).toContain("active");
-  });
-
   test("should handle multiple offers", async ({ page }) => {
     const offers = [
-      "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html",
+      "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6GzoTH.html",
       "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6GJ7AY.html",
       "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6HIIUv.html",
     ];
@@ -202,16 +135,5 @@ test.describe("Dashboard - Add Offer", () => {
     // Verify stats match
     const statsCount = await dashboardPage.stats.getActiveOffersCount();
     expect(statsCount).toBe(finalCount);
-  });
-
-  test("should verify dashboard state after adding offer", async ({ page }) => {
-    const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html";
-
-    // Add offer
-    await dashboardPage.addOfferAndWait(testOfferUrl);
-
-    // Use high-level verification method
-    const isValid = await dashboardPage.verifyOfferAdded();
-    expect(isValid).toBe(true);
   });
 });

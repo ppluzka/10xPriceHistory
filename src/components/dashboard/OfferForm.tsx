@@ -4,13 +4,17 @@ import type { AddOfferCommand, AddOfferResponseDto } from "@/types";
 
 interface OfferFormProps {
   onOfferAdded: () => void;
+  activeCount: number;
+  offerLimit: number;
 }
 
-export default function OfferForm({ onOfferAdded }: OfferFormProps) {
+export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: OfferFormProps) {
   const [url, setUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const isLimitReached = activeCount >= offerLimit;
 
   // Validate URL
   const validateUrl = useCallback((value: string): boolean => {
@@ -23,19 +27,19 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
 
     try {
       const urlObj = new URL(value);
-      
+
       // Validate protocol (must be http or https)
       if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
         setValidationError("Wprowadź adres URL.");
         return false;
       }
-      
+
       // Validate domain (must be from otomoto.pl)
       if (!urlObj.hostname.includes("otomoto.pl")) {
         setValidationError("URL musi być z otomoto.pl");
         return false;
       }
-      
+
       return true;
     } catch {
       setValidationError("Wprowadź adres URL.");
@@ -44,66 +48,86 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!validateUrl(url)) {
-      return;
-    }
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const command: AddOfferCommand = { url: url.trim() };
-      
-      const response = await fetch("/api/offers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(command),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to add offer");
+      if (!validateUrl(url)) {
+        return;
       }
 
-      const result: AddOfferResponseDto = await response.json();
-      
-      // Clear form on success
-      setUrl("");
-      
-      // Trigger parent component to refresh data
-      onOfferAdded();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add offer");
-      console.error("Error adding offer:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [url, validateUrl, onOfferAdded]);
+      setIsSubmitting(true);
+      setError(null);
+
+      try {
+        const command: AddOfferCommand = { url: url.trim() };
+
+        const response = await fetch("/api/offers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(command),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Nie udało się dodać oferty");
+        }
+
+        const result: AddOfferResponseDto = await response.json();
+
+        // Clear form on success
+        setUrl("");
+
+        // Trigger parent component to refresh data
+        onOfferAdded();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Nie udało się dodać oferty");
+        console.error("Error adding offer:", err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [url, validateUrl, onOfferAdded]
+  );
 
   // Handle input change
-  const handleInputChange = useCallback((value: string) => {
-    setUrl(value);
-    if (validationError) {
-      setValidationError(null);
-    }
-    if (error) {
-      setError(null);
-    }
-  }, [validationError, error]);
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setUrl(value);
+      if (validationError) {
+        setValidationError(null);
+      }
+      if (error) {
+        setError(null);
+      }
+    },
+    [validationError, error]
+  );
+
+  // Show limit reached message instead of form
+  if (isLimitReached) {
+    return (
+      <div className="rounded-lg border bg-card p-6 shadow-xs" data-testid="offer-form">
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">Limit ofert został wykorzystany</h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Osiągnąłeś maksymalny limit {offerLimit} aktywnych ofert. Aby dodać nową ofertę, najpierw usuń jedną z istniejących.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border bg-card p-6 shadow-xs" data-testid="offer-form">
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-semibold">Add New Offer</h2>
-          <p className="text-sm text-muted-foreground">
-            Paste an otomoto.pl URL to start tracking price changes
-          </p>
+          <h2 className="text-xl font-semibold">Dodaj nową ofertę</h2>
+          <p className="text-sm text-muted-foreground">Wklej adres URL z otomoto.pl, aby rozpocząć śledzenie zmian cen</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -118,13 +142,17 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
               aria-invalid={!!(validationError || error)}
               data-testid="offer-url-input"
             />
-            
+
             {validationError && (
-              <p className="text-sm text-destructive" data-testid="offer-validation-error">{validationError}</p>
+              <p className="text-sm text-destructive" data-testid="offer-validation-error">
+                {validationError}
+              </p>
             )}
-            
+
             {error && (
-              <p className="text-sm text-destructive" data-testid="offer-submit-error">{error}</p>
+              <p className="text-sm text-destructive" data-testid="offer-submit-error">
+                {error}
+              </p>
             )}
           </div>
 
@@ -134,11 +162,10 @@ export default function OfferForm({ onOfferAdded }: OfferFormProps) {
             className="w-full sm:w-auto"
             data-testid="offer-submit-button"
           >
-            {isSubmitting ? "Adding..." : "Add Offer"}
+            {isSubmitting ? "Dodawanie..." : "Dodaj ofertę"}
           </Button>
         </form>
       </div>
     </div>
   );
 }
-

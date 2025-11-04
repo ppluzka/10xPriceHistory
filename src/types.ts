@@ -352,3 +352,71 @@ export interface LLMExtractionResponse {
   confidence: number;
   selector: string;
 }
+
+// ----- Price Monitoring Types -----
+
+/**
+ * Extracted price data from scraping
+ */
+export interface ExtractedPrice {
+  price: number;
+  currency: string;
+  rawValue: string;
+}
+
+/**
+ * Retry decision from error handler
+ */
+export interface RetryDecision {
+  shouldRetry: boolean;
+  delayMs: number;
+  nextAttempt: number;
+}
+
+/**
+ * Validation result
+ */
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+/**
+ * System health metrics
+ */
+export interface SystemHealth {
+  successRate: number;
+  totalChecks: number;
+  errorCount: number;
+  activeOffers: number;
+  lastAlertSent: Date | null;
+}
+
+/**
+ * AI extracted price with confidence and selector
+ */
+export interface AIExtractedPrice {
+  price: number;
+  currency: string;
+  confidence: number;
+  selector: string;
+}
+
+/**
+ * Price statistics for an offer
+ */
+export interface PriceStats {
+  min: number;
+  max: number;
+  avg: number;
+  count: number;
+}
+
+/**
+ * Offer status enum
+ */
+export enum OfferStatus {
+  ACTIVE = "active",
+  ERROR = "error",
+  REMOVED = "removed",
+}

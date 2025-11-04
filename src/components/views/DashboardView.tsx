@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import type { DashboardDto, OfferDto, AddOfferResponseDto } from "@/types";
+import { useState, useCallback } from "react";
+import type { DashboardDto } from "@/types";
 import DashboardStats from "../dashboard/DashboardStats";
 import OfferForm from "../dashboard/OfferForm";
 import OfferGrid from "../dashboard/OfferGrid";
@@ -8,7 +8,7 @@ interface DashboardViewProps {
   initialData: DashboardDto | null;
 }
 
-const OFFER_LIMIT = 100; // Default offer limit per user
+const OFFER_LIMIT = 5; // Default offer limit per user
 
 export default function DashboardView({ initialData }: DashboardViewProps) {
   const [dashboardData, setDashboardData] = useState<DashboardDto | null>(initialData);
@@ -24,13 +24,13 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
       const response = await fetch("/api/dashboard");
 
       if (!response.ok) {
-        throw new Error("Failed to fetch dashboard data");
+        throw new Error("Nie udało się pobrać danych dashboardu");
       }
 
       const data: DashboardDto = await response.json();
       setDashboardData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : "Wystąpił błąd");
       console.error("Error fetching dashboard data:", err);
     } finally {
       setIsLoading(false);
@@ -55,7 +55,7 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
       setDashboardData((prev) => {
         if (!prev) return prev;
 
-        const updatedOffers = prev.offers.filter((offer) => offer.id !== offerId);
+        const updatedOffers = prev.offers.filter((offer) => String(offer.id) !== offerId);
 
         return {
           ...prev,
@@ -73,26 +73,71 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to delete offer");
+          throw new Error("Nie udało się usunąć oferty");
         }
       } catch (err) {
         // Rollback on error
         setDashboardData(previousData);
-        setError(err instanceof Error ? err.message : "Failed to delete offer");
+        setError(err instanceof Error ? err.message : "Nie udało się usunąć oferty");
         console.error("Error deleting offer:", err);
       }
     },
     [dashboardData]
   );
 
+  // Handle rechecking an offer
+  const handleRecheckOffer = useCallback(async (offerId: string) => {
+    try {
+      const response = await fetch(`/api/offers/${offerId}/recheck`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Nie udało się sprawdzić oferty ponownie");
+      }
+
+      const result = await response.json();
+
+      // Update the offer in the state
+      setDashboardData((prev) => {
+        if (!prev) return prev;
+
+        const updatedOffers = prev.offers.map((offer) => {
+          if (String(offer.id) === offerId && result.offer) {
+            return {
+              ...offer,
+              status: result.offer.status,
+              lastChecked: result.offer.lastChecked,
+              currentPrice: result.offer.currentPrice,
+              currency: result.offer.currency,
+            };
+          }
+          return offer;
+        });
+
+        return {
+          ...prev,
+          offers: updatedOffers,
+        };
+      });
+
+      // Show success message briefly
+      setError(result.message || "Cena zaktualizowana pomyślnie");
+      setTimeout(() => setError(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nie udało się sprawdzić oferty ponownie");
+      console.error("Error rechecking offer:", err);
+    }
+  }, []);
+
   // If initial data failed to load, show error state
   if (!dashboardData && !isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center text-destructive">
-          <p>{error || "Failed to load dashboard data"}</p>
+          <p>{error || "Nie udało się załadować danych dashboardu"}</p>
           <button onClick={fetchDashboardData} className="mt-4 text-primary underline">
-            Retry
+            Spróbuj ponownie
           </button>
         </div>
       </div>
@@ -105,13 +150,18 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
       {dashboardData && <DashboardStats summary={dashboardData.summary} offerLimit={OFFER_LIMIT} />}
 
       {/* Add Offer Form */}
-      <OfferForm onOfferAdded={handleAddOffer} />
+      <OfferForm
+        onOfferAdded={handleAddOffer}
+        activeCount={dashboardData?.summary.activeCount || 0}
+        offerLimit={OFFER_LIMIT}
+      />
 
       {/* Offers Grid */}
       <OfferGrid
         offers={dashboardData?.offers || []}
         isLoading={isLoading && !dashboardData}
         onDeleteOffer={handleDeleteOffer}
+        onRecheckOffer={handleRecheckOffer}
       />
 
       {/* Error Toast (simple implementation for now) */}
@@ -119,7 +169,7 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
         <div className="fixed bottom-4 right-4 bg-destructive text-white px-4 py-3 rounded-md shadow-lg">
           {error}
           <button onClick={() => setError(null)} className="ml-4 underline">
-            Dismiss
+            Zamknij
           </button>
         </div>
       )}

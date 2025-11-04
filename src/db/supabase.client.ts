@@ -69,6 +69,27 @@ import { createClient } from "@supabase/supabase-js";
 export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 /**
+ * Creates a Supabase client with service role key (bypasses RLS)
+ * Use ONLY for server-side operations that need to bypass RLS (e.g., CRON jobs)
+ * 
+ * @returns Supabase client with service role privileges
+ */
+export const createSupabaseServiceRoleClient = (): ReturnType<typeof createClient<Database>> => {
+  const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!serviceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured. Required for service operations.");
+  }
+
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
+
+/**
  * Default user ID for development (before auth is implemented)
  * @deprecated Will be removed once auth is fully integrated
  * Use Astro.locals.user.id instead

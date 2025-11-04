@@ -76,7 +76,7 @@ export class OfferFormComponent {
    */
   async isSubmitting(): Promise<boolean> {
     const text = await this.submitButton.textContent();
-    return text?.includes('Adding...') || false;
+    return text?.includes('Dodawanie...') || false;
   }
 
   /**
@@ -115,7 +115,7 @@ export class OfferFormComponent {
     await this.page.waitForFunction(
       (buttonSelector) => {
         const button = document.querySelector(buttonSelector);
-        return button?.textContent?.includes('Add Offer');
+        return button?.textContent?.includes('Dodaj ofertę');
       },
       '[data-testid="offer-submit-button"]'
     );

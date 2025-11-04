@@ -67,9 +67,9 @@ describe("OfferGrid", () => {
 
       // Assert
       expect(screen.getByTestId("empty-state")).toBeInTheDocument();
-      expect(screen.getByText("No offers yet")).toBeInTheDocument();
+      expect(screen.getByText("Brak ofert")).toBeInTheDocument();
       expect(
-        screen.getByText(/add your first offer from otomoto.pl/i)
+        screen.getByText(/dodaj pierwszą ofertę z otomoto.pl/i)
       ).toBeInTheDocument();
     });
 
@@ -112,7 +112,7 @@ describe("OfferGrid", () => {
       );
 
       // Assert
-      expect(screen.getByText("Your Watched Offers")).toBeInTheDocument();
+      expect(screen.getByText("Twoje obserwowane oferty")).toBeInTheDocument();
     });
 
     it("should render grid with proper structure", () => {
@@ -255,7 +255,7 @@ describe("OfferGrid", () => {
       );
 
       // Assert
-      const heading = screen.getByRole("heading", { name: /your watched offers/i });
+      const heading = screen.getByRole("heading", { name: /twoje obserwowane oferty/i });
       expect(heading).toBeInTheDocument();
       expect(heading.tagName).toBe("H2");
     });

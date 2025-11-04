@@ -47,51 +47,69 @@ async function globalTeardown() {
 
     console.log("🔌 Connected to Supabase");
 
-    // Clean up offers table
-    // If E2E_USERNAME_ID is set, only delete offers from user_offer for that user
-    // Otherwise, delete all offers (dangerous - only for isolated test environments)
+    // Clean up test data
+    // If E2E_USERNAME_ID is set, delete all test data for that user
+    // Otherwise, delete all data (dangerous - only for isolated test environments)
 
     if (e2eUserId) {
-      console.log(`🗑️  Deleting offers for test user: ${e2eUserId}`);
+      console.log(`🗑️  Deleting test data for user: ${e2eUserId}`);
 
-      // Delete from user_offer table (soft delete by setting deleted_at)
+      // Step 1: Get all offer IDs for this user
+      const { data: userOffers, error: fetchError } = await supabase
+        .from("user_offer")
+        .select("offer_id")
+        .eq("user_id", e2eUserId);
+
+      if (fetchError) {
+        console.error("❌ Error fetching user offers:", fetchError);
+        throw fetchError;
+      }
+
+      const offerIds = userOffers?.map((uo) => uo.offer_id) || [];
+      console.log(`📋 Found ${offerIds.length} offers associated with test user`);
+
+      // Step 2: Delete from user_offer table
       const { error: userOfferError, count: userOfferCount } = await supabase
         .from("user_offer")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("user_id", e2eUserId)
-        .is("deleted_at", null);
+        .delete()
+        .eq("user_id", e2eUserId);
 
       if (userOfferError) {
         console.error("❌ Error cleaning user_offer table:", userOfferError);
         throw userOfferError;
       }
 
-      console.log(`✅ Soft-deleted ${userOfferCount ?? 0} user offer subscriptions`);
+      console.log(`✅ Deleted ${userOfferCount ?? 0} user_offer records`);
 
-      // Optionally, also clean up orphaned offers that were created during tests
-      // (offers that have no active user_offer relationships)
-      const { data: orphanedOffers } = await supabase
-        .from("offers")
-        .select("id")
-        .not("id", "in", supabase.from("user_offer").select("offer_id").is("deleted_at", null));
+      // Step 3: Delete from price_history table for these offers
+      if (offerIds.length > 0) {
+        const { error: priceHistoryError, count: priceHistoryCount } = await supabase
+          .from("price_history")
+          .delete()
+          .in("offer_id", offerIds);
 
-      if (orphanedOffers && orphanedOffers.length > 0) {
-        console.log(`🗑️  Found ${orphanedOffers.length} orphaned offers, cleaning up...`);
-
-        const offerIds = orphanedOffers.map((o) => o.id);
-        const { error: deleteError } = await supabase.from("offers").delete().in("id", offerIds);
-
-        if (deleteError) {
-          console.warn("⚠️  Warning: Could not delete orphaned offers:", deleteError.message);
-        } else {
-          console.log(`✅ Deleted ${orphanedOffers.length} orphaned offers`);
+        if (priceHistoryError) {
+          console.error("❌ Error cleaning price_history table:", priceHistoryError);
+          throw priceHistoryError;
         }
+
+        console.log(`✅ Deleted ${priceHistoryCount ?? 0} price_history records`);
+
+        // Step 4: Delete from offers table
+        const { error: offersError, count: offersCount } = await supabase.from("offers").delete().in("id", offerIds);
+
+        if (offersError) {
+          console.error("❌ Error cleaning offers table:", offersError);
+          throw offersError;
+        }
+
+        console.log(`✅ Deleted ${offersCount ?? 0} offers`);
       }
     } else {
-      console.log("⚠️  No user filter - deleting ALL offers from database!");
+      console.log("⚠️  No user filter - deleting ALL data from database!");
       console.log("   This should only happen in isolated test environments.");
 
-      // First, delete all user_offer records (no id column, use offer_id)
+      // Step 1: Delete all user_offer records
       const { error: userOfferError, count: userOfferCount } = await supabase
         .from("user_offer")
         .delete()
@@ -102,17 +120,30 @@ async function globalTeardown() {
         throw userOfferError;
       }
 
-      console.log(`✅ Deleted ${userOfferCount ?? 0} user offer subscriptions`);
+      console.log(`✅ Deleted ${userOfferCount ?? 0} user_offer records`);
 
-      // Then delete all offers
-      const { error: deleteError, count } = await supabase.from("offers").delete().neq("id", 0); // Delete all rows
+      // Step 2: Delete all price_history records
+      const { error: priceHistoryError, count: priceHistoryCount } = await supabase
+        .from("price_history")
+        .delete()
+        .neq("id", 0); // Delete all rows
 
-      if (deleteError) {
-        console.error("❌ Error cleaning offers table:", deleteError);
-        throw deleteError;
+      if (priceHistoryError) {
+        console.error("❌ Error cleaning price_history table:", priceHistoryError);
+        throw priceHistoryError;
       }
 
-      console.log(`✅ Deleted ${count ?? 0} offers from database`);
+      console.log(`✅ Deleted ${priceHistoryCount ?? 0} price_history records`);
+
+      // Step 3: Delete all offers
+      const { error: offersError, count: offersCount } = await supabase.from("offers").delete().neq("id", 0); // Delete all rows
+
+      if (offersError) {
+        console.error("❌ Error cleaning offers table:", offersError);
+        throw offersError;
+      }
+
+      console.log(`✅ Deleted ${offersCount ?? 0} offers`);
     }
 
     console.log("✨ E2E test teardown completed successfully\n");

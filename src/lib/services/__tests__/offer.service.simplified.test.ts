@@ -55,6 +55,10 @@ describe("OfferService - Core Logic", () => {
       in: vi.fn(() => mockSupabase),
       maybeSingle: vi.fn(),
       single: vi.fn(),
+      auth: {
+        getUser: vi.fn(),
+      },
+      rpc: vi.fn(),
     };
 
     offerService = new OfferService(mockSupabase);
@@ -179,39 +183,60 @@ describe("OfferService - Core Logic", () => {
   });
 
   describe("unsubscribe() - Basic Behavior", () => {
+    beforeEach(() => {
+      // Default mock for auth.getUser() - successful authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: "user-123" } },
+        error: null,
+      });
+    });
+
     it("should return false when subscription doesn't exist", async () => {
-      mockSupabase.maybeSingle.mockResolvedValueOnce({
-        data: null,
+      // RPC returns false when subscription not found
+      mockSupabase.rpc.mockResolvedValueOnce({
+        data: false,
         error: null,
       });
 
       const result = await offerService.unsubscribe("user-123", 1);
 
       expect(result).toBe(false);
-      expect(mockSupabase.update).not.toHaveBeenCalled();
+      expect(mockSupabase.auth.getUser).toHaveBeenCalled();
+      expect(mockSupabase.rpc).toHaveBeenCalledWith("soft_delete_user_offer", {
+        p_offer_id: 1,
+      });
     });
 
     it("should return false when subscription already deleted", async () => {
-      mockSupabase.maybeSingle.mockResolvedValueOnce({
-        data: { deleted_at: "2025-01-01T00:00:00Z" },
+      // RPC returns false when subscription already deleted
+      mockSupabase.rpc.mockResolvedValueOnce({
+        data: false,
         error: null,
       });
 
       const result = await offerService.unsubscribe("user-123", 1);
 
       expect(result).toBe(false);
-      expect(mockSupabase.update).not.toHaveBeenCalled();
+      expect(mockSupabase.auth.getUser).toHaveBeenCalled();
+      expect(mockSupabase.rpc).toHaveBeenCalledWith("soft_delete_user_offer", {
+        p_offer_id: 1,
+      });
     });
 
     it("should throw error on select failure", async () => {
-      mockSupabase.maybeSingle.mockResolvedValueOnce({
+      // RPC returns error
+      mockSupabase.rpc.mockResolvedValueOnce({
         data: null,
         error: { message: "Database error" },
       });
 
       await expect(offerService.unsubscribe("user-123", 1)).rejects.toThrow(
-        "Failed to check subscription: Database error"
+        "Failed to unsubscribe: Database error"
       );
+      expect(mockSupabase.auth.getUser).toHaveBeenCalled();
+      expect(mockSupabase.rpc).toHaveBeenCalledWith("soft_delete_user_offer", {
+        p_offer_id: 1,
+      });
     });
   });
 

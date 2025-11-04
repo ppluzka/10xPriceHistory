@@ -18,6 +18,7 @@ const PUBLIC_PATHS = [
   "/api/auth/resend-verification",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
+  "/api/cron/check-prices", // CRON endpoint uses Bearer token (CRON_SECRET) instead of session
 ];
 
 /**

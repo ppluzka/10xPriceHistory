@@ -193,7 +193,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      expect(screen.getByText("active")).toBeInTheDocument();
+      expect(screen.getByText("Aktywna")).toBeInTheDocument();
     });
 
     it("should display inactive status badge", () => {
@@ -215,7 +215,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      expect(screen.getByText("error")).toBeInTheDocument();
+      expect(screen.getByText("Błąd sprawdzania")).toBeInTheDocument();
     });
 
     it("should apply correct styling for active status", () => {
@@ -226,7 +226,7 @@ describe("OfferCard", () => {
       const { container } = render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      const badge = screen.getByText("active");
+      const badge = screen.getByText("Aktywna");
       expect(badge.className).toContain("bg-green-100");
       expect(badge.className).toContain("text-green-800");
     });
@@ -239,7 +239,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      const badge = screen.getByText("error");
+      const badge = screen.getByText("Błąd sprawdzania");
       expect(badge.className).toContain("bg-red-100");
       expect(badge.className).toContain("text-red-800");
     });
@@ -283,7 +283,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      expect(screen.getByText(/last checked/i)).toBeInTheDocument();
+      expect(screen.getByText(/ostatnie sprawdzenie/i)).toBeInTheDocument();
     });
 
     it("should not display last checked when null", () => {
@@ -294,7 +294,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      expect(screen.queryByText(/last checked/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/ostatnie sprawdzenie/i)).not.toBeInTheDocument();
     });
   });
 
@@ -307,7 +307,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       expect(deleteButton).toBeInTheDocument();
       expect(deleteButton.className).toContain("opacity-0");
       expect(deleteButton.className).toContain("group-hover:opacity-100");
@@ -321,13 +321,13 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Act
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Assert
-      expect(screen.getByText("Delete Offer")).toBeInTheDocument();
+      expect(screen.getByText("Usuń ofertę")).toBeInTheDocument();
       expect(
-        screen.getByText(/are you sure you want to stop tracking/i)
+        screen.getByText(/czy na pewno chcesz przestać śledzić/i)
       ).toBeInTheDocument();
     });
 
@@ -339,11 +339,11 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Act
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Assert - Modal should appear, not navigate
-      expect(screen.getByText("Delete Offer")).toBeInTheDocument();
+      expect(screen.getByText("Usuń ofertę")).toBeInTheDocument();
     });
 
     it("should call onDelete when confirming deletion", async () => {
@@ -354,10 +354,10 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Act
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
-      const confirmButton = screen.getByRole("button", { name: /^delete$/i });
+      const confirmButton = screen.getByRole("button", { name: /^usuń$/i });
       await user.click(confirmButton);
 
       // Assert
@@ -372,15 +372,15 @@ describe("OfferCard", () => {
 
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Act
-      const cancelButton = screen.getByRole("button", { name: /cancel/i });
+      const cancelButton = screen.getByRole("button", { name: /anuluj/i });
       await user.click(cancelButton);
 
       // Assert
-      expect(screen.queryByText("Delete Offer")).not.toBeInTheDocument();
+      expect(screen.queryByText("Usuń ofertę")).not.toBeInTheDocument();
       expect(mockOnDelete).not.toHaveBeenCalled();
     });
 
@@ -391,17 +391,17 @@ describe("OfferCard", () => {
 
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Act
-      const backdrop = screen.getByText("Delete Offer").closest(".fixed");
+      const backdrop = screen.getByText("Usuń ofertę").closest(".fixed");
       if (backdrop) {
         await user.click(backdrop);
       }
 
       // Assert
-      expect(screen.queryByText("Delete Offer")).not.toBeInTheDocument();
+      expect(screen.queryByText("Usuń ofertę")).not.toBeInTheDocument();
       expect(mockOnDelete).not.toHaveBeenCalled();
     });
 
@@ -412,15 +412,15 @@ describe("OfferCard", () => {
 
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Act
-      const modalContent = screen.getByText(/are you sure/i);
+      const modalContent = screen.getByText(/czy na pewno/i);
       await user.click(modalContent);
 
       // Assert
-      expect(screen.getByText("Delete Offer")).toBeInTheDocument();
+      expect(screen.getByText("Usuń ofertę")).toBeInTheDocument();
       expect(mockOnDelete).not.toHaveBeenCalled();
     });
 
@@ -431,15 +431,15 @@ describe("OfferCard", () => {
 
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Act
-      const confirmButton = screen.getByRole("button", { name: /^delete$/i });
+      const confirmButton = screen.getByRole("button", { name: /^usuń$/i });
       await user.click(confirmButton);
 
       // Assert
-      expect(screen.queryByText("Delete Offer")).not.toBeInTheDocument();
+      expect(screen.queryByText("Usuń ofertę")).not.toBeInTheDocument();
     });
   });
 
@@ -452,7 +452,7 @@ describe("OfferCard", () => {
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       expect(deleteButton).toBeInTheDocument();
     });
 
@@ -463,11 +463,11 @@ describe("OfferCard", () => {
 
       render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
-      const deleteButton = screen.getByLabelText("Delete offer");
+      const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
       // Act & Assert
-      const heading = screen.getByText("Delete Offer");
+      const heading = screen.getByText("Usuń ofertę");
       expect(heading.tagName).toBe("H3");
     });
 

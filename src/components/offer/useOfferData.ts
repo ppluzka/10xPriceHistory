@@ -49,8 +49,9 @@ export function useOfferData({ initialOffer, initialHistory }: UseOfferDataProps
   const statsData = useMemo<OfferStatsViewModel>(() => {
     const currency = history.length > 0 ? history[0].currency : "PLN";
 
-    // Calculate observation duration
-    const observationDurationDays = calculateObservationDuration(offer.createdAt, offer.lastChecked);
+    // Calculate observation duration from first to last price check
+    // Use history data instead of offer.createdAt/lastChecked for accuracy
+    const observationDurationDays = calculateObservationDuration(history);
 
     // Determine trend based on percentage change
     const trend = determineTrend(offer.percentChangeFromFirst);
@@ -67,8 +68,11 @@ export function useOfferData({ initialOffer, initialHistory }: UseOfferDataProps
   }, [offer, history]);
 
   // Transform price history to chart view model
+  // Reverse order so chart shows chronologically (oldest to newest, left to right)
   const chartData = useMemo<PriceHistoryChartViewModel[]>(() => {
-    return history.map((entry) => {
+    return [...history]
+      .reverse() // Reverse to show oldest to newest (chronological order)
+      .map((entry) => {
       const date = new Date(entry.checkedAt);
       return {
         date: formatDateShort(date),
@@ -91,12 +95,22 @@ export function useOfferData({ initialOffer, initialHistory }: UseOfferDataProps
 }
 
 /**
- * Calculate observation duration in days
+ * Calculate observation duration in days based on price history
+ * Uses first and last price check dates instead of offer creation date
  */
-function calculateObservationDuration(createdAt: string, lastChecked: string | null): number {
-  const start = new Date(createdAt);
-  const end = lastChecked ? new Date(lastChecked) : new Date();
-  const diffMs = end.getTime() - start.getTime();
+function calculateObservationDuration(history: PriceHistoryDto[]): number {
+  // If no history, return 0
+  if (history.length === 0) {
+    return 0;
+  }
+
+  // History is sorted newest first (from API), so:
+  // - Last item (oldest) = first check
+  // - First item (newest) = last check
+  const firstCheck = new Date(history[history.length - 1].checkedAt);
+  const lastCheck = new Date(history[0].checkedAt);
+  
+  const diffMs = lastCheck.getTime() - firstCheck.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   return Math.max(0, diffDays);
 }

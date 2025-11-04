@@ -19,14 +19,15 @@ export class DashboardStatsComponent {
   constructor(page: Page) {
     this.page = page;
     this.container = page.getByTestId('dashboard-stats');
-    this.activeOffersCard = page.getByTestId('stat-card-active-offers');
-    this.activeOffersValue = page.getByTestId('stat-value-active-offers');
-    this.averageChangeCard = page.getByTestId('stat-card-average-change');
-    this.averageChangeValue = page.getByTestId('stat-value-average-change');
-    this.largestDropCard = page.getByTestId('stat-card-largest-drop');
-    this.largestDropValue = page.getByTestId('stat-value-largest-drop');
-    this.largestRiseCard = page.getByTestId('stat-card-largest-rise');
-    this.largestRiseValue = page.getByTestId('stat-value-largest-rise');
+    // Test IDs are generated from Polish labels in DashboardStats.tsx
+    this.activeOffersCard = page.getByTestId('stat-card-aktywne-oferty');
+    this.activeOffersValue = page.getByTestId('stat-value-aktywne-oferty');
+    this.averageChangeCard = page.getByTestId('stat-card-średnia-zmiana');
+    this.averageChangeValue = page.getByTestId('stat-value-średnia-zmiana');
+    this.largestDropCard = page.getByTestId('stat-card-największy-spadek');
+    this.largestDropValue = page.getByTestId('stat-value-największy-spadek');
+    this.largestRiseCard = page.getByTestId('stat-card-największy-wzrost');
+    this.largestRiseValue = page.getByTestId('stat-value-największy-wzrost');
   }
 
   /**
@@ -76,7 +77,7 @@ export class DashboardStatsComponent {
         const value = parseInt(element?.textContent || '0', 10);
         return value === expected;
       },
-      { selector: '[data-testid="stat-value-active-offers"]', expected: expectedCount },
+      { selector: '[data-testid="stat-value-aktywne-oferty"]', expected: expectedCount },
       { timeout: 10000 }
     );
   }

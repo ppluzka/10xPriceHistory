@@ -36,9 +36,6 @@ export default function OfferStats({ stats }: OfferStatsProps) {
         {/* Max Price */}
         <StatItem label="Cena maksymalna" value={`${formatPrice(maxPrice)} ${currency}`} icon="⬆️" />
 
-        {/* Avg Price */}
-        <StatItem label="Cena średnia" value={`${formatPrice(avgPrice)} ${currency}`} icon="📊" />
-
         <div className="pt-4 border-t">
           {/* Trend */}
           <StatItem

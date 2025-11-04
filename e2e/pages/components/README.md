@@ -237,12 +237,12 @@ All components use `data-testid` attributes for reliable element selection:
 
 ### Stats
 - `dashboard-stats` - Stats container
-- `stat-card-active-offers` - Active offers card
-- `stat-value-active-offers` - Active offers value
-- `stat-card-average-change` - Average change card
-- `stat-value-average-change` - Average change value
-- `stat-card-largest-drop` - Largest drop card
-- `stat-value-largest-drop` - Largest drop value
-- `stat-card-largest-rise` - Largest rise card
-- `stat-value-largest-rise` - Largest rise value
+- `stat-card-aktywne-oferty` - Active offers card (generated from Polish label "Aktywne oferty")
+- `stat-value-aktywne-oferty` - Active offers value
+- `stat-card-średnia-zmiana` - Average change card (generated from Polish label "Średnia zmiana")
+- `stat-value-średnia-zmiana` - Average change value
+- `stat-card-największy-spadek` - Largest drop card (generated from Polish label "Największy spadek")
+- `stat-value-największy-spadek` - Largest drop value
+- `stat-card-największy-wzrost` - Largest rise card (generated from Polish label "Największy wzrost")
+- `stat-value-największy-wzrost` - Largest rise value
 
