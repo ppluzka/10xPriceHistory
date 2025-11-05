@@ -69,11 +69,11 @@ jobs:
     env:
       NODE_VERSION: "22.14.0"
       CI: true
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      E2E_USERNAME_ID: ${{ secrets.E2E_USERNAME_ID }}
-      E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+      E2E_USERNAME_ID: ${{ vars.E2E_USERNAME_ID }}
+      E2E_USERNAME: ${{ vars.E2E_USERNAME }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -105,43 +105,4 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  status-comment:
-    name: Status Comment
-    runs-on: ubuntu-latest
-    needs: [lint, unit-test, e2e-test]
-    if: always() && (needs.lint.result == 'success' && needs.unit-test.result == 'success' && needs.e2e-test.result == 'success')
-    permissions:
-      pull-requests: write
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Download unit test coverage
-        uses: actions/download-artifact@v4
-        if: always()
-        with:
-          name: unit-test-coverage
-          path: coverage/
-
-      - name: Create status comment
-        uses: peter-evans/create-or-update-comment@v5
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## ✅ All checks passed!
-
-            | Check | Status |
-            |-------|--------|
-            | **Lint** | ✅ Passed |
-            | **Unit Tests** | ✅ Passed |
-            | **E2E Tests** | ✅ Passed |
-
-            ### Coverage Reports
-
-            - Unit test coverage report available in artifacts
-            - E2E test report available in artifacts
-
-            This PR is ready for review. 🚀
 
