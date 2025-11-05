@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { PreferencesDto, UpdatePreferencesCommand, PasswordChangeViewModel } from "@/types";
+import { apiFetch } from "@/lib/utils";
 
 interface UseSettingsReturn {
   preferences: PreferencesDto | null;
@@ -32,7 +33,7 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     setError(null);
 
     try {
-      const response = await fetch("/api/preferences");
+      const response = await apiFetch("/api/preferences");
 
       if (!response.ok) {
         throw new Error("Nie udało się pobrać preferencji");
@@ -53,7 +54,7 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     setError(null);
 
     try {
-      const response = await fetch("/api/preferences", {
+      const response = await apiFetch("/api/preferences", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -83,7 +84,7 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     setError(null);
 
     try {
-      const response = await fetch("/api/account/password", {
+      const response = await apiFetch("/api/account/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +113,7 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     setError(null);
 
     try {
-      const response = await fetch("/api/account", {
+      const response = await apiFetch("/api/account", {
         method: "DELETE",
       });
 

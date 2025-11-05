@@ -18,7 +18,12 @@ let initialPreferences: PreferencesDto | null = null;
 let error: string | null = null;
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/preferences`, {
+  // Use current request protocol to support both HTTP and HTTPS
+  // x-forwarded-proto is set by nginx when redirecting HTTP to HTTPS
+  const forwardedProto = Astro.request.headers.get("x-forwarded-proto");
+  const protocol = forwardedProto ? `${forwardedProto}:` : Astro.url.protocol;
+  const origin = `${protocol}//${Astro.url.host}`;
+  const response = await fetch(`${origin}/api/preferences`, {
     headers: {
       Cookie: Astro.request.headers.get("Cookie") || "",
     },

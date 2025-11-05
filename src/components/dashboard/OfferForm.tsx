@@ -1,6 +1,7 @@
 import { useState, useCallback, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import type { AddOfferCommand } from "@/types";
+import { apiFetch } from "@/lib/utils";
 
 interface OfferFormProps {
   onOfferAdded: () => void;
@@ -62,7 +63,7 @@ export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: Off
       try {
         const command: AddOfferCommand = { url: url.trim() };
 
-        const response = await fetch("/api/offers", {
+        const response = await apiFetch("/api/offers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

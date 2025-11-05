@@ -18,7 +18,7 @@ const gitignorePath = path.resolve(__dirname, ".gitignore");
 const baseConfig = tseslint.config({
   extends: [eslint.configs.recommended, tseslint.configs.strict, tseslint.configs.stylistic],
   rules: {
-    "no-console": "warn",
+    "no-console": ["warn", { allow: ["warn", "error"] }],
     "no-unused-vars": "off",
   },
 });
@@ -68,6 +68,7 @@ const e2eConfig = tseslint.config({
   files: ["e2e/**"],
   rules: {
     "react-hooks/rules-of-hooks": "off",
+    "no-console": "off",
   },
 });
 

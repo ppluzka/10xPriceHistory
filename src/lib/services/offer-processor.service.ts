@@ -180,9 +180,6 @@ export class OfferProcessorService {
 
     if (retryDecision.shouldRetry) {
       // Log that we'll retry in next CRON run
-      console.log(
-        `Offer ${offer.id} failed (attempt ${attempt}), will retry in next CRON run (attempt ${retryDecision.nextAttempt})`
-      );
       // Don't wait for retry - let next CRON run handle it
       // Status remains 'active' so it will be picked up in next run
       await this.monitoringService.trackCheckResult(offer.id, false);
@@ -229,7 +226,6 @@ export class OfferProcessorService {
       const results = await Promise.allSettled(batch.map((offer) => this.processOffer(offer)));
 
       // Log batch results with error details
-      const successCount = results.filter((r) => r.status === "fulfilled").length;
       const failedResults = results.filter((r) => r.status === "rejected");
 
       if (failedResults.length > 0) {
@@ -238,8 +234,6 @@ export class OfferProcessorService {
           failedResults.map((r) => (r.status === "rejected" ? r.reason : "unknown"))
         );
       }
-
-      console.log(`Batch ${Math.floor(i / batchSize) + 1}: ${successCount}/${batch.length} successful`);
 
       // Delay between batches to avoid rate limiting
       if (i + batchSize < offers.length) {

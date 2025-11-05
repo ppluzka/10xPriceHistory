@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { apiFetch } from "@/lib/utils";
 
 interface HeaderProps {
   user: {
@@ -15,7 +16,7 @@ export default function Header({ user }: HeaderProps) {
     setIsLoggingOut(true);
 
     try {
-      const response = await fetch("/api/auth/logout", {
+      const response = await apiFetch("/api/auth/logout", {
         method: "POST",
       });
 

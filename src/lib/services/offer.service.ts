@@ -583,8 +583,6 @@ export class OfferService {
    * @throws Error if extraction fails
    */
   private async extractOfferData(url: string): Promise<ExtractedOfferData> {
-    console.log(`Extracting data from: ${url}`);
-
     try {
       // Step 1: Fetch HTML with timeout
       const controller = new AbortController();
@@ -657,7 +655,6 @@ export class OfferService {
         if (element.length) {
           locationInfo = element.text().trim();
           if (locationInfo && locationInfo.length > 2) {
-            console.log(`Found location with selector ${selector}: ${locationInfo}`);
             break;
           }
         }
@@ -784,12 +781,6 @@ export class OfferService {
 
     // Remove duplicates (no limit on count)
     const uniqueLocationContext = Array.from(new Set(locationContext));
-
-    console.log(`Location extraction - standard selector: ${locationInfo || "not found"}`);
-    console.log(`Location extraction - context items found: ${uniqueLocationContext.length}`);
-    if (uniqueLocationContext.length > 0) {
-      console.log(`Location context samples: ${uniqueLocationContext.slice(0, 3).join(" | ")}`);
-    }
 
     return {
       locationInfo,
@@ -958,8 +949,6 @@ Be precise and extract only the requested information. If a field cannot be foun
       throw new Error("OpenRouter service not initialized");
     }
 
-    console.log("Using LLM extraction for offer data");
-
     // Load HTML with cheerio to extract relevant parts and reduce token usage
     const $ = cheerio.load(html);
 
@@ -1005,8 +994,6 @@ Be precise and extract only the requested information. If a field cannot be foun
         }
       });
     }
-
-    console.log(`Extracted image URL: ${mainImageUrl || "NOT FOUND"}`);
 
     // Remove all CSS and JS to reduce token usage and noise
     $("script").remove();
@@ -1131,12 +1118,6 @@ Be precise and extract only the requested information. If a field cannot be foun
       return await this.extractWithCheerio(html);
     }
 
-    console.log(
-      `LLM extraction successful: ${extractedData.title}, ${extractedData.price} ${extractedData.currency}, ${extractedData.city}`
-    );
-    console.log(`Confidence: ${extractedData.confidence.toFixed(2)}, Selector: ${extractedData.selector}`);
-    console.log(`Tokens used: ${validated.metadata.tokens?.total || "N/A"}`);
-
     // Log API usage for cost tracking (PRD requirement: US-022)
     await this.logAPIUsage({
       endpoint: "chat/completions",
@@ -1169,8 +1150,6 @@ Be precise and extract only the requested information. If a field cannot be foun
    * @returns Extracted offer data
    */
   private async extractWithCheerio(html: string): Promise<ExtractedOfferData> {
-    console.log("Using Cheerio extraction for offer data");
-
     const $ = cheerio.load(html);
 
     // Extract title
@@ -1215,8 +1194,6 @@ Be precise and extract only the requested information. If a field cannot be foun
         }
       });
     }
-
-    console.log(`Cheerio extracted image URL: ${imageUrl || "NOT FOUND"}`);
 
     // Extract price
     let priceText = $('h3[data-testid="ad-price"]').text().trim();
@@ -1284,8 +1261,6 @@ Be precise and extract only the requested information. If a field cannot be foun
     if (!$('h3[data-testid="ad-price"]').length) {
       selector = ".offer-price__number";
     }
-
-    console.log(`Cheerio extraction successful: ${title}, ${price} ${currency}, ${city}`);
 
     return {
       title,
@@ -1370,8 +1345,6 @@ Be precise and extract only the requested information. If a field cannot be foun
           timestamp: new Date().toISOString(),
         },
       });
-
-      console.log(`API usage logged: ${params.tokens_used} tokens, $${cost.toFixed(6)}`);
     } catch (error) {
       // Don't throw error - logging failure shouldn't block operations
       console.error("Error logging API usage:", error);

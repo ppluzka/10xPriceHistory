@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (!offers || offers.length === 0) {
-      console.info("No active offers to process");
+      console.warn("No active offers to process");
       return new Response(
         JSON.stringify({
           success: true,
@@ -71,7 +71,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    console.info(`Processing ${offers.length} active offers`);
+    console.warn(`Processing ${offers.length} active offers`);
 
     // Step 3: Process offers in batches with timeout protection
     // Use service role client to bypass RLS for price_history inserts
@@ -110,7 +110,7 @@ export const POST: APIRoute = async ({ request }) => {
     const monitoringService = new MonitoringService(supabaseService);
     await monitoringService.checkAndSendAlert();
 
-    console.info(`Processing completed: ${processedCount} successful, ${errorCount} errors`);
+    console.warn(`Processing completed: ${processedCount} successful, ${errorCount} errors`);
 
     return new Response(
       JSON.stringify({

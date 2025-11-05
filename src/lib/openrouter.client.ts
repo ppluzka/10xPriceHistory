@@ -16,6 +16,7 @@
  */
 
 import type { ChatMessage, SendChatParams, ModelResponse } from "../types";
+import { apiFetch } from "./utils";
 
 /**
  * API response wrapper
@@ -67,7 +68,7 @@ export class OpenRouterClientError extends Error {
  * ```
  */
 export async function sendChatCompletion(params: Omit<SendChatParams, "metadata">): Promise<ModelResponse> {
-  const response = await fetch("/api/llm", {
+  const response = await apiFetch("/api/llm", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -161,7 +162,7 @@ export async function sendStructuredCompletion<T = unknown>(params: Omit<SendCha
     throw new Error("response_format is required for structured completion");
   }
 
-  const response = await fetch("/api/llm", {
+  const response = await apiFetch("/api/llm", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -202,7 +203,7 @@ export async function sendStructuredCompletion<T = unknown>(params: Omit<SendCha
  */
 export async function checkHealth(): Promise<boolean> {
   try {
-    const response = await fetch("/api/llm", {
+    const response = await apiFetch("/api/llm", {
       method: "GET",
     });
 

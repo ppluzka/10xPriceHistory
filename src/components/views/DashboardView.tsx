@@ -3,6 +3,7 @@ import type { DashboardDto } from "@/types";
 import DashboardStats from "../dashboard/DashboardStats";
 import OfferForm from "../dashboard/OfferForm";
 import OfferGrid from "../dashboard/OfferGrid";
+import { apiFetch } from "@/lib/utils";
 
 interface DashboardViewProps {
   initialData: DashboardDto | null;
@@ -21,7 +22,7 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
     setError(null);
 
     try {
-      const response = await fetch("/api/dashboard");
+      const response = await apiFetch("/api/dashboard");
 
       if (!response.ok) {
         throw new Error("Nie udało się pobrać danych dashboardu");
@@ -68,7 +69,7 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
       });
 
       try {
-        const response = await fetch(`/api/offers/${offerId}`, {
+        const response = await apiFetch(`/api/offers/${offerId}`, {
           method: "DELETE",
         });
 
@@ -88,7 +89,7 @@ export default function DashboardView({ initialData }: DashboardViewProps) {
   // Handle rechecking an offer
   const handleRecheckOffer = useCallback(async (offerId: string) => {
     try {
-      const response = await fetch(`/api/offers/${offerId}/recheck`, {
+      const response = await apiFetch(`/api/offers/${offerId}/recheck`, {
         method: "POST",
       });
 

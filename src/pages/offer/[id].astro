@@ -28,8 +28,14 @@ let error: string | null = null;
 let statusCode = 200;
 
 try {
+  // Use current request protocol to support both HTTP and HTTPS
+  // x-forwarded-proto is set by nginx when redirecting HTTP to HTTPS
+  const forwardedProto = Astro.request.headers.get("x-forwarded-proto");
+  const protocol = forwardedProto ? `${forwardedProto}:` : Astro.url.protocol;
+  const origin = `${protocol}//${Astro.url.host}`;
+
   // Fetch offer details
-  const offerResponse = await fetch(`${Astro.url.origin}/api/offers/${id}`, {
+  const offerResponse = await fetch(`${origin}/api/offers/${id}`, {
     headers: {
       Cookie: Astro.request.headers.get("Cookie") || "",
     },
@@ -48,7 +54,7 @@ try {
     offerData = await offerResponse.json();
 
     // Fetch price history (get all records for chart)
-    const historyResponse = await fetch(`${Astro.url.origin}/api/offers/${id}/history?size=1000`, {
+    const historyResponse = await fetch(`${origin}/api/offers/${id}/history?size=1000`, {
       headers: {
         Cookie: Astro.request.headers.get("Cookie") || "",
       },
@@ -69,7 +75,6 @@ try {
 } catch (e) {
   // Log error on server side
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.error("Error fetching offer data:", e);
   }
   statusCode = 500;

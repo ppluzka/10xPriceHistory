@@ -229,6 +229,7 @@ describe("OfferForm", () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ url: "https://www.otomoto.pl/oferta/bmw-x5" }),
+          credentials: "include",
         });
       });
     });

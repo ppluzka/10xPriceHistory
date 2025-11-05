@@ -48,7 +48,9 @@ describe("useSettings", () => {
       });
 
       expect(result.current.preferences).toEqual(fetchedPreferences);
-      expect(mockFetch).toHaveBeenCalledWith("/api/preferences");
+      expect(mockFetch).toHaveBeenCalledWith("/api/preferences", {
+        credentials: "include",
+      });
     });
 
     it("should handle fetch error when initialPreferences is null", async () => {
@@ -86,6 +88,7 @@ describe("useSettings", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ defaultFrequency: "24h" }),
+        credentials: "include",
       });
 
       await waitFor(() => {
@@ -162,6 +165,7 @@ describe("useSettings", () => {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
         }),
+        credentials: "include",
       });
     });
 
@@ -211,6 +215,7 @@ describe("useSettings", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("/api/account", {
         method: "DELETE",
+        credentials: "include",
       });
 
       expect(window.location.href).toBe("/");

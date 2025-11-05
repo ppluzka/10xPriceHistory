@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { apiFetch } from "@/lib/utils";
 
 interface RegisterFormProps {
   showLoginLink?: boolean;
@@ -129,7 +130,7 @@ export default function RegisterForm({ showLoginLink = true }: RegisterFormProps
       setIsLoading(true);
 
       try {
-        const response = await fetch("/api/auth/register", {
+        const response = await apiFetch("/api/auth/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { apiFetch } from "@/lib/utils";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -43,7 +44,7 @@ export default function ForgotPasswordForm() {
       setIsLoading(true);
 
       try {
-        const response = await fetch("/api/auth/forgot-password", {
+        const response = await apiFetch("/api/auth/forgot-password", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

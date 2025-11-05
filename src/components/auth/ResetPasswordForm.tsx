@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { apiFetch } from "@/lib/utils";
 
 interface ResetPasswordFormProps {
   /**
@@ -84,7 +85,7 @@ export default function ResetPasswordForm({ isTokenValid = true }: ResetPassword
       setIsLoading(true);
 
       try {
-        const response = await fetch("/api/auth/reset-password", {
+        const response = await apiFetch("/api/auth/reset-password", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

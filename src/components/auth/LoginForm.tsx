@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { apiFetch } from "@/lib/utils";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -64,7 +65,7 @@ export default function LoginForm({ redirectTo = "/dashboard", showRegisterLink 
       setIsLoading(true);
 
       try {
-        const response = await fetch("/api/auth/login", {
+        const response = await apiFetch("/api/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

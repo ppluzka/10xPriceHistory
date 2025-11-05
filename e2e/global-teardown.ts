@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Global E2E Teardown Script
  *

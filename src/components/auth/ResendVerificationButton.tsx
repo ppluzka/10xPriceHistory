@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { apiFetch } from "@/lib/utils";
 
 interface ResendVerificationButtonProps {
   email: string;
@@ -16,7 +17,7 @@ export default function ResendVerificationButton({ email }: ResendVerificationBu
     setMessage(null);
 
     try {
-      const response = await fetch("/api/auth/resend-verification", {
+      const response = await apiFetch("/api/auth/resend-verification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

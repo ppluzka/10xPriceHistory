@@ -115,7 +115,9 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith("/api/dashboard");
+        expect(mockFetch).toHaveBeenCalledWith("/api/dashboard", {
+          credentials: "include",
+        });
       });
       expect(screen.getByTestId("dashboard-stats")).toBeInTheDocument();
     });
@@ -177,7 +179,9 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith("/api/dashboard");
+        expect(mockFetch).toHaveBeenCalledWith("/api/dashboard", {
+          credentials: "include",
+        });
         expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("6 active");
       });
     });
