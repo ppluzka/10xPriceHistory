@@ -92,8 +92,9 @@ SELECT * FROM system_logs ORDER BY created_at DESC LIMIT 10;
 ## 🎯 System Ready!
 
 System będzie teraz automatycznie sprawdzać ceny:
+
 - **Co 6h**: check_prices_6h
-- **Co 12h**: check_prices_12h  
+- **Co 12h**: check_prices_12h
 - **Co 24h**: check_prices_24h (główny)
 - **Co 48h**: check_prices_48h
 
@@ -104,10 +105,10 @@ System będzie teraz automatycznie sprawdzać ceny:
 ### Sprawdź success rate:
 
 ```sql
-SELECT 
+SELECT
   ROUND(
-    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC / 
-    COUNT(*)::NUMERIC * 100, 
+    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC /
+    COUNT(*)::NUMERIC * 100,
     2
   ) as success_rate_percent
 FROM system_logs
@@ -165,4 +166,3 @@ SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
 System automatycznego monitorowania cen jest gotowy do użycia! 🚀
 
 Pytania? Sprawdź `.ai/price-monitoring-setup.md` → sekcja Troubleshooting
-

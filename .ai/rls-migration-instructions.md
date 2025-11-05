@@ -13,6 +13,7 @@ Migracja `20251103120000_enable_comprehensive_rls_policies.sql` włącza Row Lev
 ## Polityki Bezpieczeństwa
 
 ### Tabela: offers
+
 - **SELECT** (anon): Publiczny dostęp do przeglądania ofert
 - **SELECT** (authenticated): Pełny dostęp do przeglądania ofert
 - **INSERT** (authenticated): Użytkownicy mogą dodawać nowe oferty
@@ -20,23 +21,27 @@ Migracja `20251103120000_enable_comprehensive_rls_policies.sql` włącza Row Lev
 - **DELETE** (authenticated): Tylko jeśli użytkownik jest jedynym subskrybentem
 
 ### Tabela: user_offer
+
 - **SELECT** (authenticated): Tylko własne subskrypcje (nieskasowane)
 - **INSERT** (authenticated): Tylko własne subskrypcje
 - **UPDATE** (authenticated): Tylko własne subskrypcje (głównie soft-delete)
 - **DELETE** (authenticated): Tylko własne subskrypcje
 
 ### Tabela: price_history
+
 - **SELECT** (anon): Publiczny dostęp do historii cen
 - **SELECT** (authenticated): Pełny dostęp do historii cen
 - **INSERT/UPDATE/DELETE**: Obsługiwane przez backend service (service_role)
 
 ### Tabela: user_preferences
+
 - **SELECT** (authenticated): Tylko własne preferencje
 - **INSERT** (authenticated): Tylko własne preferencje
 - **UPDATE** (authenticated): Tylko własne preferencje
 - **DELETE** (authenticated): Tylko własne preferencje
 
 ### Tabela: api_usage
+
 - **SELECT** (authenticated): Tylko własne logi API
 - **INSERT** (authenticated/anon): Dozwolone dla logowania (backend service)
 - **UPDATE/DELETE**: Tylko service_role (immutable audit logs)
@@ -106,7 +111,7 @@ psql postgresql://postgres:your-password@localhost:54322/postgres \
 
 ```sql
 -- Połącz się z bazą i wykonaj query
-SELECT 
+SELECT
   schemaname,
   tablename,
   rowsecurity as rls_enabled
@@ -122,7 +127,7 @@ Oczekiwany wynik - wszystkie tabele powinny mieć `rls_enabled = true`
 
 ```sql
 -- Wyświetl wszystkie polityki RLS
-SELECT 
+SELECT
   schemaname,
   tablename,
   policyname,
@@ -138,6 +143,7 @@ ORDER BY tablename, policyname;
 ```
 
 Powinieneś zobaczyć:
+
 - **offers**: 5 polityk (select anon, select auth, insert auth, update auth, delete auth)
 - **user_offer**: 4 polityki (select, insert, update, delete dla authenticated)
 - **price_history**: 2 polityki (select anon, select auth)
@@ -148,7 +154,7 @@ Powinieneś zobaczyć:
 
 ```sql
 -- Szybkie podsumowanie
-SELECT 
+SELECT
   tablename,
   COUNT(*) as policy_count
 FROM pg_policies
@@ -173,7 +179,7 @@ SELECT * FROM offers LIMIT 5;
 SELECT * FROM price_history LIMIT 5;
 
 -- Powinno zwrócić błąd: próba insertu
-INSERT INTO offers (title, url, selector, city) 
+INSERT INTO offers (title, url, selector, city)
 VALUES ('Test Offer', 'https://test.com', '.price', 'Warsaw');
 -- Oczekiwany błąd: permission denied
 
@@ -192,7 +198,7 @@ SET request.jwt.claims TO '{"sub": "test-user-id-123"}';
 SELECT * FROM offers LIMIT 5;
 
 -- Powinno działać: insert oferty
-INSERT INTO offers (title, url, selector, city) 
+INSERT INTO offers (title, url, selector, city)
 VALUES ('Test Offer', 'https://test.com', '.price', 'Warsaw')
 RETURNING *;
 
@@ -270,6 +276,7 @@ npm run dev
 ```
 
 Przetestuj następujące scenariusze:
+
 1. ✅ Przeglądanie ofert jako niezalogowany użytkownik
 2. ✅ Dodawanie oferty jako zalogowany użytkownik
 3. ✅ Edycja własnej oferty (którą śledzisz)
@@ -351,8 +358,8 @@ SELECT current_user, current_setting('request.jwt.claims', true);
 
 ```sql
 -- Test using expression dla konkretnej polityki
-SELECT 
-  id, 
+SELECT
+  id,
   title,
   (
     EXISTS (
@@ -371,7 +378,7 @@ FROM offers;
 
 ```sql
 -- Sprawdź auth context
-SELECT 
+SELECT
   auth.uid() as current_user_id,
   auth.role() as current_role;
 ```
@@ -390,7 +397,7 @@ Po wykonaniu wszystkich kroków:
 ✅ Polityki CRUD są utworzone zgodnie z wymaganiami  
 ✅ Typy TypeScript są zaktualizowane  
 ✅ Testy przechodzą pomyślnie  
-✅ Aplikacja działa poprawnie z nowymi politykami  
+✅ Aplikacja działa poprawnie z nowymi politykami
 
 Jeśli wszystko działa, możesz commitować zmiany:
 
@@ -399,4 +406,3 @@ git add supabase/migrations/20251103120000_enable_comprehensive_rls_policies.sql
 git add src/db/database.types.ts
 git commit -m "feat: enable comprehensive RLS policies for all CRUD operations"
 ```
-

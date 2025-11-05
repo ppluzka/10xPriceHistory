@@ -145,10 +145,7 @@ interface PriceAnalysis {
   recommendation: string;
 }
 
-const validated = service.parseAndValidateStructuredResponse<PriceAnalysis>(
-  response,
-  priceAnalysisSchema
-);
+const validated = service.parseAndValidateStructuredResponse<PriceAnalysis>(response, priceAnalysisSchema);
 
 console.log(validated.data);
 // Fully typed and validated response
@@ -267,10 +264,7 @@ interface UseAICompletionOptions {
   maxTokens?: number;
 }
 
-export function useAICompletion<T = unknown>(
-  responseFormat?: ResponseFormat,
-  options: UseAICompletionOptions = {}
-) {
+export function useAICompletion<T = unknown>(responseFormat?: ResponseFormat, options: UseAICompletionOptions = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<T | null>(null);
@@ -443,9 +437,7 @@ try {
 import { createRateLimiter } from "../lib/rate-limiter.service";
 
 // Automatically adjusts limits based on environment
-const rateLimiter = createRateLimiter(
-  import.meta.env.PROD ? "production" : "development"
-);
+const rateLimiter = createRateLimiter(import.meta.env.PROD ? "production" : "development");
 
 // Development: 1000 req/min, lenient
 // Production: 100 req/min, strict per-user
@@ -728,7 +720,7 @@ describe("OpenRouterService", () => {
 ---
 
 Ten dokument zawiera kompletne przykłady użycia OpenRouterService. Dla dodatkowych informacji, zobacz:
+
 - Plan implementacji: `openrouter-service-implementation-plan.md`
 - Kod źródłowy: `src/lib/openrouter.service.ts`
 - Endpoint API: `src/pages/api/llm.ts`
-

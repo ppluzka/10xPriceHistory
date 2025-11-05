@@ -56,9 +56,7 @@ describe("PriceHistoryTable", () => {
       render(<PriceHistoryTable history={mockHistory} />);
 
       expect(screen.getByText("Historia sprawdzeń")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Wszystkie zarejestrowane zmiany ceny/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Wszystkie zarejestrowane zmiany ceny/)).toBeInTheDocument();
     });
 
     it("should render table headers", () => {
@@ -89,11 +87,7 @@ describe("PriceHistoryTable", () => {
       render(<PriceHistoryTable history={[]} />);
 
       expect(screen.getByText("Brak historii cen")).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          "Historia zostanie wyświetlona po pierwszym sprawdzeniu"
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText("Historia zostanie wyświetlona po pierwszym sprawdzeniu")).toBeInTheDocument();
     });
 
     it("should not render table in empty state", () => {
@@ -143,7 +137,7 @@ describe("PriceHistoryTable", () => {
       const prices95k = screen.getAllByText(/95 000/);
       const prices97k = screen.getAllByText(/97 500/);
       const prices100k = screen.getAllByText(/100 000/);
-      
+
       expect(prices95k.length).toBeGreaterThan(0);
       expect(prices97k.length).toBeGreaterThan(0);
       expect(prices100k.length).toBeGreaterThan(0);
@@ -154,7 +148,7 @@ describe("PriceHistoryTable", () => {
 
       const table = screen.getByRole("table");
       const currencyCells = within(table).getAllByText("PLN");
-      
+
       // Should have currency for each row
       expect(currencyCells).toHaveLength(mockHistory.length);
     });
@@ -176,9 +170,7 @@ describe("PriceHistoryTable", () => {
 
   describe("Price Change Indicators", () => {
     it("should highlight rows with price changes", () => {
-      const { container } = render(
-        <PriceHistoryTable history={mockHistoryWithChanges} />
-      );
+      const { container } = render(<PriceHistoryTable history={mockHistoryWithChanges} />);
 
       // First entry (90000) changed from previous (95000)
       // Second entry (95000) changed from previous (100000)
@@ -219,16 +211,14 @@ describe("PriceHistoryTable", () => {
       // Should display percentage changes (values may vary slightly due to calculation)
       const percentages = screen.getAllByText(/%/);
       expect(percentages.length).toBeGreaterThan(0);
-      
+
       // Check that percentage change indicators exist
       expect(screen.getByText(/5\.26/)).toBeInTheDocument();
       expect(screen.getByText(/5\s*%/)).toBeInTheDocument();
     });
 
     it("should use green color for price decrease", () => {
-      const { container } = render(
-        <PriceHistoryTable history={mockHistoryWithChanges} />
-      );
+      const { container } = render(<PriceHistoryTable history={mockHistoryWithChanges} />);
 
       const decreaseIndicators = container.querySelectorAll(".text-green-600");
       expect(decreaseIndicators.length).toBeGreaterThan(0);
@@ -248,9 +238,7 @@ describe("PriceHistoryTable", () => {
         },
       ];
 
-      const { container } = render(
-        <PriceHistoryTable history={historyWithIncrease} />
-      );
+      const { container } = render(<PriceHistoryTable history={historyWithIncrease} />);
 
       const increaseIndicators = container.querySelectorAll(".text-destructive");
       expect(increaseIndicators.length).toBeGreaterThan(0);
@@ -261,16 +249,13 @@ describe("PriceHistoryTable", () => {
 
       // Third entry has same price as second (97500)
       // It should not have special highlighting or indicator
-      const rows = screen.getAllByRole("row");
-      
+
       // Most recent entry has change indicator, but entries with same price don't
       expect(screen.queryAllByText(/↓/).length).toBeLessThan(mockHistory.length);
     });
 
     it("should make changed prices bold", () => {
-      const { container } = render(
-        <PriceHistoryTable history={mockHistoryWithChanges} />
-      );
+      const { container } = render(<PriceHistoryTable history={mockHistoryWithChanges} />);
 
       const boldPrices = container.querySelectorAll(".font-semibold");
       expect(boldPrices.length).toBeGreaterThan(0);
@@ -287,19 +272,15 @@ describe("PriceHistoryTable", () => {
 
       // First data row should be newest (2024-01-10)
       expect(within(dataRows[0]).getByText(/10\.01\.2024/)).toBeInTheDocument();
-      
+
       // Last data row should be oldest (2024-01-01)
-      expect(
-        within(dataRows[dataRows.length - 1]).getByText(/01\.01\.2024/)
-      ).toBeInTheDocument();
+      expect(within(dataRows[dataRows.length - 1]).getByText(/01\.01\.2024/)).toBeInTheDocument();
     });
 
     it("should indicate ordering in description", () => {
       render(<PriceHistoryTable history={mockHistory} />);
 
-      expect(
-        screen.getByText(/najnowsze na górze/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/najnowsze na górze/)).toBeInTheDocument();
     });
   });
 
@@ -351,18 +332,14 @@ describe("PriceHistoryTable", () => {
 
   describe("Layout and Styling", () => {
     it("should render as Card component", () => {
-      const { container } = render(
-        <PriceHistoryTable history={mockHistory} />
-      );
+      const { container } = render(<PriceHistoryTable history={mockHistory} />);
 
       const card = container.querySelector('[class*="rounded"]');
       expect(card).toBeTruthy();
     });
 
     it("should have bordered table", () => {
-      const { container } = render(
-        <PriceHistoryTable history={mockHistory} />
-      );
+      const { container } = render(<PriceHistoryTable history={mockHistory} />);
 
       const borderedDiv = container.querySelector(".rounded-md.border");
       expect(borderedDiv).toBeInTheDocument();
@@ -435,9 +412,7 @@ describe("PriceHistoryTable", () => {
       ];
 
       // Should not throw error about duplicate keys
-      const { container } = render(
-        <PriceHistoryTable history={duplicateTimestamps} />
-      );
+      const { container } = render(<PriceHistoryTable history={duplicateTimestamps} />);
 
       const rows = container.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(2);
@@ -449,7 +424,7 @@ describe("PriceHistoryTable", () => {
       render(<PriceHistoryTable history={mockHistory} />);
 
       expect(screen.getByRole("table")).toBeInTheDocument();
-      
+
       // There are two rowgroups: thead and tbody
       const rowgroups = screen.getAllByRole("rowgroup");
       expect(rowgroups).toHaveLength(2);
@@ -487,11 +462,7 @@ describe("PriceHistoryTable", () => {
       render(<PriceHistoryTable history={[]} />);
 
       expect(screen.getByText("Brak historii cen")).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          "Historia zostanie wyświetlona po pierwszym sprawdzeniu"
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText("Historia zostanie wyświetlona po pierwszym sprawdzeniu")).toBeInTheDocument();
     });
 
     it("should display count information", () => {
@@ -503,4 +474,3 @@ describe("PriceHistoryTable", () => {
     });
   });
 });
-

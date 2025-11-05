@@ -204,15 +204,12 @@ describe("useOfferData", () => {
 
   describe("Memoization", () => {
     it("should memoize header data when offer doesn't change", () => {
-      const { result, rerender } = renderHook(
-        (props) => useOfferData(props),
-        {
-          initialProps: {
-            initialOffer: mockOfferDetail,
-            initialHistory: mockPaginatedHistory,
-          },
-        }
-      );
+      const { result, rerender } = renderHook((props) => useOfferData(props), {
+        initialProps: {
+          initialOffer: mockOfferDetail,
+          initialHistory: mockPaginatedHistory,
+        },
+      });
 
       const firstHeaderData = result.current.headerData;
 
@@ -227,15 +224,12 @@ describe("useOfferData", () => {
     });
 
     it("should memoize chart data when history doesn't change", () => {
-      const { result, rerender } = renderHook(
-        (props) => useOfferData(props),
-        {
-          initialProps: {
-            initialOffer: mockOfferDetail,
-            initialHistory: mockPaginatedHistory,
-          },
-        }
-      );
+      const { result, rerender } = renderHook((props) => useOfferData(props), {
+        initialProps: {
+          initialOffer: mockOfferDetail,
+          initialHistory: mockPaginatedHistory,
+        },
+      });
 
       const firstChartData = result.current.chartData;
 
@@ -280,4 +274,3 @@ describe("useOfferData", () => {
     });
   });
 });
-

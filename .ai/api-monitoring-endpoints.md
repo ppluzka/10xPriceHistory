@@ -170,13 +170,13 @@ Cookie: sb-access-token=...
 
 ## Status Codes
 
-| Kod | Znaczenie | Kiedy występuje |
-|-----|-----------|-----------------|
-| 200 | Success | Operacja wykonana pomyślnie |
-| 400 | Bad Request | Brak wymaganych parametrów |
-| 401 | Unauthorized | Nieprawidłowa autoryzacja |
-| 404 | Not Found | Oferta nie istnieje lub brak dostępu |
-| 500 | Internal Server Error | Błąd serwera/bazy danych |
+| Kod | Znaczenie             | Kiedy występuje                      |
+| --- | --------------------- | ------------------------------------ |
+| 200 | Success               | Operacja wykonana pomyślnie          |
+| 400 | Bad Request           | Brak wymaganych parametrów           |
+| 401 | Unauthorized          | Nieprawidłowa autoryzacja            |
+| 404 | Not Found             | Oferta nie istnieje lub brak dostępu |
+| 500 | Internal Server Error | Błąd serwera/bazy danych             |
 
 ---
 
@@ -216,21 +216,21 @@ Cookie: sb-access-token=...
 
 System loguje następujące typy zdarzeń do `system_logs`:
 
-| Event Type | Opis | Kiedy występuje |
-|------------|------|-----------------|
-| `price_check_success` | Pomyślne sprawdzenie ceny | Po udanej ekstrakcji i zapisie |
-| `price_check_failed` | Nieudane sprawdzenie | Po wyczerpaniu retry |
-| `price_anomaly_detected` | Anomalia cenowa >50% | Gdy zmiana ceny >50% |
-| `alert_sent` | Wysłany alert | Gdy error rate >15% |
+| Event Type               | Opis                      | Kiedy występuje                |
+| ------------------------ | ------------------------- | ------------------------------ |
+| `price_check_success`    | Pomyślne sprawdzenie ceny | Po udanej ekstrakcji i zapisie |
+| `price_check_failed`     | Nieudane sprawdzenie      | Po wyczerpaniu retry           |
+| `price_anomaly_detected` | Anomalia cenowa >50%      | Gdy zmiana ceny >50%           |
+| `alert_sent`             | Wysłany alert             | Gdy error rate >15%            |
 
 ### Przykładowe zapytania
 
 ```sql
 -- Success rate z ostatnich 24h
-SELECT 
+SELECT
   ROUND(
-    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC / 
-    COUNT(*)::NUMERIC * 100, 
+    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC /
+    COUNT(*)::NUMERIC * 100,
     2
   ) as success_rate_percent
 FROM system_logs
@@ -238,7 +238,7 @@ WHERE created_at > NOW() - INTERVAL '24 hours'
   AND event_type IN ('price_check_success', 'price_check_failed');
 
 -- Ostatnie sprawdzenia
-SELECT 
+SELECT
   o.id,
   o.title,
   sl.event_type,
@@ -251,7 +251,7 @@ ORDER BY sl.created_at DESC
 LIMIT 20;
 
 -- Najczęstsze błędy
-SELECT 
+SELECT
   error_message,
   COUNT(*) as occurrences
 FROM error_log
@@ -307,13 +307,13 @@ Zapobiega spamowaniu alertów gdy system ma dłuższy problem.
 
 ### Target Metrics
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| Success Rate | ≥90% | <85% |
-| Avg Response Time | <5s/offer | >10s/offer |
-| AI Fallback Rate | <20% | >30% |
-| Batch Processing | 10 offers/batch | N/A |
-| Delay between batches | 5s | N/A |
+| Metric                | Target          | Alert Threshold |
+| --------------------- | --------------- | --------------- |
+| Success Rate          | ≥90%            | <85%            |
+| Avg Response Time     | <5s/offer       | >10s/offer      |
+| AI Fallback Rate      | <20%            | >30%            |
+| Batch Processing      | 10 offers/batch | N/A             |
+| Delay between batches | 5s              | N/A             |
 
 ### Monitoring Dashboard Queries
 
@@ -337,7 +337,7 @@ ai_usage AS (
   WHERE created_at > NOW() - INTERVAL '24 hours'
     AND metadata->>'used_ai' = 'true'
 )
-SELECT 
+SELECT
   ROUND((ai_count::NUMERIC / total::NUMERIC) * 100, 2) as ai_fallback_rate_percent
 FROM total_checks, ai_usage;
 ```
@@ -417,4 +417,3 @@ curl -X POST http://localhost:4321/api/offers/123/recheck \
 ---
 
 **Dokumentacja aktualna na**: 2025-11-04
-

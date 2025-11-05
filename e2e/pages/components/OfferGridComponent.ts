@@ -1,5 +1,5 @@
-import { Page, Locator } from '@playwright/test';
-import { OfferCardComponent } from './OfferCardComponent';
+import { Page, Locator } from "@playwright/test";
+import { OfferCardComponent } from "./OfferCardComponent";
 
 /**
  * Page Object Model for Offer Grid Component
@@ -15,11 +15,11 @@ export class OfferGridComponent {
 
   constructor(page: Page) {
     this.page = page;
-    this.loadingSkeleton = page.getByTestId('offers-loading');
-    this.emptyState = page.getByTestId('offers-empty-state');
-    this.section = page.getByTestId('offers-section');
-    this.grid = page.getByTestId('offers-grid');
-    this.offerCards = page.getByTestId('offer-card');
+    this.loadingSkeleton = page.getByTestId("offers-loading");
+    this.emptyState = page.getByTestId("offers-empty-state");
+    this.section = page.getByTestId("offers-section");
+    this.grid = page.getByTestId("offers-grid");
+    this.offerCards = page.getByTestId("offer-card");
   }
 
   /**
@@ -33,7 +33,7 @@ export class OfferGridComponent {
    * Wait for loading to complete
    */
   async waitForLoaded() {
-    await this.loadingSkeleton.waitFor({ state: 'hidden', timeout: 10000 });
+    await this.loadingSkeleton.waitFor({ state: "hidden", timeout: 10000 });
   }
 
   /**
@@ -89,11 +89,11 @@ export class OfferGridComponent {
   async getAllOfferCards(): Promise<OfferCardComponent[]> {
     const count = await this.getOffersCount();
     const cards: OfferCardComponent[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       cards.push(this.getOfferCard(i));
     }
-    
+
     return cards;
   }
 
@@ -139,11 +139,11 @@ export class OfferGridComponent {
   async getAllOfferTitles(): Promise<string[]> {
     const cards = await this.getAllOfferCards();
     const titles: string[] = [];
-    
+
     for (const card of cards) {
       titles.push(await card.getTitle());
     }
-    
+
     return titles;
   }
 
@@ -152,7 +152,6 @@ export class OfferGridComponent {
    */
   async hasOfferWithTitle(title: string): Promise<boolean> {
     const titles = await this.getAllOfferTitles();
-    return titles.some(t => t.includes(title));
+    return titles.some((t) => t.includes(title));
   }
 }
-

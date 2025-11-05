@@ -39,10 +39,7 @@ describe("OfferHeader", () => {
 
       const link = screen.getByText("Zobacz na Otomoto").closest("a");
       expect(link).toBeInTheDocument();
-      expect(link).toHaveAttribute(
-        "href",
-        "https://www.otomoto.pl/test-offer"
-      );
+      expect(link).toHaveAttribute("href", "https://www.otomoto.pl/test-offer");
       expect(link).toHaveAttribute("target", "_blank");
       expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
@@ -51,9 +48,7 @@ describe("OfferHeader", () => {
       const dataWithoutImage = { ...mockHeaderData, imageUrl: null };
       render(<OfferHeader data={dataWithoutImage} />);
 
-      expect(
-        screen.queryByAltText("BMW X5 3.0d xDrive")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByAltText("BMW X5 3.0d xDrive")).not.toBeInTheDocument();
     });
 
     it("should not render city section when city is null", () => {
@@ -206,12 +201,12 @@ describe("OfferHeader", () => {
     it("should render location icon SVG", () => {
       const { container } = render(<OfferHeader data={mockHeaderData} />);
 
-      const locationSvg = container.querySelector('svg');
+      const locationSvg = container.querySelector("svg");
       expect(locationSvg).toBeInTheDocument();
     });
 
     it("should render external link icon in Otomoto link", () => {
-      const { container } = render(<OfferHeader data={mockHeaderData} />);
+      render(<OfferHeader data={mockHeaderData} />);
 
       const link = screen.getByText("Zobacz na Otomoto").closest("a");
       const svg = link?.querySelector("svg");
@@ -260,4 +255,3 @@ describe("OfferHeader", () => {
     });
   });
 });
-

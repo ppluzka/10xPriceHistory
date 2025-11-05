@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Handle errors
     if (error) {
       console.error("Password reset error:", error);
-      
+
       // Don't reveal if email exists or not for security
       // Always return success to prevent email enumeration
       return new Response(
@@ -69,7 +69,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
   } catch (error) {
     console.error("Forgot password endpoint error:", error);
-    
+
     // Generic error response
     return new Response(
       JSON.stringify({
@@ -79,4 +79,3 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
   }
 };
-

@@ -28,42 +28,23 @@ describe("FrequencySettingsForm", () => {
 
   describe("Rendering", () => {
     it("should render all form elements", () => {
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       // Check for key UI elements
-      expect(
-        screen.getByText(/ustaw domyślną częstotliwość sprawdzania cen/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/ustaw domyślną częstotliwość sprawdzania cen/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/częstotliwość/i)).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /zapisz zmiany/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /zapisz zmiany/i })).toBeInTheDocument();
     });
 
     it("should display current frequency as selected value", () => {
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const selectTrigger = screen.getByRole("combobox");
       expect(selectTrigger).toHaveTextContent("Co 12 godzin");
     });
 
     it("should disable submit button when no changes made", () => {
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const submitButton = screen.getByRole("button", { name: /zapisz zmiany/i });
       expect(submitButton).toBeDisabled();
@@ -74,12 +55,7 @@ describe("FrequencySettingsForm", () => {
     it("should enable submit button when frequency changes", async () => {
       const user = userEvent.setup();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const submitButton = screen.getByRole("button", { name: /zapisz zmiany/i });
       expect(submitButton).toBeDisabled();
@@ -99,12 +75,7 @@ describe("FrequencySettingsForm", () => {
     it("should display all frequency options", async () => {
       const user = userEvent.setup();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const selectTrigger = screen.getByRole("combobox");
       await user.click(selectTrigger);
@@ -118,12 +89,7 @@ describe("FrequencySettingsForm", () => {
     it("should update selected value when option is clicked", async () => {
       const user = userEvent.setup();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const selectTrigger = screen.getByRole("combobox");
       await user.click(selectTrigger);
@@ -142,12 +108,7 @@ describe("FrequencySettingsForm", () => {
       const user = userEvent.setup();
       mockOnSubmit.mockResolvedValueOnce();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       // Change frequency
       const selectTrigger = screen.getByRole("combobox");
@@ -169,12 +130,7 @@ describe("FrequencySettingsForm", () => {
       const user = userEvent.setup();
       mockOnSubmit.mockResolvedValueOnce();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       // Change and submit
       const selectTrigger = screen.getByRole("combobox");
@@ -189,9 +145,7 @@ describe("FrequencySettingsForm", () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith(
-          "Preferencje zostały zaktualizowane"
-        );
+        expect(toast.success).toHaveBeenCalledWith("Preferencje zostały zaktualizowane");
       });
     });
 
@@ -200,12 +154,7 @@ describe("FrequencySettingsForm", () => {
       const errorMessage = "Network error";
       mockOnSubmit.mockRejectedValueOnce(new Error(errorMessage));
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       // Change and submit
       const selectTrigger = screen.getByRole("combobox");
@@ -228,12 +177,7 @@ describe("FrequencySettingsForm", () => {
       const user = userEvent.setup();
       mockOnSubmit.mockRejectedValueOnce("Something went wrong");
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       // Change and submit
       const selectTrigger = screen.getByRole("combobox");
@@ -248,9 +192,7 @@ describe("FrequencySettingsForm", () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          "Nie udało się zaktualizować preferencji"
-        );
+        expect(toast.error).toHaveBeenCalledWith("Nie udało się zaktualizować preferencji");
       });
     });
 
@@ -262,12 +204,7 @@ describe("FrequencySettingsForm", () => {
       });
       mockOnSubmit.mockReturnValueOnce(submitPromise);
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       // Change frequency
       const selectTrigger = screen.getByRole("combobox");
@@ -284,11 +221,9 @@ describe("FrequencySettingsForm", () => {
 
       // Check if button shows loading state
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /zapisywanie\.\.\./i })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /zapisywanie\.\.\./i })).toBeInTheDocument();
       });
-      
+
       const loadingButton = screen.getByRole("button", { name: /zapisywanie\.\.\./i });
       expect(loadingButton).toBeDisabled();
       expect(screen.getByRole("combobox")).toBeDisabled();
@@ -297,9 +232,7 @@ describe("FrequencySettingsForm", () => {
       resolveSubmit!();
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /zapisz zmiany/i })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /zapisz zmiany/i })).toBeInTheDocument();
       });
     });
   });
@@ -317,10 +250,7 @@ describe("FrequencySettingsForm", () => {
 
       for (const frequency of frequencies) {
         const { unmount } = render(
-          <FrequencySettingsForm
-            initialPreferences={{ defaultFrequency: "12h" }}
-            onSubmit={mockOnSubmit}
-          />
+          <FrequencySettingsForm initialPreferences={{ defaultFrequency: "12h" }} onSubmit={mockOnSubmit} />
         );
 
         const selectTrigger = screen.getByRole("combobox");
@@ -350,18 +280,13 @@ describe("FrequencySettingsForm", () => {
     it("should not submit if frequency unchanged", async () => {
       const user = userEvent.setup();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const submitButton = screen.getByRole("button", { name: /zapisz zmiany/i });
-      
+
       // Button should be disabled when unchanged
       expect(submitButton).toBeDisabled();
-      
+
       // Try to click - should not call onSubmit
       await user.click(submitButton);
       expect(mockOnSubmit).not.toHaveBeenCalled();
@@ -370,15 +295,10 @@ describe("FrequencySettingsForm", () => {
     it("should disable button if reverting to initial value", async () => {
       const user = userEvent.setup();
 
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const selectTrigger = screen.getByRole("combobox");
-      
+
       // Change to 24h
       await user.click(selectTrigger);
       const option24h = await screen.findByRole("option", {
@@ -402,29 +322,16 @@ describe("FrequencySettingsForm", () => {
 
   describe("Accessibility", () => {
     it("should have proper ARIA labels", () => {
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
       const selectElement = screen.getByLabelText(/częstotliwość/i);
       expect(selectElement).toBeInTheDocument();
     });
 
     it("should have descriptive helper text", () => {
-      render(
-        <FrequencySettingsForm
-          initialPreferences={defaultPreferences}
-          onSubmit={mockOnSubmit}
-        />
-      );
+      render(<FrequencySettingsForm initialPreferences={defaultPreferences} onSubmit={mockOnSubmit} />);
 
-      expect(
-        screen.getByText(/zmiany dotyczą tylko nowo dodawanych ofert/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/zmiany dotyczą tylko nowo dodawanych ofert/i)).toBeInTheDocument();
     });
   });
 });
-

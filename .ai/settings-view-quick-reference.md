@@ -1,6 +1,7 @@
 # Widok Ustawienia - Krótki przewodnik
 
 ## Routing
+
 ```
 URL: /settings
 Plik: src/pages/settings.astro
@@ -18,21 +19,23 @@ SettingsView
 
 ## API Endpoints
 
-| Metoda | Endpoint | Status | Opis |
-|--------|----------|--------|------|
-| GET | `/api/preferences` | ✅ Działa | Pobierz preferencje |
-| PUT | `/api/preferences` | ✅ Działa | Aktualizuj częstotliwość |
-| PUT | `/api/account/password` | ⏳ TODO | Zmień hasło |
-| DELETE | `/api/account` | ⏳ TODO | Usuń konto |
+| Metoda | Endpoint                | Status    | Opis                     |
+| ------ | ----------------------- | --------- | ------------------------ |
+| GET    | `/api/preferences`      | ✅ Działa | Pobierz preferencje      |
+| PUT    | `/api/preferences`      | ✅ Działa | Aktualizuj częstotliwość |
+| PUT    | `/api/account/password` | ⏳ TODO   | Zmień hasło              |
+| DELETE | `/api/account`          | ⏳ TODO   | Usuń konto               |
 
 ## Użycie
 
 ### Import
+
 ```typescript
 import SettingsView from "@/components/views/SettingsView";
 ```
 
 ### Props
+
 ```typescript
 interface SettingsViewProps {
   initialPreferences: PreferencesDto | null;
@@ -40,11 +43,13 @@ interface SettingsViewProps {
 ```
 
 ### Przykład w Astro
+
 ```astro
 ---
 import SettingsView from "../components/views/SettingsView";
 const initialPreferences = await fetchPreferences();
 ---
+
 <SettingsView client:load initialPreferences={initialPreferences} />
 ```
 
@@ -53,14 +58,8 @@ const initialPreferences = await fetchPreferences();
 ```typescript
 import { useSettings } from "@/components/settings";
 
-const {
-  preferences,
-  isLoading,
-  error,
-  updateFrequency,
-  changePassword,
-  deleteAccount,
-} = useSettings(initialPreferences);
+const { preferences, isLoading, error, updateFrequency, changePassword, deleteAccount } =
+  useSettings(initialPreferences);
 ```
 
 ## Typy
@@ -89,15 +88,18 @@ export interface DeleteAccountViewModel {
 ## Walidacja
 
 ### Częstotliwość
+
 - Enum: "6h" | "12h" | "24h" | "48h"
 - Przycisk aktywny tylko gdy zmieniono wartość
 
 ### Hasło
+
 - Aktualne hasło: wymagane
 - Nowe hasło: min. 8 znaków
 - Potwierdzenie: musi być identyczne
 
 ### Usunięcie konta
+
 - Wpisz dokładnie: "USUŃ"
 
 ## Komponenty UI (Shadcn)
@@ -134,6 +136,7 @@ toast.error("Wystąpił błąd");
 ## Backend TODO
 
 ### 1. PUT /api/account/password
+
 ```typescript
 // Request
 {
@@ -143,20 +146,21 @@ toast.error("Wystąpił błąd");
 
 // Response (success)
 {
-  message: "Password updated"
+  message: "Password updated";
 }
 
 // Response (error)
 {
-  message: "Invalid current password"
+  message: "Invalid current password";
 }
 ```
 
 ### 2. DELETE /api/account
+
 ```typescript
 // Response (success)
 {
-  message: "Account deleted"
+  message: "Account deleted";
 }
 
 // Akcja po usunięciu:
@@ -195,10 +199,8 @@ console.log("Props:", { initialPreferences, onSubmit });
 
 1. **"Cannot read property of null"**
    - Sprawdź czy preferences zostały załadowane przed renderowaniem
-   
 2. **Toast nie działa**
    - Upewnij się że `<Toaster />` jest w komponencie
-   
 3. **Form nie submittuje**
    - Sprawdź walidację zod
    - Sprawdź czy przycisk nie jest disabled
@@ -216,6 +218,7 @@ console.log("Props:", { initialPreferences, onSubmit });
 ## Nawigacja
 
 ### Dashboard → Settings
+
 ```tsx
 // W DashboardView.tsx
 <Button variant="outline" size="sm" asChild>
@@ -227,6 +230,7 @@ console.log("Props:", { initialPreferences, onSubmit });
 ```
 
 ### Settings → Dashboard
+
 ```tsx
 // W SettingsView.tsx
 <Button variant="ghost" size="sm" asChild>
@@ -238,10 +242,12 @@ console.log("Props:", { initialPreferences, onSubmit });
 ```
 
 **Ikony z lucide-react:**
+
 - `Settings` - ikona ustawień
 - `ArrowLeft` - ikona powrotu
 
 **Responsywność:**
+
 - Tekst ukryty na mobile: `hidden sm:inline`
 - Ikony zawsze widoczne
 
@@ -257,4 +263,3 @@ npm run lint
 # Fix lint errors
 npm run lint:fix
 ```
-

@@ -35,6 +35,7 @@
    - Click "New Query"
 
 2. **Run this SQL** (replace email/password):
+
    ```sql
    -- Create test user with confirmed email
    INSERT INTO auth.users (
@@ -162,16 +163,21 @@ PORT=3002
 ## Troubleshooting
 
 ### "Email not confirmed" Error
+
 **Solution:** In Supabase Dashboard → Authentication → Users → Find your test user → Click "..." → Confirm Email
 
 ### "Invalid credentials" Error
+
 **Solution:** Double-check email/password in `.env.test` match what's in Supabase
 
 ### "User not found" Error
+
 **Solution:** Create the user first using one of the options above
 
 ### Tests skip with "Login failed"
-**Solution:** 
+
+**Solution:**
+
 1. Verify `.env.test` exists
 2. Verify all environment variables are set
 3. Verify Supabase URL and KEY are correct
@@ -180,6 +186,7 @@ PORT=3002
 ## Next Steps
 
 After setup:
+
 1. ✅ User created in Supabase
 2. ✅ `.env.test` configured
 3. ✅ Run tests: `npm run test:e2e:ui`
@@ -187,4 +194,3 @@ After setup:
 5. ✅ Verify data is cleaned up after tests
 
 Happy testing! 🎉
-

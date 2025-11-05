@@ -24,6 +24,7 @@
 ## ✅ Weryfikacja obiektów bazy danych
 
 ### Tabele (5/5 utworzonych):
+
 ```
 ✅ email_verification_resends
 ✅ login_attempts
@@ -33,6 +34,7 @@
 ```
 
 ### Funkcje (8/8 utworzonych):
+
 ```
 ✅ can_delete_account
 ✅ check_email_resend_cooldown
@@ -45,6 +47,7 @@
 ```
 
 ### Indeksy (13 utworzonych):
+
 ```
 Tabela: email_verification_resends
   ✅ email_verification_resends_pkey (PRIMARY KEY)
@@ -71,6 +74,7 @@ Tabela: system_logs
 ```
 
 ### Uprawnienia (5/5 nadanych dla authenticated):
+
 ```
 ✅ can_delete_account - EXECUTE
 ✅ check_email_resend_cooldown - EXECUTE
@@ -84,19 +88,24 @@ Tabela: system_logs
 ## 🧪 Testy funkcjonalne
 
 ### Test 1: Rate limiting dla rejestracji
+
 ```sql
 SELECT check_registration_rate_limit('192.168.1.100'::INET);
 ```
+
 **Rezultat:** `FALSE` (0 prób - OK) ✅
 
 ### Test 2: Logowanie próby rejestracji
+
 ```sql
 SELECT log_registration_attempt('192.168.1.100'::INET, 'test@example.com', NULL, TRUE, NULL);
 SELECT check_registration_rate_limit('192.168.1.100'::INET);
 ```
+
 **Rezultat:** `FALSE` (1 próba < 3 limit - OK) ✅
 
 ### Test 3: Liczebność tabel
+
 ```
 email_verification_resends: 0 rekordów ✅
 login_attempts: 0 rekordów ✅
@@ -110,12 +119,14 @@ system_logs: 0 rekordów ✅
 ## 🔧 Szczegóły techniczne
 
 ### Środowisko:
+
 - **Baza danych:** Supabase (PostgreSQL) - lokalna instancja
 - **Connection string:** `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 - **Kontener Docker:** `supabase_db_10xPriceHistory`
 - **Studio URL:** http://127.0.0.1:54323
 
 ### Metoda aplikacji:
+
 ```bash
 # Migracja #1
 docker exec -i supabase_db_10xPriceHistory psql -U postgres -d postgres \
@@ -129,6 +140,7 @@ docker exec -i supabase_db_10xPriceHistory psql -U postgres -d postgres \
 ### Output z migracji:
 
 **Migracja #1 output:**
+
 ```
 CREATE TABLE (x5)
 CREATE INDEX (x8)
@@ -138,6 +150,7 @@ GRANT (x5)
 ```
 
 **Migracja #2 output:**
+
 ```
 CREATE FUNCTION (x2)
 COMMENT (x2)
@@ -150,35 +163,29 @@ GRANT (x2)
 
 Zgodnie z migracjami, ustalone limity:
 
-| Operacja | Limit | Okno czasowe | Klucz |
-|----------|-------|--------------|-------|
-| Rejestracja | 3 próby | 24 godziny | IP address |
-| Logowanie | 5 prób | 15 minut | IP address |
-| Email resend | 1 wysłanie | 1 minuta | Email address |
+| Operacja     | Limit      | Okno czasowe | Klucz         |
+| ------------ | ---------- | ------------ | ------------- |
+| Rejestracja  | 3 próby    | 24 godziny   | IP address    |
+| Logowanie    | 5 prób     | 15 minut     | IP address    |
+| Email resend | 1 wysłanie | 1 minuta     | Email address |
 
 ### Przykłady użycia w API:
 
 ```typescript
 // 1. Check rate limit przed operacją
-const { data: isLimited } = await supabase.rpc(
-  'check_registration_rate_limit',
-  { ip: '192.168.1.100' }
-);
+const { data: isLimited } = await supabase.rpc("check_registration_rate_limit", { ip: "192.168.1.100" });
 
 if (isLimited) {
-  return new Response(
-    JSON.stringify({ error: 'Rate limit exceeded' }),
-    { status: 429 }
-  );
+  return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429 });
 }
 
 // 2. Log attempt po operacji
-await supabase.rpc('log_registration_attempt', {
-  p_ip_address: '192.168.1.100',
-  p_email: 'user@example.com',
+await supabase.rpc("log_registration_attempt", {
+  p_ip_address: "192.168.1.100",
+  p_email: "user@example.com",
   p_user_id: userId || null,
   p_success: true,
-  p_error_code: null
+  p_error_code: null,
 });
 ```
 
@@ -187,18 +194,22 @@ await supabase.rpc('log_registration_attempt', {
 ## 🛡️ Security Features
 
 ### SECURITY DEFINER functions:
+
 - ✅ `delete_user_account()` - Może modyfikować `auth.users`
 - ✅ `can_delete_account()` - Read-only pre-check
 
 ### Auth.uid() protection:
+
 - ✅ Obie funkcje używają `auth.uid()` - użytkownik może operować tylko na swoim koncie
 - ✅ `NULL` check - blokuje nieautoryzowane wywołania
 
 ### Soft delete pattern:
+
 - ✅ `user_offer.deleted_at` - dane są zachowane, ale niedostępne
 - ✅ Historia cen pozostaje dla analytics
 
 ### Audit trail:
+
 - ✅ Wszystkie operacje logowane do `system_logs`
 - ✅ Password changes tracked w `password_change_log`
 - ✅ Login/registration attempts w dedykowanych tabelach
@@ -209,17 +220,18 @@ await supabase.rpc('log_registration_attempt', {
 
 ### Automatyczne czyszczenie (funkcja `cleanup_auth_logs()`):
 
-| Tabela | Retention | Funkcja |
-|--------|-----------|---------|
-| `system_logs` | 90 dni | audit trail |
-| `registration_attempts` | 90 dni | security monitoring |
-| `login_attempts` | 90 dni | security monitoring |
-| `password_change_log` | 90 dni | audit trail |
-| `email_verification_resends` | 7 dni | spam prevention |
+| Tabela                       | Retention | Funkcja             |
+| ---------------------------- | --------- | ------------------- |
+| `system_logs`                | 90 dni    | audit trail         |
+| `registration_attempts`      | 90 dni    | security monitoring |
+| `login_attempts`             | 90 dni    | security monitoring |
+| `password_change_log`        | 90 dni    | audit trail         |
+| `email_verification_resends` | 7 dni     | spam prevention     |
 
 ### Setup cron job (TODO):
 
 **Opcja 1: pg_cron extension** (jeśli dostępne w Supabase)
+
 ```sql
 SELECT cron.schedule(
   'cleanup-auth-logs',
@@ -229,6 +241,7 @@ SELECT cron.schedule(
 ```
 
 **Opcja 2: Zewnętrzny cron** (VPS/CI)
+
 ```bash
 # Dodaj do crontab
 0 2 * * * docker exec supabase_db_10xPriceHistory \
@@ -242,13 +255,15 @@ SELECT cron.schedule(
 ## ✅ Checklist zgodności z auth-spec.md
 
 ### Sekcja 5.1 - Nowe tabele dla auth:
+
 - [x] `system_logs` - utworzona
 - [x] `registration_attempts` - utworzona
-- [x] `login_attempts` - utworzona  
+- [x] `login_attempts` - utworzona
 - [x] `password_change_log` - utworzona
 - [x] `email_verification_resends` - utworzona
 
 ### Sekcja 5.2 - Funkcja pomocnicza dla usuwania konta:
+
 - [x] `delete_user_account()` - utworzona
 - [x] `can_delete_account()` - utworzona (bonus)
 - [x] SECURITY DEFINER - zastosowane
@@ -256,11 +271,13 @@ SELECT cron.schedule(
 - [x] Logging do `system_logs` - zaimplementowane
 
 ### Rate limiting:
+
 - [x] Rejestracja: 3/24h per IP
 - [x] Logowanie: 5/15min per IP
 - [x] Email resend: 1/min per email
 
 ### Indeksy dla performance:
+
 - [x] IP + timestamp dla rate limiting
 - [x] Email + timestamp dla security monitoring
 - [x] User + timestamp dla audit trails
@@ -270,6 +287,7 @@ SELECT cron.schedule(
 ## 🚀 Następne kroki
 
 ### 1. Konfiguracja Supabase Auth Dashboard (TODO)
+
 - [ ] Email templates (confirm signup, password reset)
 - [ ] Site URL: `http://localhost:3000` (dev) / `https://pricehistory.pl` (prod)
 - [ ] Redirect URLs: `/auth/callback`
@@ -277,6 +295,7 @@ SELECT cron.schedule(
 - [ ] Email provider (SMTP) dla wysyłania emaili
 
 ### 2. Environment variables (TODO)
+
 ```env
 SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
@@ -287,7 +306,9 @@ PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ### 3. Implementacja API endpoints (TODO)
+
 Kolejna faza - backend implementation:
+
 - `/api/auth/register` - z `check_registration_rate_limit()` i `log_registration_attempt()`
 - `/api/auth/login` - z `check_login_rate_limit()` i `log_login_attempt()`
 - `/api/auth/logout` - Supabase signOut()
@@ -296,11 +317,13 @@ Kolejna faza - backend implementation:
 - `/api/auth/delete-account` - z `delete_user_account()`
 
 ### 4. Middleware implementation (TODO)
+
 - `src/middleware/index.ts` - session management
 - Guards dla chronionych stron
 - `Astro.locals.user` setup
 
 ### 5. Setup cron job dla cleanup (OPTIONAL)
+
 - Lokalnie: nie wymagane (development)
 - Production: setup daily cleanup at 2 AM
 
@@ -371,4 +394,3 @@ TRUNCATE TABLE system_logs;
 **Wersja Supabase:** Lokalna instancja (Docker)  
 **PostgreSQL:** wersja zgodna z Supabase  
 **Status projektu:** Development - lokalna baza
-

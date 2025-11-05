@@ -16,55 +16,60 @@ CREATE TYPE frequency AS ENUM ('6h', '12h', '24h', '48h');
 ## 1. Tables
 
 ### users
+
 This table is managed by Supabase Auth.
 
-| Column             | Type            | Constraints                                     |
-|--------------------|-----------------|-------------------------------------------------|
-| id                 | UUID            | PRIMARY KEY, DEFAULT gen_random_uuid()          |
-| email              | TEXT            | NOT NULL, UNIQUE                                |                                       |
-| created_at         | TIMESTAMPTZ     | NOT NULL, DEFAULT now()                         |
-| deleted_at         | TIMESTAMPTZ     | NULLABLE                                        |
+| Column     | Type        | Constraints                            |
+| ---------- | ----------- | -------------------------------------- | --- |
+| id         | UUID        | PRIMARY KEY, DEFAULT gen_random_uuid() |
+| email      | TEXT        | NOT NULL, UNIQUE                       |     |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT now()                |
+| deleted_at | TIMESTAMPTZ | NULLABLE                               |
 
 ### offers
-| Column           | Type           | Constraints                                              |
-|------------------|----------------|----------------------------------------------------------|
-| id               | SERIAL         | PRIMARY KEY                                              |
-| url              | TEXT           | NOT NULL, UNIQUE                                         |
-| title            | TEXT           | NOT NULL                                                 |
-| image_url        | TEXT           | NULLABLE                                                 |
-| selector         | TEXT           | NOT NULL                                                 |
-| city             | TEXT           | NOT NULL                                                 |
-| status           | offer_status   | NOT NULL, DEFAULT 'active'                               |
-| frequency        | frequency      | NOT NULL, DEFAULT '24h'                                  |
-| last_checked     | TIMESTAMPTZ    | NULLABLE                                                 |
-| created_at       | TIMESTAMPTZ    | NOT NULL, DEFAULT now()                                  |
-| updated_at       | TIMESTAMPTZ    | NOT NULL, DEFAULT now()                                  |
+
+| Column       | Type         | Constraints                |
+| ------------ | ------------ | -------------------------- |
+| id           | SERIAL       | PRIMARY KEY                |
+| url          | TEXT         | NOT NULL, UNIQUE           |
+| title        | TEXT         | NOT NULL                   |
+| image_url    | TEXT         | NULLABLE                   |
+| selector     | TEXT         | NOT NULL                   |
+| city         | TEXT         | NOT NULL                   |
+| status       | offer_status | NOT NULL, DEFAULT 'active' |
+| frequency    | frequency    | NOT NULL, DEFAULT '24h'    |
+| last_checked | TIMESTAMPTZ  | NULLABLE                   |
+| created_at   | TIMESTAMPTZ  | NOT NULL, DEFAULT now()    |
+| updated_at   | TIMESTAMPTZ  | NOT NULL, DEFAULT now()    |
 
 ### user_offer (subscription, soft-delete)
-| Column       | Type         | Constraints                                                              |
-|--------------|--------------|--------------------------------------------------------------------------|
-| user_id      | UUID         | NOT NULL, REFERENCES users(id) ON DELETE CASCADE                         |
-| offer_id     | INT          | NOT NULL, REFERENCES offers(id) ON DELETE CASCADE                        |
-| created_at   | TIMESTAMPTZ  | NOT NULL, DEFAULT now()                                                  |
-| deleted_at   | TIMESTAMPTZ  | NULLABLE                                                                 |
-| **PK**       | (user_id, offer_id) |                                                                    |
-| **Unique**  | (user_id, offer_id)   | Prevent duplicate subscriptions                                  |
+
+| Column     | Type                | Constraints                                       |
+| ---------- | ------------------- | ------------------------------------------------- |
+| user_id    | UUID                | NOT NULL, REFERENCES users(id) ON DELETE CASCADE  |
+| offer_id   | INT                 | NOT NULL, REFERENCES offers(id) ON DELETE CASCADE |
+| created_at | TIMESTAMPTZ         | NOT NULL, DEFAULT now()                           |
+| deleted_at | TIMESTAMPTZ         | NULLABLE                                          |
+| **PK**     | (user_id, offer_id) |                                                   |
+| **Unique** | (user_id, offer_id) | Prevent duplicate subscriptions                   |
 
 ### price_history
-| Column     | Type           | Constraints                                                            |
-|------------|----------------|------------------------------------------------------------------------|
-| id         | SERIAL         | PRIMARY KEY                                                            |
-| offer_id   | INT            | NOT NULL, REFERENCES offers(id) ON DELETE CASCADE                      |
-| price      | NUMERIC(12,2)  | NOT NULL                                                               |
-| currency   | currency       | NOT NULL                                                               |
-| checked_at | TIMESTAMPTZ    | NOT NULL, DEFAULT now()                                                |
+
+| Column     | Type          | Constraints                                       |
+| ---------- | ------------- | ------------------------------------------------- |
+| id         | SERIAL        | PRIMARY KEY                                       |
+| offer_id   | INT           | NOT NULL, REFERENCES offers(id) ON DELETE CASCADE |
+| price      | NUMERIC(12,2) | NOT NULL                                          |
+| currency   | currency      | NOT NULL                                          |
+| checked_at | TIMESTAMPTZ   | NOT NULL, DEFAULT now()                           |
 
 ### user_preferences
-| Column            | Type         | Constraints                                               |
-|-------------------|--------------|-----------------------------------------------------------|
-| user_id           | UUID         | PRIMARY KEY, REFERENCES users(id) ON DELETE CASCADE       |
-| default_frequency | frequency    | NOT NULL, DEFAULT '24h'                                   |
-| updated_at        | TIMESTAMPTZ  | NOT NULL, DEFAULT now()                                   |
+
+| Column            | Type        | Constraints                                         |
+| ----------------- | ----------- | --------------------------------------------------- |
+| user_id           | UUID        | PRIMARY KEY, REFERENCES users(id) ON DELETE CASCADE |
+| default_frequency | frequency   | NOT NULL, DEFAULT '24h'                             |
+| updated_at        | TIMESTAMPTZ | NOT NULL, DEFAULT now()                             |
 
 ## 2. Relationships
 

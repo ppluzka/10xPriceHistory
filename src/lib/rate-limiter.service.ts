@@ -26,13 +26,13 @@ interface RateLimitBucket {
 
 /**
  * Enhanced rate limiter with per-user and global limits
- * 
+ *
  * Features:
  * - Per-user rate limiting (sliding window)
  * - Global concurrency limiting
  * - Memory-based implementation (suitable for single instance)
  * - Automatic cleanup of expired buckets
- * 
+ *
  * For production with multiple instances, consider Redis-based implementation
  * using ioredis or Upstash.
  */
@@ -60,7 +60,7 @@ export class EnhancedRateLimiter implements RateLimiterInterface {
 
   /**
    * Acquire permission to make a request
-   * 
+   *
    * @param key User ID or request identifier
    * @throws {Error} If rate limit is exceeded
    */
@@ -194,9 +194,7 @@ export class EnhancedRateLimiter implements RateLimiterInterface {
 /**
  * Factory function to create rate limiter based on environment
  */
-export function createRateLimiter(
-  environment: "development" | "production" = "development"
-): EnhancedRateLimiter {
+export function createRateLimiter(environment: "development" | "production" = "development"): EnhancedRateLimiter {
   if (environment === "production") {
     // Production: Stricter limits
     return new EnhancedRateLimiter({
@@ -215,4 +213,3 @@ export function createRateLimiter(
     concurrency: 50,
   });
 }
-

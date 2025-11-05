@@ -12,12 +12,13 @@ You need a dedicated test user account in your Supabase project:
 
 1. **Go to Supabase Dashboard** → Your Project → Authentication → Users
 2. **Click "Add User"** or use SQL:
+
    ```sql
    -- Option A: Via Supabase Dashboard UI
    -- Email: e2e-test@yourproject.com
    -- Password: (generate a strong password)
    -- Auto-confirm: YES (important!)
-   
+
    -- Option B: Via SQL (run in Supabase SQL Editor)
    -- This creates a user with confirmed email
    SELECT extensions.create_user(
@@ -76,9 +77,10 @@ curl -X POST http://localhost:3002/api/auth/login \
 ### Authentication Flow
 
 1. **Before Each Test:**
+
    ```typescript
-   await loginAsTestUser(page);  // Real API call to /api/auth/login
-   await dashboardPage.navigate();  // Session cookies are set
+   await loginAsTestUser(page); // Real API call to /api/auth/login
+   await dashboardPage.navigate(); // Session cookies are set
    ```
 
 2. **Middleware validates real JWT tokens** from Supabase
@@ -88,6 +90,7 @@ curl -X POST http://localhost:3002/api/auth/login \
 ### Test User Isolation
 
 The global teardown script (`e2e/global-teardown.ts`) uses `E2E_USERNAME_ID` to:
+
 - Delete only offers created by the test user
 - Keep other users' data intact
 - Clean up test data after all tests complete
@@ -107,6 +110,7 @@ npm run test:e2e:debug # Debug mode
 ## Test Files Updated
 
 ### 1. `e2e/helpers/auth.helper.ts` (Rewritten)
+
 - ✅ Removed: `mockAuthSession()` with fake cookies
 - ✅ Added: `loginAsTestUser()` - real API authentication
 - ✅ Added: `loginUser(email, password)` - flexible login
@@ -114,10 +118,12 @@ npm run test:e2e:debug # Debug mode
 - ✅ Added: `getTestUserCredentials()` - from env vars
 
 ### 2. `src/middleware/index.ts` (Restored)
+
 - ✅ Removed: Mock auth bypass logic
 - ✅ Now: Only validates real Supabase JWT tokens
 
 ### 3. `e2e/dashboard-add-offer.spec.ts` (Updated)
+
 - ✅ Uses `loginAsTestUser()` instead of mocks
 - ✅ Removed: API mocking (uses real APIs)
 - ✅ Added: `logoutUser()` in `afterEach`
@@ -129,6 +135,7 @@ npm run test:e2e:debug # Debug mode
 ## Important Notes
 
 ### ⚠️ Test Performance
+
 - **Real API calls are slower** than mocks
 - Tests now depend on:
   - Internet connection (for scraping)
@@ -137,11 +144,13 @@ npm run test:e2e:debug # Debug mode
 - Consider using `test.setTimeout(60000)` for tests that scrape
 
 ### ⚠️ Test Data Cleanup
+
 - Global teardown runs after ALL tests
 - Deletes offers where `user_id = E2E_USERNAME_ID`
 - **Always use the same test user** to avoid orphaned data
 
 ### ⚠️ Rate Limiting
+
 - Your app may have rate limits (database triggers)
 - Tests might fail if running too frequently
 - Solution: Add delays between tests or increase rate limits for test user
@@ -149,9 +158,11 @@ npm run test:e2e:debug # Debug mode
 ## Troubleshooting
 
 ### Tests Skip: "Login failed"
+
 **Cause:** Invalid credentials or user not found
 
 **Fix:**
+
 ```bash
 # 1. Check .env.test file exists and has correct values
 cat .env.test | grep E2E_TEST
@@ -165,21 +176,25 @@ cat .env.test | grep E2E_TEST
 ```
 
 ### Tests Timeout on "Add Offer"
+
 **Cause:** OpenRouter API or otomoto.pl scraping is slow/failing
 
 **Fix:**
+
 ```typescript
 // Increase timeout in specific tests
-test('should successfully add a new offer', async ({ page }) => {
+test("should successfully add a new offer", async ({ page }) => {
   test.setTimeout(60000); // 60 seconds
   // ... rest of test
 });
 ```
 
 ### "Rate limit exceeded" Error
+
 **Cause:** Database trigger blocking rapid inserts
 
-**Fix:** 
+**Fix:**
+
 - Wait a few seconds between test runs
 - Or disable rate limiting for test user:
   ```sql
@@ -188,9 +203,11 @@ test('should successfully add a new offer', async ({ page }) => {
   ```
 
 ### Tests Pass But Data Not Cleaned
+
 **Cause:** `E2E_USERNAME_ID` doesn't match logged-in user
 
 **Fix:**
+
 ```bash
 # Get user ID from login response
 curl -X POST http://localhost:3002/api/auth/login \
@@ -205,12 +222,14 @@ E2E_USERNAME_ID=<the-id-from-above>
 ## Security Considerations
 
 ### ✅ Safe Practices
+
 - Test user has minimal permissions
 - Test data is isolated by user ID
 - Credentials in `.env.test` (gitignored)
 - Test user can be disabled/deleted anytime
 
 ### ⚠️ Don't
+
 - Don't use production user accounts for testing
 - Don't commit `.env.test` to git
 - Don't use admin/superuser accounts
@@ -236,7 +255,7 @@ await loginAsTestUser(page);
 ✅ **Catches auth bugs** - Validates JWT tokens, cookies, middleware  
 ✅ **Tests database** - Real queries, constraints, triggers  
 ✅ **No mock maintenance** - No need to update mocks when API changes  
-✅ **CI/CD ready** - Can run in isolated test environments  
+✅ **CI/CD ready** - Can run in isolated test environments
 
 ## Next Steps
 
@@ -253,4 +272,3 @@ await loginAsTestUser(page);
 - `e2e/global-teardown.ts` - Cleanup script
 - `.env.test` - Test configuration (not in git)
 - `src/middleware/index.ts` - Auth validation
-

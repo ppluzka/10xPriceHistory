@@ -17,9 +17,7 @@ const ChatMessageSchema = z.object({
 /**
  * JSON Schema validation for response_format
  */
-const JsonSchemaSchema: z.ZodType<Record<string, unknown>> = z.lazy(() =>
-  z.record(z.unknown())
-);
+const JsonSchemaSchema: z.ZodType<Record<string, unknown>> = z.lazy(() => z.record(z.unknown()));
 
 /**
  * Response format schema
@@ -91,7 +89,7 @@ function getOpenRouterService(): OpenRouterService {
 /**
  * POST /api/llm
  * Sends a chat completion request to OpenRouter API
- * 
+ *
  * Request body:
  * {
  *   messages: Array<{ role: 'system' | 'user' | 'assistant', content: string }>,
@@ -104,7 +102,7 @@ function getOpenRouterService(): OpenRouterService {
  *   frequency_penalty?: number,
  *   metadata?: { correlationId?: string, userId?: string }
  * }
- * 
+ *
  * Response:
  * - 200: Success with model response
  * - 400: Bad Request (validation error)
@@ -177,10 +175,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // If response_format is provided, validate the response
     if (params.response_format) {
-      const validated = service.parseAndValidateStructuredResponse(
-        response,
-        params.response_format as ResponseFormat
-      );
+      const validated = service.parseAndValidateStructuredResponse(response, params.response_format as ResponseFormat);
 
       return new Response(
         JSON.stringify({
@@ -275,10 +270,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }
 
       // Validation errors
-      if (
-        error.code === "RESPONSE_VALIDATION_ERROR" ||
-        error.code === "INVALID_REQUEST_ERROR"
-      ) {
+      if (error.code === "RESPONSE_VALIDATION_ERROR" || error.code === "INVALID_REQUEST_ERROR") {
         return new Response(
           JSON.stringify({
             error: "Bad Request",
@@ -373,4 +365,3 @@ export const GET: APIRoute = async () => {
     );
   }
 };
-

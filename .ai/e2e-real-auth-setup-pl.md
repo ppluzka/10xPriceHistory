@@ -5,13 +5,14 @@
 ✅ **Usunięto** wszystkie mocki autentykacji  
 ✅ **Dodano** prawdziwe logowanie przez Supabase  
 ✅ **Middleware** teraz waliduje tylko prawdziwe tokeny JWT  
-✅ **Testy** używają prawdziwych API, bazy danych i użytkowników  
+✅ **Testy** używają prawdziwych API, bazy danych i użytkowników
 
 ## 🚀 Szybki Start
 
 ### Krok 1: Utwórz użytkownika testowego
 
 **Opcja A: Dashboard Supabase (najłatwiej)**
+
 1. Otwórz https://supabase.com/dashboard → Twój projekt
 2. Authentication → Users → "Add User"
 3. Email: `e2e-test@yourproject.com`
@@ -20,6 +21,7 @@
 6. Skopiuj ID użytkownika (UUID)
 
 **Opcja B: SQL Query**
+
 ```sql
 -- W Supabase SQL Editor
 INSERT INTO auth.users (
@@ -73,12 +75,14 @@ npm run test:e2e:ui
 ### 1. Autentykacja (e2e/helpers/auth.helper.ts)
 
 **Przed (mocki):**
+
 ```typescript
-await mockAuthSession(page, 'test-user-123', 'test@example.com');
+await mockAuthSession(page, "test-user-123", "test@example.com");
 // Ustawiało fałszywe ciasteczka
 ```
 
 **Teraz (prawdziwe):**
+
 ```typescript
 await loginAsTestUser(page);
 // Prawdziwe logowanie przez API /api/auth/login
@@ -89,22 +93,26 @@ await loginAsTestUser(page);
 ### 2. Middleware (src/middleware/index.ts)
 
 **Usunięto:**
+
 - ❌ Bypass dla testów E2E
 - ❌ Rozpoznawanie mock cookies
 - ❌ Sztuczne ustawianie `context.locals.user`
 
 **Pozostało:**
+
 - ✅ Tylko walidacja prawdziwych tokenów Supabase
 - ✅ `supabase.auth.getUser()` - bez obejść
 
 ### 3. Testy (e2e/dashboard-add-offer.spec.ts)
 
 **Usunięto:**
+
 - ❌ Mockowanie API (`page.route()`)
 - ❌ Fałszywe odpowiedzi z `/api/dashboard`
 - ❌ Symulowanie dodawania ofert
 
 **Dodano:**
+
 - ✅ Prawdziwe logowanie przed każdym testem
 - ✅ Prawdziwe API calls (scraping, OpenRouter, database)
 - ✅ Wylogowanie po każdym teście (cleanup)
@@ -153,6 +161,7 @@ await loginAsTestUser(page);
 ### Testy wymagają połączenia
 
 Testy teraz potrzebują:
+
 - ✅ Internet (scraping otomoto.pl)
 - ✅ OpenRouter API
 - ✅ Supabase database
@@ -161,6 +170,7 @@ Testy teraz potrzebują:
 ### Rate limiting
 
 Możesz trafić na limity:
+
 - Database triggers (np. max 10 ofert/minutę)
 - OpenRouter rate limits
 - Otomoto.pl może blokować częste requesty
@@ -172,6 +182,7 @@ Możesz trafić na limity:
 **Przyczyna:** Nieprawidłowe credentials lub użytkownik nie istnieje
 
 **Rozwiązanie:**
+
 ```bash
 # 1. Sprawdź czy .env.test istnieje
 ls -la .env.test
@@ -196,8 +207,9 @@ Supabase Dashboard → Authentication → Users → Znajdź użytkownika → "..
 **Przyczyna:** Scraping/OpenRouter zbyt wolne
 
 **Rozwiązanie:**
+
 ```typescript
-test('should add offer', async ({ page }) => {
+test("should add offer", async ({ page }) => {
   test.setTimeout(90000); // 90 sekund
   // ... test
 });
@@ -208,6 +220,7 @@ test('should add offer', async ({ page }) => {
 **Przyczyna:** Zbyt częste uruchamianie testów
 
 **Rozwiązanie:**
+
 - Poczekaj 1-2 minuty między uruchomieniami
 - Lub wyłącz rate limiting dla użytkownika testowego w SQL
 
@@ -216,6 +229,7 @@ test('should add offer', async ({ page }) => {
 **Przyczyna:** `E2E_USERNAME_ID` nie pasuje do zalogowanego użytkownika
 
 **Rozwiązanie:**
+
 ```bash
 # Pobierz ID z odpowiedzi logowania
 curl -X POST http://localhost:3002/api/auth/login \
@@ -272,7 +286,7 @@ Przed uruchomieniem testów upewnij się że:
 ✅ **Wykrywają bugi w auth** - walidacja JWT, ciasteczka, middleware  
 ✅ **Testują bazę danych** - prawdziwe zapytania, constraints, triggers  
 ✅ **Brak utrzymywania mocków** - API się zmienia, testy nadal działają  
-✅ **Gotowe na CI/CD** - można uruchomić w izolowanym środowisku  
+✅ **Gotowe na CI/CD** - można uruchomić w izolowanym środowisku
 
 ## 📚 Dokumentacja
 
@@ -288,4 +302,3 @@ Przed uruchomieniem testów upewnij się że:
 - ❌ `e2e/helpers/api-mock.helper.ts` - USUNIĘTY (nie potrzebny)
 
 Powodzenia z testami! 🚀
-

@@ -39,16 +39,19 @@ const protectedRoutes = ["/dashboard", "/settings", "/offer"];
 ### 2. Chronione Strony
 
 #### Dashboard (`src/pages/dashboard.astro`)
+
 - Chroniona przez middleware
 - Użytkownik zawsze dostępny w `Astro.locals.user!`
 - Brak redundantnych sprawdzeń
 
 #### Settings (`src/pages/settings.astro`)
+
 - Chroniona przez middleware
 - Użytkownik zawsze dostępny w `Astro.locals.user!`
 - Brak redundantnych sprawdzeń
 
 #### Offer Details (`src/pages/offer/[id].astro`)
+
 - Chroniona przez middleware (wzorzec `/offer`)
 - Użytkownik zawsze dostępny w `Astro.locals.user`
 - Brak redundantnych sprawdzeń
@@ -56,6 +59,7 @@ const protectedRoutes = ["/dashboard", "/settings", "/offer"];
 ### 3. Supabase Client (`src/db/supabase.client.ts`)
 
 Zapewnia:
+
 - Bezpieczne zarządzanie ciasteczkami z opcjami: `httpOnly`, `secure`, `sameSite: 'lax'`
 - Parsing nagłówka Cookie dla Supabase SSR
 - Funkcję `createSupabaseServerInstance()` do tworzenia instancji z kontekstem
@@ -63,28 +67,34 @@ Zapewnia:
 ## Zalety Rozwiązania
 
 ### 1. **Single Source of Truth**
+
 - Jedna centralna lokalizacja dla logiki autoryzacji (middleware)
 - Łatwe zarządzanie i aktualizacja reguł dostępu
 
 ### 2. **Separation of Concerns**
+
 - Middleware = autoryzacja
 - Strony = logika biznesowa i prezentacja
 - Brak duplikacji kodu
 
 ### 3. **Bezpieczeństwo**
+
 - Automatyczna walidacja JWT przez Supabase Auth
 - Automatyczne odświeżanie tokenów
 - Bezpieczne ciasteczka (`httpOnly`, `secure`)
 
 ### 4. **User Experience**
+
 - Przekierowanie z parametrem `returnUrl` - użytkownik wraca tam, gdzie chciał
 - Brak potrzeby wielokrotnego logowania
 
 ### 5. **Type Safety**
+
 - Typy dla `Astro.locals.user` w `env.d.ts`
 - TypeScript wymusza poprawne użycie danych użytkownika
 
 ### 6. **Maintenance**
+
 - Łatwe dodawanie nowych chronionych stron
 - Łatwe dodawanie nowych ścieżek publicznych
 - Brak potrzeby duplikowania logiki
@@ -128,12 +138,14 @@ const PUBLIC_PATHS = [
 ## Konfiguracja Środowiskowa
 
 ### Wymagane zmienne `.env`:
+
 ```env
 SUPABASE_URL=your_project_url
 SUPABASE_KEY=your_anon_key
 ```
 
 ### Typy TypeScript (`src/env.d.ts`):
+
 ```typescript
 interface Locals {
   supabase: SupabaseClient;
@@ -149,6 +161,7 @@ interface Locals {
 ## Bezpieczeństwo
 
 ### Zabezpieczenia na poziomie middleware:
+
 - ✅ JWT validation (automatyczna przez Supabase)
 - ✅ Token refresh (automatyczny przez Supabase)
 - ✅ Secure cookies (httpOnly, secure, sameSite)
@@ -156,6 +169,7 @@ interface Locals {
 - ✅ Obsługa returnUrl
 
 ### Zabezpieczenia na poziomie API:
+
 - ✅ Każdy endpoint API również używa middleware
 - ✅ Weryfikacja użytkownika w każdym endpoincie
 - ✅ Supabase RLS (Row Level Security) dla dodatkowej ochrony na poziomie bazy danych
@@ -163,12 +177,14 @@ interface Locals {
 ## Best Practices
 
 ### DO ✅
+
 - Używaj `Astro.locals.user!` na chronionych stronach
 - Dodawaj nowe ścieżki do `PUBLIC_PATHS` jeśli mają być publiczne
 - Używaj `createSupabaseServerInstance()` w API routes
 - Dodawaj `export const prerender = false;` na stronach używających auth
 
 ### DON'T ❌
+
 - Nie dodawaj redundantnych sprawdzeń `if (!user)` na chronionych stronach
 - Nie używaj bezpośredniego importu `supabaseClient` w API routes
 - Nie modyfikuj logiki cookie handling w `createSupabaseServerInstance()`
@@ -177,6 +193,7 @@ interface Locals {
 ## Testowanie
 
 ### Scenariusze testowe:
+
 1. **Niezalogowany użytkownik próbuje dostać się do `/dashboard`**
    - Oczekiwany rezultat: Przekierowanie do `/login?returnUrl=%2Fdashboard`
 
@@ -200,4 +217,3 @@ interface Locals {
 - ✅ Zgodne z TypeScript strict mode
 - ✅ Zgodne z Single Responsibility Principle
 - ✅ Zgodne z DRY (Don't Repeat Yourself)
-

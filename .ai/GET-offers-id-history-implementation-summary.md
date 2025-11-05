@@ -1,14 +1,17 @@
 # GET /offers/{id}/history Implementation Summary
 
 ## Overview
+
 Successfully implemented the GET /offers/{id}/history endpoint to retrieve paginated price history for a specific offer subscription.
 
 ## Files Created/Modified
 
 ### Created:
+
 1. `/src/pages/api/offers/[id]/history.ts` - Nested dynamic route handler
 
 ### Modified:
+
 1. `/src/lib/services/offer.service.ts` - Added `getHistory()` method
 2. `.ai/api-plan.md` - Marked endpoint as implemented
 
@@ -17,6 +20,7 @@ Successfully implemented the GET /offers/{id}/history endpoint to retrieve pagin
 ### 1. Nested Dynamic Route Handler
 
 **File Structure:**
+
 ```
 src/pages/api/offers/
 ├── [id].ts          # GET (detail), DELETE (unsubscribe)
@@ -25,6 +29,7 @@ src/pages/api/offers/
 ```
 
 **Key Features:**
+
 - Uses Astro's nested dynamic routing
 - Validates both path parameter (`id`) and query parameters (`page`, `size`)
 - Reuses validation schemas from other endpoints
@@ -32,6 +37,7 @@ src/pages/api/offers/
 - Proper error handling with clear messages
 
 **Request Validation:**
+
 ```typescript
 // Path parameter
 const IdParamSchema = z.coerce.number().int().positive();
@@ -44,6 +50,7 @@ const QueryParamsSchema = z.object({
 ```
 
 **Response Codes:**
+
 - `200 OK` - Price history returned successfully
 - `400 Bad Request` - Invalid offer ID or query parameters
 - `404 Not Found` - Offer not found or user not subscribed
@@ -54,6 +61,7 @@ const QueryParamsSchema = z.object({
 **Implementation Approach:**
 
 **Step 1: Authorization Check**
+
 ```typescript
 const { data: subscription } = await this.supabase
   .from("user_offer")
@@ -68,6 +76,7 @@ if (!subscription || subscription.deleted_at !== null) {
 ```
 
 **Step 2: Fetch Paginated Price History**
+
 ```typescript
 const { data, count } = await this.supabase
   .from("price_history")
@@ -78,8 +87,9 @@ const { data, count } = await this.supabase
 ```
 
 **Step 3: Map to PriceHistoryDto**
+
 ```typescript
-const data: PriceHistoryDto[] = priceHistory.map(entry => ({
+const data: PriceHistoryDto[] = priceHistory.map((entry) => ({
   price: entry.price,
   currency: entry.currency,
   checkedAt: entry.checked_at,
@@ -87,27 +97,32 @@ const data: PriceHistoryDto[] = priceHistory.map(entry => ({
 ```
 
 **Return Value:**
+
 - `PaginatedDto<PriceHistoryDto>` - Paginated list with metadata
 - `null` - User not authorized (returns 404 in handler)
 
 ### 3. Pagination Logic
 
 **Query Parameters:**
+
 - `page` - Page number (1-based, default: 1, min: 1)
 - `size` - Items per page (default: 10, min: 1, max: 100)
 
 **Calculation:**
+
 ```typescript
-const from = (page - 1) * size;  // 0-based offset
-const to = page * size - 1;       // Inclusive end
+const from = (page - 1) * size; // 0-based offset
+const to = page * size - 1; // Inclusive end
 ```
 
 **Examples:**
+
 - `page=1, size=10` → `range(0, 9)` → items 1-10
 - `page=2, size=10` → `range(10, 19)` → items 11-20
 - `page=3, size=25` → `range(50, 74)` → items 51-75
 
 **Response Metadata:**
+
 ```typescript
 {
   data: [...],     // Array of price history entries
@@ -120,11 +135,13 @@ const to = page * size - 1;       // Inclusive end
 ### 4. Sorting
 
 **Default Sort Order:**
+
 - Newest entries first (`checked_at DESC`)
 - Most recent price changes appear at the top
 - Chronological order for viewing price trends
 
 **Rationale:**
+
 - Users typically want to see latest prices first
 - Matches expected UI behavior (newest → oldest)
 - Efficient with `idx_price_history_offer_checked_desc` index
@@ -132,16 +149,19 @@ const to = page * size - 1;       // Inclusive end
 ### 5. Authorization & Security
 
 **Row-Level Security (RLS):**
+
 - Authorization check in service layer (explicit)
 - RLS policies on `price_history` table (defense-in-depth)
 - Only subscribed users can access price history
 
 **Authorization Flow:**
+
 1. Check if `user_offer` record exists
 2. Verify `deleted_at IS NULL` (active subscription)
 3. If not authorized → return `null` → handler returns 404
 
 **Input Validation:**
+
 - Offer ID: positive integer
 - Page: integer ≥ 1
 - Size: integer 1-100 (prevents excessive data retrieval)
@@ -149,6 +169,7 @@ const to = page * size - 1;       // Inclusive end
 ## Performance Considerations
 
 **Query Efficiency:**
+
 - **2 queries per request**:
   1. Authorization check (SELECT from `user_offer`)
   2. Paginated price history (SELECT from `price_history` with count)
@@ -156,17 +177,20 @@ const to = page * size - 1;       // Inclusive end
 - Count query optimized with `count: 'exact'`
 
 **Indexes Used:**
+
 - `idx_user_offer_user_deleted` - for authorization check
 - `idx_price_history_offer_checked_desc` - for paginated retrieval
 - Both indexes ensure fast query execution
 
 **Pagination Benefits:**
+
 - Limits data transfer (max 100 items per request)
 - Reduces memory usage on client and server
 - Enables infinite scroll or page-based navigation
 - Total count allows UI to show "Page X of Y"
 
 **Potential Optimizations:**
+
 - **Cursor-based pagination**: For very large datasets
   ```sql
   WHERE checked_at < :cursor
@@ -179,6 +203,7 @@ const to = page * size - 1;       // Inclusive end
 ## Testing Considerations
 
 **Test Scenarios:**
+
 1. ✅ Valid offer, page 1 → 200 with data
 2. ✅ Valid offer, no history → 200 with empty array
 3. ✅ Valid offer, page beyond total → 200 with empty array
@@ -190,12 +215,14 @@ const to = page * size - 1;       // Inclusive end
 9. ✅ Database error → 500
 
 **Edge Cases:**
+
 - Offer exists but no price history → empty array
 - Page number exceeds total pages → empty array (valid)
 - Size = 100 with 1000 entries → paginated correctly
 - Concurrent requests → safe (read-only)
 
 **Pagination Testing:**
+
 ```typescript
 // Example: 25 total items, size=10
 GET /api/offers/123/history?page=1&size=10
@@ -216,21 +243,22 @@ GET /api/offers/123/history?page=4&size=10
 ### Success (200 OK)
 
 **With Data:**
+
 ```json
 {
   "data": [
     {
-      "price": 11500.00,
+      "price": 11500.0,
       "currency": "PLN",
       "checkedAt": "2025-10-31T12:00:00Z"
     },
     {
-      "price": 11600.00,
+      "price": 11600.0,
       "currency": "PLN",
       "checkedAt": "2025-10-30T12:00:00Z"
     },
     {
-      "price": 11800.00,
+      "price": 11800.0,
       "currency": "PLN",
       "checkedAt": "2025-10-29T12:00:00Z"
     }
@@ -242,6 +270,7 @@ GET /api/offers/123/history?page=4&size=10
 ```
 
 **Empty History:**
+
 ```json
 {
   "data": [],
@@ -252,11 +281,12 @@ GET /api/offers/123/history?page=4&size=10
 ```
 
 **Last Page:**
+
 ```json
 {
   "data": [
     {
-      "price": 12000.00,
+      "price": 12000.0,
       "currency": "PLN",
       "checkedAt": "2025-10-01T08:00:00Z"
     }
@@ -270,6 +300,7 @@ GET /api/offers/123/history?page=4&size=10
 ### Error Responses
 
 **400 Bad Request (Invalid ID):**
+
 ```json
 {
   "error": "Bad Request",
@@ -278,6 +309,7 @@ GET /api/offers/123/history?page=4&size=10
 ```
 
 **400 Bad Request (Invalid Query Params):**
+
 ```json
 {
   "error": "Bad Request",
@@ -290,6 +322,7 @@ GET /api/offers/123/history?page=4&size=10
 ```
 
 **404 Not Found:**
+
 ```json
 {
   "error": "Not Found",
@@ -300,37 +333,41 @@ GET /api/offers/123/history?page=4&size=10
 ## Use Cases
 
 ### 1. Price History Chart
+
 Frontend displays interactive price chart:
+
 ```typescript
 async function loadPriceChart(offerId: number) {
   // Load first 100 data points for chart
-  const response = await fetch(
-    `/api/offers/${offerId}/history?page=1&size=100`
-  );
+  const response = await fetch(`/api/offers/${offerId}/history?page=1&size=100`);
   const { data } = await response.json();
-  
+
   // Render chart with data
-  renderChart(data.map(d => ({
-    x: new Date(d.checkedAt),
-    y: d.price
-  })));
+  renderChart(
+    data.map((d) => ({
+      x: new Date(d.checkedAt),
+      y: d.price,
+    }))
+  );
 }
 ```
 
 ### 2. Price History Table with Pagination
+
 Frontend displays paginated table:
+
 ```typescript
 function PriceHistoryTable({ offerId, page, size }) {
   const [history, setHistory] = useState(null);
-  
+
   useEffect(() => {
     fetch(`/api/offers/${offerId}/history?page=${page}&size=${size}`)
       .then(r => r.json())
       .then(setHistory);
   }, [offerId, page, size]);
-  
+
   if (!history) return <Spinner />;
-  
+
   return (
     <div>
       <table>
@@ -341,9 +378,9 @@ function PriceHistoryTable({ offerId, page, size }) {
           </tr>
         ))}
       </table>
-      <Pagination 
-        current={history.page} 
-        total={Math.ceil(history.total / history.size)} 
+      <Pagination
+        current={history.page}
+        total={Math.ceil(history.total / history.size)}
       />
     </div>
   );
@@ -351,20 +388,20 @@ function PriceHistoryTable({ offerId, page, size }) {
 ```
 
 ### 3. Infinite Scroll
+
 Frontend loads more data on scroll:
+
 ```typescript
 let currentPage = 1;
 const pageSize = 20;
 
 async function loadMore() {
-  const response = await fetch(
-    `/api/offers/${offerId}/history?page=${currentPage}&size=${pageSize}`
-  );
+  const response = await fetch(`/api/offers/${offerId}/history?page=${currentPage}&size=${pageSize}`);
   const { data, total } = await response.json();
-  
+
   appendToList(data);
   currentPage++;
-  
+
   // Check if we've loaded everything
   if (currentPage * pageSize >= total) {
     hideLoadMoreButton();
@@ -373,25 +410,25 @@ async function loadMore() {
 ```
 
 ### 4. Export to CSV
+
 Backend generates CSV from full history:
+
 ```typescript
 async function exportToCsv(offerId: number) {
   let allData = [];
   let page = 1;
   const size = 100;
   let hasMore = true;
-  
+
   while (hasMore) {
-    const response = await fetch(
-      `/api/offers/${offerId}/history?page=${page}&size=${size}`
-    );
+    const response = await fetch(`/api/offers/${offerId}/history?page=${page}&size=${size}`);
     const { data, total } = await response.json();
-    
+
     allData.push(...data);
     hasMore = page * size < total;
     page++;
   }
-  
+
   return generateCsv(allData);
 }
 ```
@@ -399,7 +436,9 @@ async function exportToCsv(offerId: number) {
 ## Integration with Other Endpoints
 
 ### GET /offers/{id} (detail)
+
 Detail endpoint shows summary, history endpoint shows full list:
+
 ```typescript
 // Summary from detail endpoint
 GET /api/offers/123
@@ -411,14 +450,18 @@ GET /api/offers/123/history
 ```
 
 ### DELETE /offers/{id} (unsubscribe)
+
 After deletion, history endpoint returns 404:
+
 ```typescript
 DELETE /api/offers/123  → 204 No Content
 GET /api/offers/123/history  → 404 Not Found
 ```
 
 ### POST /offers (add)
+
 After adding, history might be empty initially:
+
 ```typescript
 POST /api/offers { url: "..." }  → 201 Created
 GET /api/offers/123/history  → { data: [1 item], total: 1 }
@@ -427,17 +470,20 @@ GET /api/offers/123/history  → { data: [1 item], total: 1 }
 ## Code Quality
 
 **Linting:**
+
 - ✅ 0 errors
 - ✅ 1 warning (console.log for error logging - acceptable)
 - Follows TypeScript and ESLint best practices
 
 **Type Safety:**
+
 - Full TypeScript coverage
 - Uses `PriceHistoryDto` from shared types
 - Proper type inference from Supabase queries
 - Generic `PaginatedDto<T>` provides type safety
 
 **Error Handling:**
+
 - Early returns for validation failures
 - Proper error propagation from service layer
 - Informative error messages
@@ -446,6 +492,7 @@ GET /api/offers/123/history  → { data: [1 item], total: 1 }
 ## Database Schema
 
 ### price_history Table
+
 ```sql
 CREATE TABLE price_history (
   id serial PRIMARY KEY,
@@ -455,11 +502,12 @@ CREATE TABLE price_history (
   checked_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_price_history_offer_checked_desc 
+CREATE INDEX idx_price_history_offer_checked_desc
   ON price_history(offer_id, checked_at DESC);
 ```
 
 ### Key Points:
+
 - `offer_id` - Foreign key to offers table
 - `price` - Numeric with 2 decimal places (precise)
 - `currency` - ENUM type (PLN, EUR, USD, GBP)
@@ -476,6 +524,7 @@ CREATE INDEX idx_price_history_offer_checked_desc
 ## Next Steps
 
 The implementation is complete and ready for:
+
 1. Integration testing with real database
 2. Frontend integration (price history chart/table)
 3. Performance testing with large datasets
@@ -484,6 +533,7 @@ The implementation is complete and ready for:
 ## Summary
 
 ✅ **Implementation Status**: COMPLETE
+
 - Dynamic nested route: ✅
 - Service method: ✅
 - Pagination: ✅
@@ -492,4 +542,3 @@ The implementation is complete and ready for:
 - Error handling: ✅
 - Documentation: ✅
 - Performance optimized: ✅
-

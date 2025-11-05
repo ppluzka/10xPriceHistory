@@ -163,9 +163,7 @@ describe("OfferService - Core Logic", () => {
         error: { message: "Database error" },
       });
 
-      await expect(offerService.getById("user-123", 1)).rejects.toThrow(
-        "Failed to fetch offer: Database error"
-      );
+      await expect(offerService.getById("user-123", 1)).rejects.toThrow("Failed to fetch offer: Database error");
     });
 
     it("should filter by user_id and deleted_at for authorization", async () => {
@@ -230,9 +228,7 @@ describe("OfferService - Core Logic", () => {
         error: { message: "Database error" },
       });
 
-      await expect(offerService.unsubscribe("user-123", 1)).rejects.toThrow(
-        "Failed to unsubscribe: Database error"
-      );
+      await expect(offerService.unsubscribe("user-123", 1)).rejects.toThrow("Failed to unsubscribe: Database error");
       expect(mockSupabase.auth.getUser).toHaveBeenCalled();
       expect(mockSupabase.rpc).toHaveBeenCalledWith("soft_delete_user_offer", {
         p_offer_id: 1,
@@ -275,4 +271,3 @@ describe("OfferService - Core Logic", () => {
     });
   });
 });
-

@@ -8,7 +8,10 @@ export const prerender = false;
 
 // Get user from middleware (added by auth middleware)
 // Middleware ensures user is always present on protected routes
-const user = Astro.locals.user!;
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect("/login");
+}
 
 // Get offer ID from URL params
 const { id } = Astro.params;
@@ -88,19 +91,18 @@ const showErrorPage = error || !offerData || !historyData;
       <Header client:load user={{ email: user.email, id: user.id }} />
       <div class="container mx-auto px-4 py-8">
         <div class="text-center">
-          <h1 class="text-3xl font-bold mb-4">
-            {statusCode === 404 ? "Oferta nie znaleziona" : "Błąd"}
-          </h1>
-          <p class="text-muted-foreground mb-6">
-            {error || "Wystąpił błąd podczas ładowania oferty"}
-          </p>
+          <h1 class="text-3xl font-bold mb-4">{statusCode === 404 ? "Oferta nie znaleziona" : "Błąd"}</h1>
+          <p class="text-muted-foreground mb-6">{error || "Wystąpił błąd podczas ładowania oferty"}</p>
         </div>
       </div>
     </Layout>
   ) : (
-    <Layout title={`${offerData!.title} - 10x Price History`}>
-      <Header client:load user={{ email: user.email, id: user.id }} />
-      <OfferDetailsPage client:load initialOffer={offerData!} initialHistory={historyData!} />
-    </Layout>
+    offerData &&
+    historyData && (
+      <Layout title={`${offerData.title} - 10x Price History`}>
+        <Header client:load user={{ email: user.email, id: user.id }} />
+        <OfferDetailsPage client:load initialOffer={offerData} initialHistory={historyData} />
+      </Layout>
+    )
   )
 }

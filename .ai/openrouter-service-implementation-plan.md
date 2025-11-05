@@ -15,12 +15,14 @@ Poniższy dokument opisuje kompletną usługę integrującą OpenRouter API dla 
 ## 1. Opis usługi
 
 `OpenRouterService` to lekki adapter HTTP, który:
+
 - zarządza komunikacją z OpenRouter API,
 - serializuje i waliduje wejście i wyjście (w tym `response_format` JSON Schema),
 - obsługuje retry/backoff, limitowanie przepustowości i cache odpowiedzi,
 - loguje i monitoruje zapytania bez wycieków kluczy.
 
 Główne cele:
+
 - prosty interfejs do wywołań modeli LLM,
 - bezpieczne przechowywanie i rotacja kluczy,
 - obsługa strukturyzowanych odpowiedzi (`response_format`) i walidacja.
@@ -43,11 +45,12 @@ interface OpenRouterServiceOptions {
 }
 
 class OpenRouterService {
-  constructor(options: OpenRouterServiceOptions)
+  constructor(options: OpenRouterServiceOptions);
 }
 ```
 
 Konstruktor:
+
 - waliduje obecność `apiKey`
 - ustawia domyślne parametry (timeout, maxRetries)
 - inicjalizuje klienta HTTP (np. fetch lub axios) z nagłówkiem Authorization
@@ -81,6 +84,7 @@ Zalecane publiczne API klasy `OpenRouterService`:
   - Czyści zasoby (np. background retry timers) — przydatne w testach.
 
 Publiczne pola (readonly):
+
 - `defaultModel`, `baseUrl`, `timeoutMs`, `maxRetries` (opcjonalnie expose rate-limiter statystyki)
 
 ---
@@ -158,30 +162,30 @@ Każdy błąd powinien zawierać: kod (enum), krótką wiadomość, opcjonalne m
 
 Poniższy plan zakłada, że implementacja będzie w `src/lib/openrouter-service.ts` oraz że frontend wywoła backendowy endpoint API w `src/pages/api/llm.ts`.
 
-1) Przygotowanie środowiska
+1. Przygotowanie środowiska
    - Dodaj zmienną środowiskową `OPENROUTER_API_KEY` do lokalnego `.env` i produkcji (VPS/CI secrets).
    - Zainstaluj zależności: `npm i axios ajv p-retry p-limit` (lub użyj fetch i odpowiednich bibliotek).
 
-2) Implementacja pliku serwisu
+2. Implementacja pliku serwisu
    - Utwórz `src/lib/openrouter-service.ts` z klasą `OpenRouterService` według specyfikacji konstruktora i public API.
    - Wstrzykuj logger i rate-limiter, domyślnie implementuj prosty in-memory p-limit dla dev i zewnętrzny rate-limiter (Redis) dla prod.
 
-3) Walidacja schematów
+3. Walidacja schematów
    - Użyj `ajv` do kompilowania i walidowania `response_format.json_schema.schema`.
    - Przykład: jeśli użytkownik chce otrzymać strukturę `{ name: string, age: number }`, skompiluj schema i waliduj odpowiedź przed zwróceniem.
 
-4) Endpoint HTTP
+4. Endpoint HTTP
    - Stwórz `src/pages/api/llm.ts` jako proxy endpoint:
      - Autoryzacja użytkownika (Supabase session lub JWT)
      - Parsowanie request body: messages, model, response_format
      - Wywołanie `openRouterService.sendChatCompletion(...)`
      - Obsługa błędów i mapowanie na odpowiednie statusy HTTP
 
-5) Retry/Backoff i Rate limiting
+5. Retry/Backoff i Rate limiting
    - Implementuj retry z exponencjalnym backoff i jitter (p-retry lub własna implementacja).
    - Wdróż per-user rate limiting i globalny limit; korzystaj z Redis/Upstash w prod.
 
-6) Observability
+6. Observability
    - Po wdrożeniu monitoruj błędy 401/429/5xx; w razie potrzeby dostosuj rate-limity lub rotuj klucze.
 
 ---
@@ -190,7 +194,7 @@ Poniższy plan zakłada, że implementacja będzie w `src/lib/openrouter-service
 
 Poniżej przykłady i podejścia do implementacji elementów wymaganych przez OpenRouter API.
 
-1) Komunikat systemowy (System message)
+1. Komunikat systemowy (System message)
 
 Przykład użycia w `messages`:
 
@@ -202,14 +206,15 @@ Przykład użycia w `messages`:
 ```
 
 Implementacja:
+
 - Przyjmuj `messages` jako tablicę obiektów.
 - Dołączaj globalne system messages (np. templaty) po stronie serwera przed wysłaniem do OpenRouter.
 
-2) Komunikat użytkownika (User message)
+2. Komunikat użytkownika (User message)
 
 Przekazuj bez modyfikacji, ale waliduj długość i czystość (sanity checks). Dodaj metadata (correlationId) jeśli potrzebne.
 
-3) Ustrukturyzowane odpowiedzi poprzez `response_format` (schemat JSON)
+3. Ustrukturyzowane odpowiedzi poprzez `response_format` (schemat JSON)
 
 Przykład poprawnie zdefiniowanego `response_format`:
 
@@ -234,26 +239,31 @@ Przykład poprawnie zdefiniowanego `response_format`:
 ```
 
 Jak obsłużyć w serwisie:
+
 - `OpenRouterService.sendChatCompletion` przekazuje `response_format` w payloadzie do OpenRouter.
 - Po otrzymaniu odpowiedzi: jeśli `json` lub tekst zawiera JSON, parsuj go i waliduj przy użyciu `ajv`.
 - W trybie `strict: true` odrzuć odpowiedź jeśli nie pasuje (zwróć `ResponseValidationError`). W trybie `strict: false` możesz próbować naprawić (np. ekstrakcja JSON z tekstu) i logować korekty.
 
-4) Nazwa modelu (Model name)
+4. Nazwa modelu (Model name)
 
 Przykłady:
+
 - `gpt-4o-mini`
 - `claude-2` (przykład — zgodnie z wspieranymi przez OpenRouter)
 
 Implementacja:
+
 - Umożliw opcjonalne przesłanie `model` w wywołaniu `sendChatCompletion`.
 - Jeśli brak: użyj `defaultModel` z konstruktora.
 
-5) Parametry modelu (Model params)
+5. Parametry modelu (Model params)
 
 Najczęstsze parametry:
+
 - `temperature`, `top_p`, `max_tokens`, `presence_penalty`, `frequency_penalty`.
 
 Implementacja:
+
 - Waliduj zakresy (np. temperature 0-2), ustaw limity bezpieczeństwa (max_tokens <= 4096 lub wartość bezpieczna).
 - Mapuj przyjazne nazwy na parametry wymagane przez OpenRouter API i dołącz je do payloadu.
 

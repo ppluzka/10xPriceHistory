@@ -104,14 +104,12 @@ describe("useSettings", () => {
 
       const { result } = renderHook(() => useSettings(initialPreferences));
 
-      await expect(
-        result.current.updateFrequency({ defaultFrequency: "24h" })
-      ).rejects.toThrow("Nie udało się zaktualizować preferencji");
+      await expect(result.current.updateFrequency({ defaultFrequency: "24h" })).rejects.toThrow(
+        "Nie udało się zaktualizować preferencji"
+      );
 
       await waitFor(() => {
-        expect(result.current.error).toBe(
-          "Nie udało się zaktualizować preferencji"
-        );
+        expect(result.current.error).toBe("Nie udało się zaktualizować preferencji");
       });
     });
 
@@ -229,9 +227,7 @@ describe("useSettings", () => {
 
       const { result } = renderHook(() => useSettings(initialPreferences));
 
-      await expect(result.current.deleteAccount()).rejects.toThrow(
-        "Nie udało się usunąć konta"
-      );
+      await expect(result.current.deleteAccount()).rejects.toThrow("Nie udało się usunąć konta");
 
       await waitFor(() => {
         expect(result.current.error).toBe("Nie udało się usunąć konta");
@@ -284,9 +280,7 @@ describe("useSettings", () => {
       }
 
       await waitFor(() => {
-        expect(result.current.error).toBe(
-          "Nie udało się zaktualizować preferencji"
-        );
+        expect(result.current.error).toBe("Nie udało się zaktualizować preferencji");
       });
 
       // Then, perform successful operation
@@ -303,4 +297,3 @@ describe("useSettings", () => {
     });
   });
 });
-

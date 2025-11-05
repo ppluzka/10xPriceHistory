@@ -3,23 +3,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import DashboardView from "../DashboardView";
-import {
-  createMockDashboardDto,
-  dashboardScenarios,
-} from "../../../test/factories/dashboard.factory";
-import type { DashboardDto } from "../../../types";
+import { createMockDashboardDto, dashboardScenarios } from "../../../test/factories/dashboard.factory";
 
 // Mock child components to focus on DashboardView logic
 vi.mock("../../dashboard/DashboardStats", () => ({
-  default: ({ summary, offerLimit }: any) => (
-    <div data-testid="dashboard-stats">
-      Stats: {summary.activeCount} active, limit: {offerLimit}
-    </div>
-  ),
+  default: ({ summary }: any) => <div data-testid="dashboard-stats">Stats: {summary.activeCount} active</div>,
 }));
 
 vi.mock("../../dashboard/OfferForm", () => ({
-  default: ({ onOfferAdded, activeCount, offerLimit }: any) => (
+  default: ({ onOfferAdded }: any) => (
     <button data-testid="offer-form" onClick={onOfferAdded}>
       Add Offer
     </button>
@@ -86,9 +78,7 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={null} />);
 
       // Assert
-      expect(
-        screen.getByText(/nie udało się załadować danych dashboardu/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/nie udało się załadować danych dashboardu/i)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /spróbuj ponownie/i })).toBeInTheDocument();
     });
 
@@ -100,9 +90,7 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={emptyData} />);
 
       // Assert
-      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-        "0 active"
-      );
+      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("0 active");
     });
   });
 
@@ -140,9 +128,7 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(
-          screen.getByText(/network error/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/network error/i)).toBeInTheDocument();
       });
     });
 
@@ -161,9 +147,7 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(
-          screen.getByText(/nie udało się pobrać danych dashboardu/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/nie udało się pobrać danych dashboardu/i)).toBeInTheDocument();
       });
     });
   });
@@ -190,9 +174,7 @@ describe("DashboardView", () => {
       // Assert
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith("/api/dashboard");
-        expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-          "6 active"
-        );
+        expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("6 active");
       });
     });
 
@@ -235,9 +217,7 @@ describe("DashboardView", () => {
       await user.click(deleteButtons[0]);
 
       // Assert - Should be removed immediately (optimistic update)
-      expect(
-        screen.queryByTestId(`offer-${offerToDelete.id}`)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`offer-${offerToDelete.id}`)).not.toBeInTheDocument();
     });
 
     it("should update activeCount optimistically when deleting offer", async () => {
@@ -257,9 +237,7 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-          "4 active"
-        );
+        expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("4 active");
       });
     });
 
@@ -281,9 +259,7 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-          "0 active"
-        );
+        expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("0 active");
       });
     });
 
@@ -335,7 +311,6 @@ describe("DashboardView", () => {
 
     it("should handle delete when no dashboard data exists", async () => {
       // Arrange
-      const user = userEvent.setup();
       render(<DashboardView initialData={null} />);
 
       // Act & Assert - Should not crash
@@ -358,9 +333,7 @@ describe("DashboardView", () => {
 
       // Assert
       await waitFor(() => {
-        expect(
-          screen.getByText(/something went wrong/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
       });
     });
 
@@ -384,9 +357,7 @@ describe("DashboardView", () => {
       await user.click(dismissButton);
 
       // Assert
-      expect(
-        screen.queryByText(/error/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
     });
   });
 
@@ -411,12 +382,8 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={data} />);
 
       // Assert
-      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-        "100 active"
-      );
-      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-        "limit: 5"
-      );
+      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("100 active");
+      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("limit: 5");
     });
 
     it("should handle dashboard with errors", () => {
@@ -427,13 +394,10 @@ describe("DashboardView", () => {
       render(<DashboardView initialData={data} />);
 
       // Assert
-      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent(
-        "2 active"
-      );
+      expect(screen.getByTestId("dashboard-stats")).toHaveTextContent("2 active");
       // The mock creates offer cards for each offer, plus dashboard-stats and offer-form testids
       const offerCards = screen.getAllByTestId(/^offer-/);
       expect(offerCards.length).toBeGreaterThanOrEqual(4);
     });
   });
 });
-

@@ -1,6 +1,7 @@
 # REST API Plan
 
 ## 1. Resources
+
 - User (`users`)
 - Offer (`offers`)
 - Subscription (`user_offer`)
@@ -10,7 +11,9 @@
 ## 2. Endpoints
 
 ### 2.1 Authentication
+
 #### POST /auth/register
+
 - Description: Register a new user and send verification email
 - Request JSON:
   ```json
@@ -27,8 +30,9 @@
 - Errors:
   - 400: invalid email/password format or captcha failure
   - 429: too many registrations from IP
-  
+
 #### POST /auth/login
+
 - Description: Log in and return JWT
 - Request JSON:
   ```json
@@ -43,12 +47,15 @@
   - 401: invalid credentials or unverified email
 
 #### POST /auth/logout
+
 - Description: Revoke current JWT session
 - Headers: Authorization: Bearer <token>
 - Response 204 No Content
 
 ### 2.2 Offers
+
 #### GET /offers ✅ IMPLEMENTED
+
 - Description: List authenticated user's active subscriptions
 - Implementation: `/src/pages/api/offers.ts` with `OfferService`
 - Optimizations: Batch price history fetching (single query vs N+1)
@@ -78,6 +85,7 @@
   ```
 
 #### POST /offers ✅ IMPLEMENTED
+
 - Description: Add new Otomoto.pl offer subscription
 - Implementation: `/src/pages/api/offers.ts` (POST handler) with `OfferService.add()`
 - Features:
@@ -101,6 +109,7 @@
   - 429: active subscription limit reached (5) or daily addition limit reached (10)
 
 #### GET /offers/{id} ✅ IMPLEMENTED
+
 - Description: Get offer details and summary stats
 - Implementation: `/src/pages/api/offers/[id].ts` with `OfferService.getById()`
 - Features:
@@ -118,11 +127,11 @@
     "city": "string",
     "status": "active",
     "frequency": "24h",
-    "firstPrice": 12000.00,
-    "lastPrice": 11500.00,
+    "firstPrice": 12000.0,
+    "lastPrice": 11500.0,
     "percentChangeFromFirst": -4.17,
     "percentChangeFromPrevious": 2.5,
-    "stats": {"min": 11000, "max": 12500, "avg": 11875},
+    "stats": { "min": 11000, "max": 12500, "avg": 11875 },
     "createdAt": "2025-10-01T08:00:00Z",
     "lastChecked": "2025-10-11T12:00:00Z"
   }
@@ -130,6 +139,7 @@
 - Errors: 404 if not found or not subscribed
 
 #### DELETE /offers/{id} ✅ IMPLEMENTED
+
 - Description: Unsubscribe (soft-delete) from offer
 - Implementation: `/src/pages/api/offers/[id].ts` (DELETE handler) with `OfferService.unsubscribe()`
 - Features:
@@ -138,12 +148,14 @@
   - Preserves price history: data remains in database for potential reactivation
   - Authorization: only user's own subscriptions can be deleted
 - Response 204 No Content
-- Errors: 
+- Errors:
   - 400: invalid offer ID
   - 404: offer not found or already unsubscribed
 
 ### 2.3 Price History
+
 #### GET /offers/{id}/history ✅ IMPLEMENTED
+
 - Description: List price history for an offer
 - Implementation: `/src/pages/api/offers/[id]/history.ts` with `OfferService.getHistory()`
 - Features:
@@ -155,20 +167,20 @@
 - Response 200:
   ```json
   {
-    "data": [
-      { "price": 11500.00, "currency": "PLN", "checkedAt": "2025-10-11T12:00:00Z" }
-    ],
+    "data": [{ "price": 11500.0, "currency": "PLN", "checkedAt": "2025-10-11T12:00:00Z" }],
     "page": 1,
     "size": 10,
     "total": 50
   }
   ```
-- Errors: 
+- Errors:
   - 400: invalid offer ID or query parameters
   - 404: offer not found or user not subscribed
 
 ### 2.4 Preferences
+
 #### GET /preferences ✅ IMPLEMENTED
+
 - Description: Get user's default check frequency
 - Implementation: `/src/pages/api/preferences.ts` (GET handler) with `PreferencesService.get()`
 - Features:
@@ -180,6 +192,7 @@
   ```
 
 #### PUT /preferences ✅ IMPLEMENTED
+
 - Description: Update default check frequency
 - Implementation: `/src/pages/api/preferences.ts` (PUT handler) with `PreferencesService.update()`
 - Features:
@@ -197,7 +210,9 @@
 - Errors: 400 for invalid frequency (must be one of: 6h, 12h, 24h, 48h)
 
 ### 2.5 Dashboard
+
 #### GET /dashboard ✅ IMPLEMENTED
+
 - Description: Get dashboard summary and offer list
 - Implementation: `/src/pages/api/dashboard.ts` with `DashboardService.get()`
 - Features:
@@ -208,18 +223,22 @@
 - Response 200:
   ```json
   {
-    "summary": {"activeCount": 3, "avgChange": -2.5, "largestDrop": -10.2, "largestRise": 5.6},
-    "offers": [ /* same format as GET /offers */ ]
+    "summary": { "activeCount": 3, "avgChange": -2.5, "largestDrop": -10.2, "largestRise": 5.6 },
+    "offers": [
+      /* same format as GET /offers */
+    ]
   }
   ```
 
 ## 3. Authentication & Authorization
+
 - Mechanism: Supabase JWT (Authorization: Bearer <token>)
 - Middleware verifies token, sets `current_user_id` context
 - Row-Level Security in DB enforces access to `user_offer` and `price_history` (see policies)
 - All endpoints require authentication except `/auth/*` and `/landing`
 
 ## 4. Validation & Business Logic
+
 - URL validation: must match `*.otomoto.pl` (regex)
 - Enforce ENUM constraints (currency, frequency, status) → 400 on invalid
 - Enforce unique offer URL → 409
@@ -230,4 +249,3 @@
 - Fallback: if AI extraction fails, try hardcoded selectors; error if none succeed
 - Soft deletes: `deleted_at` used for unsubscription; preserve `price_history`
 - Pagination & sorting on list endpoints; use DB indexes for performance
-

@@ -11,17 +11,20 @@ Te komponenty to tylko warstwa prezentacji (frontend). Wywołują endpointy API 
 ## Struktura komponentów
 
 ### LoginForm.tsx
+
 Formularz logowania z walidacją client-side.
 
 **Props:**
+
 ```typescript
 interface LoginFormProps {
-  redirectTo?: string;        // Gdzie przekierować po logowaniu (default: /dashboard)
+  redirectTo?: string; // Gdzie przekierować po logowaniu (default: /dashboard)
   showRegisterLink?: boolean; // Czy pokazać link do rejestracji (default: true)
 }
 ```
 
 **Funkcjonalności:**
+
 - Walidacja email (format RFC 5322 simplified)
 - Walidacja hasła (minimum 8 znaków)
 - Real-time walidacja przy onBlur
@@ -32,17 +35,21 @@ interface LoginFormProps {
 **API endpoint:** `POST /api/auth/login`
 
 **Użycie:**
+
 ```astro
 ---
 import LoginForm from "@/components/auth/LoginForm";
 ---
+
 <LoginForm client:load redirectTo="/dashboard" />
 ```
 
 ### RegisterForm.tsx
+
 Formularz rejestracji z wskaźnikiem siły hasła.
 
 **Props:**
+
 ```typescript
 interface RegisterFormProps {
   captchaSiteKey: string; // Klucz publiczny hCaptcha/Turnstile
@@ -50,6 +57,7 @@ interface RegisterFormProps {
 ```
 
 **Funkcjonalności:**
+
 - Walidacja email (format + max 255 znaków)
 - Walidacja hasła (min 8 znaków)
 - Walidacja potwierdzenia hasła (muszą być identyczne)
@@ -60,18 +68,22 @@ interface RegisterFormProps {
 **API endpoint:** `POST /api/auth/register`
 
 **Użycie:**
+
 ```astro
 ---
 import RegisterForm from "@/components/auth/RegisterForm";
 const captchaSiteKey = import.meta.env.HCAPTCHA_SITE_KEY;
 ---
+
 <RegisterForm client:load captchaSiteKey={captchaSiteKey} />
 ```
 
 ### ResendVerificationButton.tsx
+
 Przycisk do ponownego wysłania emaila weryfikacyjnego z cooldown timerem.
 
 **Props:**
+
 ```typescript
 interface ResendVerificationButtonProps {
   email: string; // Email użytkownika
@@ -79,6 +91,7 @@ interface ResendVerificationButtonProps {
 ```
 
 **Funkcjonalności:**
+
 - 60-sekundowy cooldown po wysłaniu
 - Wyświetlanie komunikatów sukcesu/błędu
 - Obsługa rate limiting (429)
@@ -87,45 +100,57 @@ interface ResendVerificationButtonProps {
 **API endpoint:** `POST /api/auth/resend-verification`
 
 **Użycie:**
+
 ```astro
 ---
 import ResendVerificationButton from "@/components/auth/ResendVerificationButton";
 ---
+
 <ResendVerificationButton client:load email="user@example.com" />
 ```
 
 ## Strony Astro
 
 ### /login.astro
+
 Strona logowania z obsługą query params:
+
 - `?verified=true` - Wyświetla komunikat o zweryfikowanym emailu
 - `?error=verification_failed` - Wyświetla błąd weryfikacji
 - `?error=session_expired` - Wyświetla komunikat o wygasłej sesji
 - `?returnUrl=/path` - Przekierowanie po zalogowaniu
 
 ### /register.astro
+
 Strona rejestracji z informacją o darmowym koncie.
 
 ### /verify-email.astro
+
 Strona informująca o konieczności weryfikacji emaila.
 Query params:
+
 - `?email=encoded@email.com` - Email użytkownika
 
 ### /auth/callback.astro
+
 Obsługa callback po weryfikacji email lub OAuth (przyszłość).
 Query params:
+
 - `?code=...` - Kod weryfikacyjny z Supabase
 - `?error=...` - Komunikat błędu
 
 ### /forgot-password.astro
+
 Placeholder dla funkcji resetowania hasła (MVP: opcjonalny).
 
 ## Komponenty nawigacyjne
 
 ### Header.tsx
+
 Nawigacja dla zalogowanych użytkowników.
 
 **Props:**
+
 ```typescript
 interface HeaderProps {
   user: {
@@ -137,6 +162,7 @@ interface HeaderProps {
 ```
 
 **Funkcjonalności:**
+
 - Responsywny hamburger menu (mobile)
 - Wyświetlanie emaila użytkownika
 - Przycisk wylogowania
@@ -145,9 +171,11 @@ interface HeaderProps {
 **API endpoint:** `POST /api/auth/logout`
 
 ### PublicHeader.tsx
+
 Nawigacja dla niezalogowanych użytkowników.
 
 **Props:**
+
 ```typescript
 interface PublicHeaderProps {
   currentPath?: string;
@@ -155,12 +183,14 @@ interface PublicHeaderProps {
 ```
 
 **Funkcjonalności:**
+
 - Przyciski "Zaloguj" i "Zarejestruj"
 - Responsywny design
 
 ## Utilities
 
 ### auth.utils.ts
+
 Helpery dla autentykacji:
 
 - `requireAuth(Astro)` - Guard dla chronionych stron
@@ -173,6 +203,7 @@ Helpery dla autentykacji:
 ## Stylizacja
 
 Wszystkie komponenty używają:
+
 - Tailwind CSS 4
 - Shadcn/ui components (Button, Input, Label, Card)
 - Konsystentne z istniejącymi komponentami (OfferForm, PasswordChangeForm)
@@ -193,4 +224,3 @@ Wszystkie komponenty używają:
 - Error handling jest zgodny ze specyfikacją (kody 400, 401, 403, 409, 429, 500)
 - Loading states są zaimplementowane dla lepszego UX
 - Komponenty są accessibility-friendly (aria-invalid, labels, autocomplete)
-

@@ -13,6 +13,7 @@ Successfully implemented the first API endpoint for the PriceHistory application
 ## 🎯 What Was Built
 
 ### Core Functionality
+
 - ✅ Paginated offer list with configurable page size
 - ✅ Sorting by: `created_at`, `last_checked`, `title`
 - ✅ Price calculations: current price, % change from first, % change from previous
@@ -21,12 +22,14 @@ Successfully implemented the first API endpoint for the PriceHistory application
 - ✅ Type-safe implementation with TypeScript
 
 ### Performance Optimizations
+
 - ✅ **Batch fetching**: Single query for all price history (vs N+1 queries)
 - ✅ **Efficient grouping**: Map-based aggregation by offer_id
 - ✅ **Database indexes**: Leverages existing indexes for fast queries
 - ⚡ **Result**: ~90% reduction in database round-trips
 
 ### Code Quality
+
 - ✅ 0 linter errors
 - ✅ 3 console warnings (acceptable for error logging)
 - ✅ Successfully builds for production
@@ -81,6 +84,7 @@ Successfully implemented the first API endpoint for the PriceHistory application
 ## 🔧 Technical Implementation
 
 ### Architecture
+
 ```
 Request → Middleware → API Endpoint → Service Layer → Database
            ↓              ↓              ↓              ↓
@@ -88,6 +92,7 @@ Request → Middleware → API Endpoint → Service Layer → Database
 ```
 
 ### Data Flow
+
 1. Middleware sets `DEFAULT_USER_ID` in `locals.current_user_id`
 2. Endpoint validates query params with Zod
 3. Service fetches offers with `user_offer` join (RLS-ready)
@@ -96,22 +101,23 @@ Request → Middleware → API Endpoint → Service Layer → Database
 6. Endpoint returns `PaginatedDto<OfferDto>`
 
 ### Database Queries (Optimized)
+
 ```typescript
 // Query 1: Get user's offers
 const offers = await supabase
-  .from('offers')
-  .select('*, user_offer!inner(user_id, deleted_at)')
-  .eq('user_offer.user_id', userId)
-  .is('user_offer.deleted_at', null)
+  .from("offers")
+  .select("*, user_offer!inner(user_id, deleted_at)")
+  .eq("user_offer.user_id", userId)
+  .is("user_offer.deleted_at", null)
   .order(sort, { ascending: false })
   .range(from, to);
 
 // Query 2: Batch fetch price history
 const priceHistory = await supabase
-  .from('price_history')
-  .select('offer_id, price, currency, checked_at')
-  .in('offer_id', offerIds)
-  .order('checked_at', { ascending: true });
+  .from("price_history")
+  .select("offer_id, price, currency, checked_at")
+  .in("offer_id", offerIds)
+  .order("checked_at", { ascending: true });
 ```
 
 ---
@@ -180,12 +186,14 @@ curl "http://localhost:4321/api/offers?page=1&size=50&sort=title"
 ## 🔐 Security Notes
 
 ### Current State
+
 - ✅ Input validation (Zod schemas)
 - ✅ RLS-ready (user_offer join)
 - ✅ No SQL injection (parameterized)
 - ⏳ Authentication: Using `DEFAULT_USER_ID` temporarily
 
 ### Before Production
+
 - [ ] Implement JWT authentication
 - [ ] Replace DEFAULT_USER_ID with actual user auth
 - [ ] Add rate limiting
@@ -196,11 +204,13 @@ curl "http://localhost:4321/api/offers?page=1&size=50&sort=title"
 ## 📈 Performance Metrics
 
 ### Query Optimization
+
 - **Before**: 1 + N queries (N = number of offers)
 - **After**: 2 queries (offers + batch price history)
 - **Improvement**: ~90% fewer DB round-trips
 
 ### Expected Response Times (with indexes)
+
 - 10 offers: ~50-100ms
 - 50 offers: ~100-200ms
 - 100 offers: ~150-300ms
@@ -232,6 +242,7 @@ Based on the API plan, the following endpoints can be implemented next:
 ## 🎉 Conclusion
 
 The GET /api/offers endpoint is **fully implemented, tested, and documented**. The implementation follows best practices with:
+
 - Clean architecture (separation of concerns)
 - Type safety (TypeScript + Zod)
 - Performance optimization (batch queries)
@@ -239,4 +250,3 @@ The GET /api/offers endpoint is **fully implemented, tested, and documented**. T
 - Complete documentation
 
 **Status**: ✅ READY FOR NEXT ENDPOINT
-

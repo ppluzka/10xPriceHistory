@@ -7,7 +7,6 @@ import { PriceHistoryService } from "./price-history.service";
 import { ErrorHandlerService } from "./error-handler.service";
 import { MonitoringService } from "./monitoring.service";
 import { OfferStatus } from "../../types";
-import type { ExtractedPrice } from "../../types";
 
 /**
  * OfferProcessorService - Main orchestrator for processing offers
@@ -157,11 +156,11 @@ export class OfferProcessorService {
 
   /**
    * Handles processing errors with retry logic
-   * 
+   *
    * IMPORTANT: Retry logic works across multiple CRON runs, not within a single request.
    * This prevents the endpoint from hanging for minutes waiting for retries.
    * Each CRON run attempts once, and retries happen in subsequent scheduled runs.
-   * 
+   *
    * @param offer - The offer that failed processing
    * @param error - The error that occurred
    * @param attempt - Current attempt number

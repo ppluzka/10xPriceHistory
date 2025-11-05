@@ -71,12 +71,12 @@ export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKe
 /**
  * Creates a Supabase client with service role key (bypasses RLS)
  * Use ONLY for server-side operations that need to bypass RLS (e.g., CRON jobs)
- * 
+ *
  * @returns Supabase client with service role privileges
  */
 export const createSupabaseServiceRoleClient = (): ReturnType<typeof createClient<Database>> => {
   const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!serviceRoleKey) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured. Required for service operations.");
   }

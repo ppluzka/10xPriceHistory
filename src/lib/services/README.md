@@ -37,23 +37,23 @@ Dokumentacja serwisów odpowiedzialnych za automatyczne monitorowanie cen ofert 
 
 ### Core Services
 
-| Serwis | Opis | Plik |
-|--------|------|------|
+| Serwis                    | Opis                                   | Plik                         |
+| ------------------------- | -------------------------------------- | ---------------------------- |
 | **OfferProcessorService** | Główny orchestrator procesowania ofert | `offer-processor.service.ts` |
-| **ScrapingService** | Pobieranie i parsowanie HTML | `scraping.service.ts` |
-| **AIExtractionService** | AI fallback dla ekstrakcji cen | `ai-extraction.service.ts` |
-| **ValidationService** | Walidacja wyekstrahowanych danych | `validation.service.ts` |
-| **PriceHistoryService** | Zarządzanie historią cen | `price-history.service.ts` |
-| **ErrorHandlerService** | Obsługa błędów i retry logic | `error-handler.service.ts` |
-| **MonitoringService** | Monitoring systemu i alerting | `monitoring.service.ts` |
+| **ScrapingService**       | Pobieranie i parsowanie HTML           | `scraping.service.ts`        |
+| **AIExtractionService**   | AI fallback dla ekstrakcji cen         | `ai-extraction.service.ts`   |
+| **ValidationService**     | Walidacja wyekstrahowanych danych      | `validation.service.ts`      |
+| **PriceHistoryService**   | Zarządzanie historią cen               | `price-history.service.ts`   |
+| **ErrorHandlerService**   | Obsługa błędów i retry logic           | `error-handler.service.ts`   |
+| **MonitoringService**     | Monitoring systemu i alerting          | `monitoring.service.ts`      |
 
 ### Supporting Services
 
-| Serwis | Opis | Plik |
-|--------|------|------|
+| Serwis                | Opis                           | Plik                       |
+| --------------------- | ------------------------------ | -------------------------- |
 | **OpenRouterService** | Integracja z OpenRouter.ai API | `../openrouter.service.ts` |
-| **OfferService** | CRUD operations dla ofert | `offer.service.ts` |
-| **DashboardService** | Dashboard data aggregation | `dashboard.service.ts` |
+| **OfferService**      | CRUD operations dla ofert      | `offer.service.ts`         |
+| **DashboardService**  | Dashboard data aggregation     | `dashboard.service.ts`     |
 
 ---
 
@@ -62,6 +62,7 @@ Dokumentacja serwisów odpowiedzialnych za automatyczne monitorowanie cen ofert 
 ### 1. OfferProcessorService
 
 **Odpowiedzialności:**
+
 - Orchestracja wszystkich serwisów w pełnym workflow
 - Retry logic z exponential backoff
 - Zarządzanie statusami ofert
@@ -72,13 +73,13 @@ Dokumentacja serwisów odpowiedzialnych za automatyczne monitorowanie cen ofert 
 ```typescript
 class OfferProcessorService {
   // Główna metoda - pełny workflow dla 1 oferty
-  async processOffer(offer: Offer, attempt = 1): Promise<void>
-  
+  async processOffer(offer: Offer, attempt = 1): Promise<void>;
+
   // Batch processing - przetwarza wiele ofert
-  async processBatch(offers: Offer[], batchSize = 10): Promise<void>
-  
+  async processBatch(offers: Offer[], batchSize = 10): Promise<void>;
+
   // Cleanup resources
-  async close(): Promise<void>
+  async close(): Promise<void>;
 }
 ```
 
@@ -99,6 +100,7 @@ class OfferProcessorService {
 ### 2. ScrapingService
 
 **Odpowiedzialności:**
+
 - HTTP fetch z rotacją User-Agent
 - Parsing HTML (Cheerio.js)
 - Ekstrakcja ceny przez CSS selector
@@ -109,19 +111,20 @@ class OfferProcessorService {
 ```typescript
 class ScrapingService {
   // Pobiera HTML z URL
-  async fetchOfferPage(url: string): Promise<string>
-  
+  async fetchOfferPage(url: string): Promise<string>;
+
   // Ekstrahuje cenę używając selektora
-  async extractPriceWithSelector(html: string, selector: string): Promise<ExtractedPrice | null>
-  
+  async extractPriceWithSelector(html: string, selector: string): Promise<ExtractedPrice | null>;
+
   // Sprawdza czy oferta usunięta (404/410)
-  isOfferRemoved(statusCode: number): boolean
+  isOfferRemoved(statusCode: number): boolean;
 }
 ```
 
 **User-Agent Pool**: 5 różnych UA (Chrome, Firefox, Safari)
 
 **Rate Limiting:**
+
 - Min delay: 2s
 - Max delay: 5s
 - Random selection
@@ -133,6 +136,7 @@ class ScrapingService {
 ### 3. AIExtractionService
 
 **Odpowiedzialności:**
+
 - Fallback gdy selector nie działa
 - Integracja z OpenRouter.ai
 - Confidence validation (≥0.8)
@@ -143,19 +147,20 @@ class ScrapingService {
 ```typescript
 class AIExtractionService {
   // Ekstraktuje cenę z HTML używając AI
-  async extractPriceOnly(html: string, url: string): Promise<AIExtractedPrice>
-  
+  async extractPriceOnly(html: string, url: string): Promise<AIExtractedPrice>;
+
   // Waliduje confidence score
-  validateConfidence(extraction: AIExtractedPrice): boolean
-  
+  validateConfidence(extraction: AIExtractedPrice): boolean;
+
   // Cleanup
-  async close(): Promise<void>
+  async close(): Promise<void>;
 }
 ```
 
 **Model**: `openai/gpt-4o-mini` (szybki i tani)
 
 **Optymalizacje:**
+
 - Truncate HTML do 50KB
 - Temperature: 0.1 (consistent)
 - Max tokens: 200
@@ -168,6 +173,7 @@ class AIExtractionService {
 ### 4. ValidationService
 
 **Odpowiedzialności:**
+
 - Walidacja zakresu cen (0, 10M)
 - Walidacja typu danych
 - Walidacja currency (PLN, EUR, USD, GBP)
@@ -178,20 +184,21 @@ class AIExtractionService {
 ```typescript
 class ValidationService {
   // Waliduje cenę
-  validatePrice(price: number): ValidationResult
-  
+  validatePrice(price: number): ValidationResult;
+
   // Waliduje walutę
-  validateCurrency(currency: string): boolean
-  
+  validateCurrency(currency: string): boolean;
+
   // Waliduje confidence (AI)
-  validateConfidenceScore(score: number): boolean
-  
+  validateConfidenceScore(score: number): boolean;
+
   // Waliduje kompletne dane
-  validateExtractedData(data: ExtractedPrice): ValidationResult
+  validateExtractedData(data: ExtractedPrice): ValidationResult;
 }
 ```
 
 **Limity:**
+
 - Min price: >0
 - Max price: <10,000,000
 - Min confidence: ≥0.8
@@ -204,6 +211,7 @@ class ValidationService {
 ### 5. PriceHistoryService
 
 **Odpowiedzialności:**
+
 - Zapisywanie cen do DB
 - Update last_checked
 - Detekcja anomalii (>50% change)
@@ -214,16 +222,16 @@ class ValidationService {
 ```typescript
 class PriceHistoryService {
   // Wykrywa anomalie cenowe
-  async detectPriceAnomaly(offerId: string, newPrice: number): Promise<boolean>
-  
+  async detectPriceAnomaly(offerId: string, newPrice: number): Promise<boolean>;
+
   // Zapisuje wpis w historii
-  async savePriceEntry(offerId: string, price: ExtractedPrice): Promise<void>
-  
+  async savePriceEntry(offerId: string, price: ExtractedPrice): Promise<void>;
+
   // Aktualizuje timestamp
-  async updateLastChecked(offerId: string): Promise<void>
-  
+  async updateLastChecked(offerId: string): Promise<void>;
+
   // Pobiera statystyki
-  async getPriceStats(offerId: string): Promise<PriceStats>
+  async getPriceStats(offerId: string): Promise<PriceStats>;
 }
 ```
 
@@ -238,6 +246,7 @@ class PriceHistoryService {
 ### 6. ErrorHandlerService
 
 **Odpowiedzialności:**
+
 - 3-stopniowy retry mechanism
 - Zarządzanie statusami (active, error, removed)
 - Logowanie błędów do `error_log`
@@ -248,23 +257,24 @@ class PriceHistoryService {
 ```typescript
 class ErrorHandlerService {
   // Obsługuje błąd i zwraca decyzję retry
-  async handleScrapingError(offerId: string, error: Error, attempt: number): Promise<RetryDecision>
-  
+  async handleScrapingError(offerId: string, error: Error, attempt: number): Promise<RetryDecision>;
+
   // Aktualizuje status oferty
-  async updateOfferStatus(offerId: string, status: OfferStatus): Promise<void>
-  
+  async updateOfferStatus(offerId: string, status: OfferStatus): Promise<void>;
+
   // Loguje błąd do bazy
-  async logError(offerId: string, error: Error, attempt: number): Promise<void>
-  
+  async logError(offerId: string, error: Error, attempt: number): Promise<void>;
+
   // Sprawdza czy retry
-  shouldRetry(attempt: number): boolean
-  
+  shouldRetry(attempt: number): boolean;
+
   // Zwraca delay dla retry
-  getRetryDelay(attempt: number): number
+  getRetryDelay(attempt: number): number;
 }
 ```
 
 **Retry delays:**
+
 - Attempt 1: 1 minute
 - Attempt 2: 5 minutes
 - Attempt 3: 15 minutes
@@ -278,6 +288,7 @@ class ErrorHandlerService {
 ### 7. MonitoringService
 
 **Odpowiedzialności:**
+
 - Tracking success rate (24h)
 - Obliczanie error rate
 - Wysyłanie alertów (>15% errors)
@@ -288,16 +299,16 @@ class ErrorHandlerService {
 ```typescript
 class MonitoringService {
   // Loguje wynik sprawdzenia
-  async trackCheckResult(offerId: string, success: boolean): Promise<void>
-  
+  async trackCheckResult(offerId: string, success: boolean): Promise<void>;
+
   // Oblicza success rate
-  async calculateSuccessRate(periodHours: number): Promise<number>
-  
+  async calculateSuccessRate(periodHours: number): Promise<number>;
+
   // Pobiera system health
-  async getSystemHealth(): Promise<SystemHealth>
-  
+  async getSystemHealth(): Promise<SystemHealth>;
+
   // Sprawdza i wysyła alert
-  async checkAndSendAlert(): Promise<void>
+  async checkAndSendAlert(): Promise<void>;
 }
 ```
 
@@ -383,8 +394,8 @@ npm run test validation.service.test.ts
 
 ```typescript
 // Example test
-describe('OfferProcessorService', () => {
-  it('should process offer successfully', async () => {
+describe("OfferProcessorService", () => {
+  it("should process offer successfully", async () => {
     const processor = new OfferProcessorService(mockSupabase, mockApiKey);
     await processor.processOffer(mockOffer);
     // Assert price saved, status updated, etc.
@@ -396,10 +407,10 @@ describe('OfferProcessorService', () => {
 
 ```typescript
 // Test manual recheck in UI
-test('should recheck offer with error status', async ({ page }) => {
-  await page.goto('/dashboard');
+test("should recheck offer with error status", async ({ page }) => {
+  await page.goto("/dashboard");
   await page.click('[data-testid="offer-card-recheck-button"]');
-  await expect(page.locator('.toast-success')).toBeVisible();
+  await expect(page.locator(".toast-success")).toBeVisible();
 });
 ```
 
@@ -409,22 +420,22 @@ test('should recheck offer with error status', async ({ page }) => {
 
 ### Kluczowe metryki:
 
-| Metryka | Target | Query |
-|---------|--------|-------|
-| Success Rate | ≥90% | `calculateSuccessRate(24)` |
-| AI Fallback Rate | <20% | Count AI usage in logs |
-| Avg Response Time | <5s | Time per offer |
-| Error Count | <15% | Count failed checks |
-| Active Offers | N/A | Count status='active' |
+| Metryka           | Target | Query                      |
+| ----------------- | ------ | -------------------------- |
+| Success Rate      | ≥90%   | `calculateSuccessRate(24)` |
+| AI Fallback Rate  | <20%   | Count AI usage in logs     |
+| Avg Response Time | <5s    | Time per offer             |
+| Error Count       | <15%   | Count failed checks        |
+| Active Offers     | N/A    | Count status='active'      |
 
 ### Monitoring queries:
 
 ```sql
 -- Success rate
-SELECT 
+SELECT
   ROUND(
-    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC / 
-    COUNT(*)::NUMERIC * 100, 
+    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC /
+    COUNT(*)::NUMERIC * 100,
     2
   ) as success_rate
 FROM system_logs
@@ -474,4 +485,3 @@ LIMIT 10;
 ---
 
 **Ostatnia aktualizacja**: 2025-11-04
-

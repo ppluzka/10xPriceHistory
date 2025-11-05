@@ -7,11 +7,13 @@ Zapewnienie, że wejście na chronione strony aplikacji nie jest możliwe dla ni
 ## 📋 Zakres Implementacji
 
 ### Chronione Strony
+
 - ✅ `/dashboard` - Dashboard użytkownika
 - ✅ `/settings` - Ustawienia użytkownika
 - ✅ `/offer/[id]` - Szczegóły oferty
 
 ### Chronione API Endpoints
+
 - ✅ `/api/dashboard` - API dla dashboard
 - ✅ `/api/offers` - Lista ofert użytkownika
 - ✅ `/api/offers/[id]` - Szczegóły oferty
@@ -20,6 +22,7 @@ Zapewnienie, że wejście na chronione strony aplikacji nie jest możliwe dla ni
 - ✅ `/api/llm` - Integracja z LLM
 
 ### Publiczne Strony
+
 - ✅ `/` - Strona główna (landing page)
 - ✅ `/login` - Logowanie
 - ✅ `/register` - Rejestracja
@@ -28,6 +31,7 @@ Zapewnienie, że wejście na chronione strony aplikacji nie jest możliwe dla ni
 - ✅ `/auth/callback` - OAuth callback
 
 ### Publiczne API Endpoints
+
 - ✅ `/api/auth/login` - Login endpoint
 - ✅ `/api/auth/register` - Registration endpoint
 - ✅ `/api/auth/resend-verification` - Resend verification endpoint
@@ -39,6 +43,7 @@ Zapewnienie, że wejście na chronione strony aplikacji nie jest możliwe dla ni
 **Lokalizacja:** `src/middleware/index.ts`
 
 **Odpowiedzialności:**
+
 - Inicjalizacja Supabase client z kontekstem żądania
 - Walidacja sesji użytkownika (JWT)
 - Ustawianie `Astro.locals` (user, supabase, current_user_id)
@@ -46,6 +51,7 @@ Zapewnienie, że wejście na chronione strony aplikacji nie jest możliwe dla ni
 - Przekierowanie z `returnUrl` dla lepszego UX
 
 **Kluczowe cechy:**
+
 - Wykorzystuje `@supabase/ssr` dla SSR
 - Używa TYLKO `getAll` i `setAll` dla cookies (zgodnie z best practices)
 - Automatyczna walidacja i refresh JWT
@@ -54,12 +60,14 @@ Zapewnienie, że wejście na chronione strony aplikacji nie jest możliwe dla ni
 ### 2. Uproszczone Chronione Strony
 
 **Zmiany wprowadzone:**
+
 - ❌ Usunięto redundantne sprawdzenia `if (!user) return Astro.redirect("/login")`
 - ✅ Dodano komentarze wyjaśniające, że middleware zapewnia user
 - ✅ Używamy `Astro.locals.user!` (non-null assertion) na chronionych stronach
 - ✅ Zachowano `export const prerender = false` dla SSR
 
 **Przykład:**
+
 ```astro
 ---
 export const prerender = false;
@@ -75,6 +83,7 @@ const user = Astro.locals.user!;
 **Lokalizacja:** `src/env.d.ts`
 
 **Definicje:**
+
 ```typescript
 interface Locals {
   supabase: SupabaseClient;
@@ -113,7 +122,7 @@ interface Locals {
 ✅ Defense in Depth (middleware + RLS)  
 ✅ Secure by Default (wszystkie strony chronione, chyba że w PUBLIC_PATHS)  
 ✅ Type Safety (TypeScript strict mode)  
-✅ No Secret Exposure (klucze tylko server-side)  
+✅ No Secret Exposure (klucze tylko server-side)
 
 ## 📊 Status Implementacji
 
@@ -144,30 +153,35 @@ interface Locals {
 ### Scenariusze Testowe
 
 1. **Niezalogowany użytkownik próbuje wejść na `/dashboard`**
+
    ```
    Oczekiwany rezultat: Redirect do /login?returnUrl=%2Fdashboard
    Status: ✅ Działa (middleware chroni)
    ```
 
 2. **Niezalogowany użytkownik próbuje wejść na `/settings`**
+
    ```
    Oczekiwany rezultat: Redirect do /login?returnUrl=%2Fsettings
    Status: ✅ Działa (middleware chroni)
    ```
 
 3. **Niezalogowany użytkownik próbuje wejść na `/offer/123`**
+
    ```
    Oczekiwany rezultat: Redirect do /login?returnUrl=%2Foffer%2F123
    Status: ✅ Działa (middleware chroni wzorzec /offer)
    ```
 
 4. **Niezalogowany użytkownik próbuje wywołać `/api/dashboard`**
+
    ```
    Oczekiwany rezultat: Redirect do /login
    Status: ✅ Działa (middleware chroni wszystkie API poza PUBLIC_PATHS)
    ```
 
 5. **Zalogowany użytkownik wchodzi na chronione strony**
+
    ```
    Oczekiwany rezultat: Dostęp przyznany, strona renderuje się
    Status: ✅ Działa (middleware ustawia locals.user)
@@ -191,31 +205,37 @@ Pliki zmodyfikowane:
 ## 🎨 Zalety Rozwiązania
 
 ### 1. Centralizacja Logiki
+
 - Jedna lokalizacja dla wszystkich reguł autoryzacji
 - Łatwe zarządzanie i aktualizacja
 - Brak duplikacji kodu
 
 ### 2. Separation of Concerns
+
 - Middleware = Autoryzacja
 - Pages = Logika biznesowa + UI
 - Services = Operacje na danych
 
 ### 3. Developer Experience
+
 - Nie trzeba pamiętać o dodawaniu sprawdzeń auth w każdej stronie
 - TypeScript wymusza poprawne użycie
 - Jasne komunikaty w komentarzach
 
 ### 4. Maintainability
+
 - Dodanie nowej chronionej strony: wystarczy stworzyć plik
 - Dodanie nowej publicznej strony: dodać do PUBLIC_PATHS
 - Zmiana logiki auth: jedna lokalizacja (middleware)
 
 ### 5. Performance
+
 - SSR rendering = SEO friendly
 - Middleware działa przed renderowaniem strony
 - Brak zbędnych requestów do API dla niezalogowanych
 
 ### 6. Security
+
 - Defense in Depth (middleware + RLS)
 - Secure cookies
 - Automatyczna walidacja JWT
@@ -262,7 +282,7 @@ export const GET: APIRoute = async ({ locals }) => {
   // Middleware ensures current_user_id is set for protected routes
   const currentUserId = locals.current_user_id as string;
   const supabase = locals.supabase;
-  
+
   // Your logic here
 };
 ```
@@ -270,13 +290,15 @@ export const GET: APIRoute = async ({ locals }) => {
 ## 🚀 Zgodność z Wymaganiami
 
 ### Wymagania Użytkownika
+
 ✅ Wejście na `/dashboard` nie jest możliwe dla niezalogowanych  
 ✅ Wejście na `/settings` nie jest możliwe dla niezalogowanych  
 ✅ Wejście na `/offer/[id]` nie jest możliwe dla niezalogowanych  
 ✅ Rozwiązanie uniwersalne i zgodne z praktykami inżynierskimi  
-✅ Wykorzystuje instrukcje z `supabase-auth.mdc`  
+✅ Wykorzystuje instrukcje z `supabase-auth.mdc`
 
 ### Zgodność z Best Practices
+
 ✅ Supabase SSR (@supabase/ssr)  
 ✅ Cookie handling (getAll/setAll only)  
 ✅ Middleware pattern (Astro)  
@@ -284,7 +306,7 @@ export const GET: APIRoute = async ({ locals }) => {
 ✅ Single Responsibility Principle  
 ✅ DRY (Don't Repeat Yourself)  
 ✅ Security by Default  
-✅ Defense in Depth  
+✅ Defense in Depth
 
 ## 📚 Dokumentacja
 
@@ -304,4 +326,3 @@ Implementacja ochrony stron przed niezalogowanymi użytkownikami jest **zakończ
 - ✅ **User-friendly** - returnUrl dla lepszego UX
 
 Wszystkie chronione strony (`/dashboard`, `/settings`, `/offer/[id]`) oraz API endpoints są teraz skutecznie chronione przed dostępem niezalogowanych użytkowników.
-

@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator } from "@playwright/test";
 
 /**
  * Page Object Model for Offer Card Component
@@ -20,15 +20,15 @@ export class OfferCardComponent {
   constructor(page: Page, cardLocator: Locator) {
     this.page = page;
     this.card = cardLocator;
-    this.link = cardLocator.getByTestId('offer-card-link');
-    this.image = cardLocator.getByTestId('offer-card-image');
-    this.status = cardLocator.getByTestId('offer-card-status');
-    this.title = cardLocator.getByTestId('offer-card-title');
-    this.city = cardLocator.getByTestId('offer-card-city');
-    this.price = cardLocator.getByTestId('offer-card-price');
-    this.priceChange = cardLocator.getByTestId('offer-card-price-change');
-    this.lastChecked = cardLocator.getByTestId('offer-card-last-checked');
-    this.deleteButton = cardLocator.getByTestId('offer-card-delete-button');
+    this.link = cardLocator.getByTestId("offer-card-link");
+    this.image = cardLocator.getByTestId("offer-card-image");
+    this.status = cardLocator.getByTestId("offer-card-status");
+    this.title = cardLocator.getByTestId("offer-card-title");
+    this.city = cardLocator.getByTestId("offer-card-city");
+    this.price = cardLocator.getByTestId("offer-card-price");
+    this.priceChange = cardLocator.getByTestId("offer-card-price-change");
+    this.lastChecked = cardLocator.getByTestId("offer-card-last-checked");
+    this.deleteButton = cardLocator.getByTestId("offer-card-delete-button");
   }
 
   /**
@@ -42,7 +42,7 @@ export class OfferCardComponent {
    * Get the offer ID from data attribute
    */
   async getOfferId(): Promise<string> {
-    return (await this.card.getAttribute('data-offer-id')) || '';
+    return (await this.card.getAttribute("data-offer-id")) || "";
   }
 
   /**
@@ -56,14 +56,14 @@ export class OfferCardComponent {
    * Get the offer title
    */
   async getTitle(): Promise<string> {
-    return (await this.title.textContent()) || '';
+    return (await this.title.textContent()) || "";
   }
 
   /**
    * Get the offer status
    */
   async getStatus(): Promise<string> {
-    return (await this.status.textContent()) || '';
+    return (await this.status.textContent()) || "";
   }
 
   /**
@@ -71,9 +71,9 @@ export class OfferCardComponent {
    */
   async getCity(): Promise<string> {
     try {
-      return (await this.city.textContent()) || '';
+      return (await this.city.textContent()) || "";
     } catch {
-      return '';
+      return "";
     }
   }
 
@@ -81,7 +81,7 @@ export class OfferCardComponent {
    * Get the current price
    */
   async getPrice(): Promise<string> {
-    return (await this.price.textContent()) || '';
+    return (await this.price.textContent()) || "";
   }
 
   /**
@@ -89,9 +89,9 @@ export class OfferCardComponent {
    */
   async getPriceChange(): Promise<string> {
     try {
-      return (await this.priceChange.textContent()) || '';
+      return (await this.priceChange.textContent()) || "";
     } catch {
-      return '';
+      return "";
     }
   }
 
@@ -111,9 +111,9 @@ export class OfferCardComponent {
    */
   async getLastChecked(): Promise<string> {
     try {
-      return (await this.lastChecked.textContent()) || '';
+      return (await this.lastChecked.textContent()) || "";
     } catch {
-      return '';
+      return "";
     }
   }
 
@@ -154,4 +154,3 @@ export class OfferCardComponent {
     }
   }
 }
-

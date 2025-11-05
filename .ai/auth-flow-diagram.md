@@ -209,15 +209,15 @@ Middleware:
 
 ```typescript
 const PUBLIC_PATHS = [
-  "/",                              // Landing page
-  "/login",                         // Login page
-  "/register",                      // Registration page
-  "/verify-email",                  // Email verification page
-  "/forgot-password",               // Password reset page
-  "/auth/callback",                 // OAuth callback
-  "/api/auth/login",                // Login API endpoint
-  "/api/auth/register",             // Registration API endpoint
-  "/api/auth/resend-verification",  // Resend verification API endpoint
+  "/", // Landing page
+  "/login", // Login page
+  "/register", // Registration page
+  "/verify-email", // Email verification page
+  "/forgot-password", // Password reset page
+  "/auth/callback", // OAuth callback
+  "/api/auth/login", // Login API endpoint
+  "/api/auth/register", // Registration API endpoint
+  "/api/auth/resend-verification", // Resend verification API endpoint
 ];
 ```
 
@@ -225,9 +225,9 @@ const PUBLIC_PATHS = [
 
 ```typescript
 const protectedRoutes = [
-  "/dashboard",    // Matches: /dashboard
-  "/settings",     // Matches: /settings
-  "/offer",        // Matches: /offer, /offer/123, /offer/*/anything
+  "/dashboard", // Matches: /dashboard
+  "/settings", // Matches: /settings
+  "/offer", // Matches: /offer, /offer/123, /offer/*/anything
 ];
 ```
 
@@ -235,9 +235,10 @@ const protectedRoutes = [
 
 ```typescript
 interface Locals {
-  supabase: SupabaseClient;           // Supabase client instance
-  current_user_id: string | null;     // User ID or null
-  user: {                             // User object or null
+  supabase: SupabaseClient; // Supabase client instance
+  current_user_id: string | null; // User ID or null
+  user: {
+    // User object or null
     id: string;
     email: string;
     emailVerified: boolean;
@@ -251,11 +252,11 @@ interface Locals {
 
 ```typescript
 cookieOptions = {
-  path: "/",           // Cookie available for entire site
-  secure: true,        // HTTPS only
-  httpOnly: true,      // Not accessible via JavaScript
-  sameSite: "lax",     // CSRF protection
-}
+  path: "/", // Cookie available for entire site
+  secure: true, // HTTPS only
+  httpOnly: true, // Not accessible via JavaScript
+  sameSite: "lax", // CSRF protection
+};
 ```
 
 ### JWT Validation
@@ -293,6 +294,7 @@ USING (auth.uid() = user_id);
 ### Przykładowe Scenariusze Manualnego Testowania
 
 #### Test 1: Podstawowa ochrona
+
 ```bash
 # 1. Wyloguj się (usuń cookies)
 # 2. Wejdź na http://localhost:3000/dashboard
@@ -300,6 +302,7 @@ USING (auth.uid() = user_id);
 ```
 
 #### Test 2: returnUrl
+
 ```bash
 # 1. Wyloguj się
 # 2. Wejdź na http://localhost:3000/dashboard
@@ -308,6 +311,7 @@ USING (auth.uid() = user_id);
 ```
 
 #### Test 3: API Protection
+
 ```bash
 # 1. Wyloguj się
 # 2. Wykonaj: curl http://localhost:3000/api/dashboard
@@ -315,9 +319,9 @@ USING (auth.uid() = user_id);
 ```
 
 #### Test 4: Publiczne strony
+
 ```bash
 # 1. Wyloguj się
 # 2. Wejdź na http://localhost:3000/login
 # 3. Oczekiwany rezultat: Strona logowania wyświetla się poprawnie
 ```
-

@@ -1,6 +1,7 @@
 # Ulepszenia ekstrakcji lokalizacji w OfferService
 
 ## Problem
+
 Podczas dodawania oferty LLM nie był w stanie wyekstrahować lokalizacji z HTML. Lokalizacja na Otomoto.pl znajduje się w niestandardowym miejscu - pomiędzy elementem SVG (ikona mapy) a `google-map-container`, co utrudniało jej wykrycie przy użyciu uproszczonej wersji HTML przekazywanej do LLM.
 
 ## Rozwiązanie
@@ -8,11 +9,13 @@ Podczas dodawania oferty LLM nie był w stanie wyekstrahować lokalizacji z HTML
 ### 1. Zwiększony kontekst dla LLM
 
 **Przed:**
+
 - `mainContent`: 5000 znaków z body
 - Tylko tytuł i meta tagi
 - Brak specjalnego kontekstu dla lokalizacji
 
 **Po:**
+
 - `mainContent`: 8000 znaków z body (60% więcej)
 - Dodatkowa sekcja "Location Context" z tekstem wokół ikon i elementów związanych z lokalizacją
 
@@ -46,6 +49,7 @@ $('a[href*="lokalizacja"], [data-testid*="location"], [class*="location"]').each
 ```
 
 **Strategia:**
+
 - Przeszukuje wszystkie elementy SVG i zbiera tekst z ich kontenerów nadrzędnych
 - Szuka elementów z atrybutami związanymi z lokalizacją (`href*="lokalizacja"`, `data-testid*="location"`, `class*="location"`)
 - Ogranicza długość zbieranego tekstu (max 200 znaków dla SVG, 100 dla innych)
@@ -56,6 +60,7 @@ $('a[href*="lokalizacja"], [data-testid*="location"], [class*="location"]').each
 **Kluczowe dodatki:**
 
 1. **Szczegółowe instrukcje dla lokalizacji:**
+
 ```
 5. **city**: City/location name - THIS IS CRITICAL TO FIND
    - Location can appear in various places in the HTML structure
@@ -65,6 +70,7 @@ $('a[href*="lokalizacja"], [data-testid*="location"], [class*="location"]').each
 ```
 
 2. **Przykłady i wzorce:**
+
 ```
    - Common patterns: just city name, "City, Region", or with postal code
    - Extract ONLY the city name, remove region/voivodeship and extra text
@@ -72,6 +78,7 @@ $('a[href*="lokalizacja"], [data-testid*="location"], [class*="location"]').each
 ```
 
 3. **Zasady czyszczenia:**
+
 ```
 IMPORTANT LOCATION EXTRACTION RULES:
 - Check "Location Context" section first - text near icons is most reliable
@@ -118,6 +125,7 @@ Main Content:
 ## Testing
 
 Po wdrożeniu należy przetestować z różnymi ofertami:
+
 - ✅ Standardowe oferty z lokalizacją
 - ✅ Oferty z długimi nazwami miast
 - ✅ Oferty z województwem w lokalizacji
@@ -129,4 +137,3 @@ Po wdrożeniu należy przetestować z różnymi ofertami:
 - Liczba przypadków gdzie lokalizacja = "Nieznana"
 - Czas ekstrakcji (powinien pozostać podobny)
 - Koszt tokenów (niewielki wzrost ~60%)
-

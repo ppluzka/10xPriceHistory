@@ -40,17 +40,17 @@ Test znajduje się w pliku `dashboard-add-offer.spec.ts` i obejmuje następując
 #### Podstawowe Użycie
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { DashboardPage } from './pages/DashboardPage';
+import { test, expect } from "@playwright/test";
+import { DashboardPage } from "./pages/DashboardPage";
 
-test('should add new offer', async ({ page }) => {
+test("should add new offer", async ({ page }) => {
   const dashboardPage = new DashboardPage(page);
   await dashboardPage.navigate();
-  
+
   // Użycie komponentu formularza
-  await dashboardPage.offerForm.submitOffer('https://www.otomoto.pl/...');
+  await dashboardPage.offerForm.submitOffer("https://www.otomoto.pl/...");
   await dashboardPage.offerForm.waitForSuccess();
-  
+
   // Użycie komponentu gridu
   await dashboardPage.offerGrid.waitForLoaded();
   const count = await dashboardPage.offerGrid.getOffersCount();
@@ -61,13 +61,13 @@ test('should add new offer', async ({ page }) => {
 #### Użycie Workflow
 
 ```typescript
-test('should add offer using workflow', async ({ page }) => {
+test("should add offer using workflow", async ({ page }) => {
   const dashboardPage = new DashboardPage(page);
   await dashboardPage.navigate();
-  
+
   // Użycie metody workflow - automatycznie czeka na wszystkie stany
-  await dashboardPage.addOfferAndWait('https://www.otomoto.pl/...');
-  
+  await dashboardPage.addOfferAndWait("https://www.otomoto.pl/...");
+
   // Weryfikacja stanu
   const isValid = await dashboardPage.verifyOfferAdded();
   expect(isValid).toBe(true);
@@ -99,11 +99,11 @@ Zarządza formularzem dodawania ofert.
 
 ```typescript
 // Wypełnij i wyślij formularz
-await dashboardPage.offerForm.fillUrl('https://www.otomoto.pl/...');
+await dashboardPage.offerForm.fillUrl("https://www.otomoto.pl/...");
 await dashboardPage.offerForm.clickSubmit();
 
 // Lub użyj metody skrótowej
-await dashboardPage.offerForm.submitOffer('https://www.otomoto.pl/...');
+await dashboardPage.offerForm.submitOffer("https://www.otomoto.pl/...");
 
 // Sprawdź błędy walidacji
 const hasError = await dashboardPage.offerForm.hasValidationError();
@@ -128,7 +128,7 @@ const count = await dashboardPage.offerGrid.getOffersCount();
 
 // Pobierz kartę oferty
 const firstCard = dashboardPage.offerGrid.getOfferCard(0);
-const cardById = dashboardPage.offerGrid.getOfferCardById('offer-123');
+const cardById = dashboardPage.offerGrid.getOfferCardById("offer-123");
 
 // Poczekaj na zmiany
 await dashboardPage.offerGrid.waitForLoaded();
@@ -170,8 +170,8 @@ test.beforeEach(async ({ page }) => {
   // Zaloguj się
   const loginPage = new LoginPage(page);
   await loginPage.navigate();
-  await loginPage.login('test@example.com', 'password');
-  
+  await loginPage.login("test@example.com", "password");
+
   // Przejdź do dashboardu
   const dashboardPage = new DashboardPage(page);
   await dashboardPage.navigate();
@@ -182,17 +182,17 @@ test.beforeEach(async ({ page }) => {
 ### Krok 2: Dodaj Ogłoszenie
 
 ```typescript
-test('should add offer', async ({ page }) => {
-  const url = 'https://www.otomoto.pl/osobowe/oferta/test-123';
-  
+test("should add offer", async ({ page }) => {
+  const url = "https://www.otomoto.pl/osobowe/oferta/test-123";
+
   // Zapisz stan początkowy
   const initialCount = await dashboardPage.offerGrid.getOffersCount();
   const initialStats = await dashboardPage.stats.getActiveOffersCount();
-  
+
   // Dodaj ofertę
   await dashboardPage.offerForm.submitOffer(url);
   await dashboardPage.offerForm.waitForSuccess();
-  
+
   // Poczekaj na ładowanie
   await dashboardPage.offerGrid.waitForLoaded();
 });
@@ -201,21 +201,21 @@ test('should add offer', async ({ page }) => {
 ### Krok 3: Weryfikacja
 
 ```typescript
-  // Weryfikuj grid
-  await dashboardPage.offerGrid.waitForNewOffer(initialCount);
-  const newCount = await dashboardPage.offerGrid.getOffersCount();
-  expect(newCount).toBe(initialCount + 1);
-  
-  // Weryfikuj statystyki
-  await dashboardPage.stats.waitForActiveOffersCount(initialStats + 1);
-  const newStats = await dashboardPage.stats.getActiveOffersCount();
-  expect(newStats).toBe(initialStats + 1);
-  
-  // Weryfikuj szczegóły karty
-  const card = dashboardPage.offerGrid.getOfferCard(0);
-  expect(await card.getTitle()).toBeTruthy();
-  expect(await card.getPrice()).toBeTruthy();
-  expect(await card.getStatus()).toBe('active');
+// Weryfikuj grid
+await dashboardPage.offerGrid.waitForNewOffer(initialCount);
+const newCount = await dashboardPage.offerGrid.getOffersCount();
+expect(newCount).toBe(initialCount + 1);
+
+// Weryfikuj statystyki
+await dashboardPage.stats.waitForActiveOffersCount(initialStats + 1);
+const newStats = await dashboardPage.stats.getActiveOffersCount();
+expect(newStats).toBe(initialStats + 1);
+
+// Weryfikuj szczegóły karty
+const card = dashboardPage.offerGrid.getOfferCard(0);
+expect(await card.getTitle()).toBeTruthy();
+expect(await card.getPrice()).toBeTruthy();
+expect(await card.getStatus()).toBe("active");
 ```
 
 ## Najlepsze Praktyki
@@ -223,12 +223,14 @@ test('should add offer', async ({ page }) => {
 ### 1. Używaj Metod Komponentów
 
 ❌ **Źle:**
+
 ```typescript
 await page.locator('[data-testid="offer-url-input"]').fill(url);
 await page.locator('[data-testid="offer-submit-button"]').click();
 ```
 
 ✅ **Dobrze:**
+
 ```typescript
 await dashboardPage.offerForm.submitOffer(url);
 ```
@@ -236,12 +238,14 @@ await dashboardPage.offerForm.submitOffer(url);
 ### 2. Czekaj na Zmiany Stanu
 
 ❌ **Źle:**
+
 ```typescript
 await dashboardPage.offerForm.submitOffer(url);
 expect(await dashboardPage.offerGrid.getOffersCount()).toBe(1); // Race condition!
 ```
 
 ✅ **Dobrze:**
+
 ```typescript
 await dashboardPage.offerForm.submitOffer(url);
 await dashboardPage.offerForm.waitForSuccess();
@@ -252,6 +256,7 @@ expect(await dashboardPage.offerGrid.getOffersCount()).toBe(1);
 ### 3. Używaj Workflow dla Złożonych Scenariuszy
 
 ❌ **Źle:**
+
 ```typescript
 await dashboardPage.offerForm.fillUrl(url);
 await dashboardPage.offerForm.clickSubmit();
@@ -260,6 +265,7 @@ const count = await dashboardPage.offerGrid.getOffersCount();
 ```
 
 ✅ **Dobrze:**
+
 ```typescript
 await dashboardPage.addOfferAndWait(url); // Inteligentne czekanie
 ```
@@ -267,15 +273,25 @@ await dashboardPage.addOfferAndWait(url); // Inteligentne czekanie
 ### 4. Grupuj Powiązane Testy
 
 ```typescript
-test.describe('Offer Form Validation', () => {
-  test('should validate empty URL', async () => { /* ... */ });
-  test('should validate invalid URL', async () => { /* ... */ });
-  test('should validate non-otomoto URL', async () => { /* ... */ });
+test.describe("Offer Form Validation", () => {
+  test("should validate empty URL", async () => {
+    /* ... */
+  });
+  test("should validate invalid URL", async () => {
+    /* ... */
+  });
+  test("should validate non-otomoto URL", async () => {
+    /* ... */
+  });
 });
 
-test.describe('Offer Addition Flow', () => {
-  test('should add single offer', async () => { /* ... */ });
-  test('should add multiple offers', async () => { /* ... */ });
+test.describe("Offer Addition Flow", () => {
+  test("should add single offer", async () => {
+    /* ... */
+  });
+  test("should add multiple offers", async () => {
+    /* ... */
+  });
 });
 ```
 
@@ -300,6 +316,7 @@ npx playwright show-trace trace.zip
 ### 3. Screenshots i Videos
 
 Konfiguracja w `playwright.config.ts`:
+
 ```typescript
 use: {
   screenshot: 'only-on-failure',
@@ -334,7 +351,7 @@ await dashboardPage.offerGrid.waitForLoaded({ timeout: 30000 });
 
 ```typescript
 await dashboardPage.waitForDashboardLoaded();
-await page.waitForLoadState('networkidle');
+await page.waitForLoadState("networkidle");
 ```
 
 ### Problem: Niestabilne testy (flaky)
@@ -346,7 +363,7 @@ await page.waitForLoadState('networkidle');
 await page.waitForTimeout(2000);
 
 // ✅ Używaj
-await element.waitFor({ state: 'visible' });
+await element.waitFor({ state: "visible" });
 await page.waitForFunction(() => condition);
 ```
 
@@ -374,4 +391,3 @@ npx playwright show-report
 - [Playwright Documentation](https://playwright.dev/)
 - [Component POMs README](./pages/components/README.md)
 - [Test Plan](./../.ai/test-plan.md)
-

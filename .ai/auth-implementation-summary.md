@@ -13,17 +13,21 @@
 ### 1. Infrastructure (Kroki 1-4)
 
 #### ✅ Dependencies
+
 - `@supabase/ssr@^0.5.2` - SSR cookie management
 - `zod@^3.22.4` - Schema validation
 
 #### ✅ `src/db/supabase.client.ts`
+
 **Zmiany:**
+
 - Dodano `createSupabaseServerInstance()` z proper cookie handling
 - `getAll/setAll` pattern (zgodnie z supabase-auth.mdc)
 - Zachowano backwards compatibility z `supabaseClient`
 - Export `SupabaseClient` type
 
 **Kluczowe funkcje:**
+
 ```typescript
 export const createSupabaseServerInstance = (context: {
   headers: Headers;
@@ -32,7 +36,9 @@ export const createSupabaseServerInstance = (context: {
 ```
 
 #### ✅ `src/env.d.ts`
+
 **Zmiany:**
+
 - Dodano `user` object do `App.Locals`
 - Zmieniono typ `supabase` na SSR client
 - Proper TypeScript support
@@ -50,7 +56,9 @@ interface Locals {
 ```
 
 #### ✅ `src/middleware/index.ts`
+
 **Zmiany:**
+
 - Kompletny rewrite z session management
 - `getUser()` z Supabase Auth
 - Ochrona protected routes (`/dashboard`, `/settings`, `/offer`)
@@ -58,6 +66,7 @@ interface Locals {
 - Public paths configuration
 
 **Flow:**
+
 1. Utworzenie Supabase client z request context
 2. `getUser()` - automatyczny JWT validation + refresh
 3. Set `Astro.locals.user` i `current_user_id`
@@ -68,7 +77,9 @@ interface Locals {
 ### 2. Validation & Business Logic (Kroki 5-6)
 
 #### ✅ `src/lib/validators/auth.validators.ts` (NOWY)
+
 **Zawartość:**
+
 - `LoginSchema` - email + password validation
 - `RegisterSchema` - dla przyszłości (US-001)
 - `ChangePasswordSchema` - dla przyszłości (US-005)
@@ -77,6 +88,7 @@ interface Locals {
 - Export TypeScript types
 
 **Przykład:**
+
 ```typescript
 export const LoginSchema = z.object({
   email: z.string().email("Wprowadź prawidłowy adres email").max(255),
@@ -85,9 +97,11 @@ export const LoginSchema = z.object({
 ```
 
 #### ✅ `src/pages/api/auth/login.ts` (NOWY)
+
 **Endpoint:** `POST /api/auth/login`
 
 **Funkcjonalność:**
+
 - Walidacja input przez Zod
 - `signInWithPassword()` przez Supabase
 - Obsługa błędów:
@@ -98,6 +112,7 @@ export const LoginSchema = z.object({
 - Success: session automatycznie w cookies
 
 **Response format:**
+
 ```json
 {
   "message": "Login successful",
@@ -109,9 +124,11 @@ export const LoginSchema = z.object({
 ```
 
 #### ✅ `src/pages/api/auth/logout.ts` (NOWY)
+
 **Endpoint:** `POST /api/auth/logout`
 
 **Funkcjonalność:**
+
 - `signOut()` przez Supabase
 - Automatyczne czyszczenie cookies
 - Simple error handling
@@ -121,7 +138,9 @@ export const LoginSchema = z.object({
 ### 3. Frontend Integration (Krok 7)
 
 #### ✅ `src/pages/login.astro`
+
 **Zmiany:**
+
 - Odkomentowano session check
 - Redirect zalogowanych do `/dashboard`
 - Obsługa query params:
@@ -130,15 +149,18 @@ export const LoginSchema = z.object({
   - `returnUrl=...` - redirect po logowaniu
 
 **Key logic:**
+
 ```typescript
 // Check if user is already logged in
 if (Astro.locals.user) {
-  return Astro.redirect('/dashboard');
+  return Astro.redirect("/dashboard");
 }
 ```
 
 #### ✅ `src/components/auth/LoginForm.tsx` (bez zmian)
+
 **Status:** Już był prawidłowo zaimplementowany
+
 - Client-side validation
 - Real-time error display
 - Loading states
@@ -151,13 +173,16 @@ if (Astro.locals.user) {
 ### 4. Dokumentacja (Kroki 9-10)
 
 #### ✅ `.ai/auth-testing-guide.md` (NOWY)
+
 **Zawartość:**
+
 - 10 scenariuszy testowych
 - Instrukcje debugowania
 - Checklist przed deployment
 - Narzędzia diagnostyczne
 
 **Główne testy:**
+
 1. Pomyślne logowanie
 2. Nieprawidłowe hasło
 3. Email niezweryfikowany
@@ -170,7 +195,9 @@ if (Astro.locals.user) {
 10. Middleware protection
 
 #### ✅ `.ai/auth-supabase-config.md` (NOWY)
+
 **Zawartość:**
+
 - Konfiguracja URL (Site URL, Redirect URLs)
 - Email Auth settings
 - Session timeout (7 dni)
@@ -185,6 +212,7 @@ if (Astro.locals.user) {
 ### ✅ US-003: Logowanie do systemu
 
 **Kryteria akceptacji:**
+
 - ✅ Formularz logowania: email + hasło
 - ✅ Weryfikacja przez Supabase Auth
 - ✅ Redirect do `/dashboard` przy sukcesie
@@ -195,6 +223,7 @@ if (Astro.locals.user) {
 ### ✅ US-004: Wylogowanie z systemu
 
 **Kryteria akceptacji:**
+
 - ✅ Endpoint `/api/auth/logout`
 - ✅ Zakończenie sesji Supabase
 - ✅ Automatyczne czyszczenie cookies
@@ -228,6 +257,7 @@ src/
 ```
 
 **Statystyki:**
+
 - **Nowe pliki:** 5
 - **Zmodyfikowane pliki:** 4
 - **Linie kodu:** ~600 (bez dokumentacji)
@@ -237,18 +267,21 @@ src/
 ## 🔧 Następne kroki (poza scopem tej implementacji)
 
 ### Priorytet 1: Testowanie
+
 1. Skonfiguruj Supabase Dashboard (patrz: `auth-supabase-config.md`)
 2. Uruchom testy (patrz: `auth-testing-guide.md`)
 3. Fix ewentualne błędy
 4. Weryfikuj w różnych przeglądarkach
 
 ### Priorytet 2: Rejestracja (US-001)
+
 - Endpoint `/api/auth/register`
 - Strona `/register.astro`
 - Komponent `RegisterForm.tsx`
 - Captcha integration (hCaptcha lub Turnstile)
 
 ### Priorytet 3: Weryfikacja email (US-002)
+
 - Endpoint `/api/auth/resend-verification`
 - Strona `/verify-email.astro`
 - Strona `/auth/callback.astro`
@@ -256,18 +289,21 @@ src/
 - Custom email templates
 
 ### Priorytet 4: Zarządzanie kontem (US-005, US-006)
+
 - Endpoint `/api/auth/change-password`
 - Endpoint `/api/auth/delete-account`
 - Modyfikacja `PasswordChangeForm.tsx`
 - Modyfikacja `DeleteAccountSection.tsx`
 
 ### Priorytet 5: Rate Limiting & Logging
+
 - Implementacja rate limiting checks
 - Logger Service
 - Error handling classes
 - Audit tables usage
 
 ### Priorytet 6: Helper Utilities
+
 - `requireAuth()` helper dla Astro pages
 - `requireGuest()` helper
 - `getReturnUrl()` helper
@@ -309,17 +345,21 @@ src/
 ## 🐛 Potencjalne problemy
 
 ### Problem 1: TypeScript error "user does not exist on Locals"
+
 **Status:** Może wystąpić w IDE  
 **Rozwiązanie:** Restart TS server (Cmd+Shift+P → "Restart TS Server")
 
 ### Problem 2: Cookies nie działają na localhost
+
 **Możliwa przyczyna:** `secure: true` wymaga HTTPS  
 **Rozwiązanie tymczasowe:**
+
 ```typescript
 secure: import.meta.env.PROD, // false na localhost
 ```
 
 ### Problem 3: Session nie persystuje
+
 **Diagnoza:** Sprawdź cookies w DevTools  
 **Rozwiązanie:** Patrz troubleshooting w `auth-testing-guide.md`
 
@@ -328,12 +368,14 @@ secure: import.meta.env.PROD, // false na localhost
 ## 📚 Dokumentacja i zasoby
 
 ### Nasze dokumenty:
+
 - 📋 **Testing Guide:** `.ai/auth-testing-guide.md`
 - ⚙️ **Supabase Config:** `.ai/auth-supabase-config.md`
 - 📖 **Auth Spec:** `.ai/auth-spec.md`
 - 📄 **PRD:** `.ai/prd.md`
 
 ### External:
+
 - **Supabase SSR:** https://supabase.com/docs/guides/auth/server-side-rendering
 - **Astro Middleware:** https://docs.astro.build/en/guides/middleware/
 - **Zod:** https://zod.dev/
@@ -402,4 +444,3 @@ secure: import.meta.env.PROD, // false na localhost
 **Data:** 2025-01-03  
 **Status:** COMPLETE  
 **Next:** Testing & Supabase Dashboard configuration
-

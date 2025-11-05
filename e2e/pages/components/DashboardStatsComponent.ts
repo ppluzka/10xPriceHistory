@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator } from "@playwright/test";
 
 /**
  * Page Object Model for Dashboard Stats Component
@@ -18,16 +18,16 @@ export class DashboardStatsComponent {
 
   constructor(page: Page) {
     this.page = page;
-    this.container = page.getByTestId('dashboard-stats');
+    this.container = page.getByTestId("dashboard-stats");
     // Test IDs are generated from Polish labels in DashboardStats.tsx
-    this.activeOffersCard = page.getByTestId('stat-card-aktywne-oferty');
-    this.activeOffersValue = page.getByTestId('stat-value-aktywne-oferty');
-    this.averageChangeCard = page.getByTestId('stat-card-średnia-zmiana');
-    this.averageChangeValue = page.getByTestId('stat-value-średnia-zmiana');
-    this.largestDropCard = page.getByTestId('stat-card-największy-spadek');
-    this.largestDropValue = page.getByTestId('stat-value-największy-spadek');
-    this.largestRiseCard = page.getByTestId('stat-card-największy-wzrost');
-    this.largestRiseValue = page.getByTestId('stat-value-największy-wzrost');
+    this.activeOffersCard = page.getByTestId("stat-card-aktywne-oferty");
+    this.activeOffersValue = page.getByTestId("stat-value-aktywne-oferty");
+    this.averageChangeCard = page.getByTestId("stat-card-średnia-zmiana");
+    this.averageChangeValue = page.getByTestId("stat-value-średnia-zmiana");
+    this.largestDropCard = page.getByTestId("stat-card-największy-spadek");
+    this.largestDropValue = page.getByTestId("stat-value-największy-spadek");
+    this.largestRiseCard = page.getByTestId("stat-card-największy-wzrost");
+    this.largestRiseValue = page.getByTestId("stat-value-największy-wzrost");
   }
 
   /**
@@ -42,28 +42,28 @@ export class DashboardStatsComponent {
    */
   async getActiveOffersCount(): Promise<number> {
     const text = await this.activeOffersValue.textContent();
-    return parseInt(text || '0', 10);
+    return parseInt(text || "0", 10);
   }
 
   /**
    * Get average change percentage as string
    */
   async getAverageChange(): Promise<string> {
-    return (await this.averageChangeValue.textContent()) || '';
+    return (await this.averageChangeValue.textContent()) || "";
   }
 
   /**
    * Get largest drop percentage as string
    */
   async getLargestDrop(): Promise<string> {
-    return (await this.largestDropValue.textContent()) || '';
+    return (await this.largestDropValue.textContent()) || "";
   }
 
   /**
    * Get largest rise percentage as string
    */
   async getLargestRise(): Promise<string> {
-    return (await this.largestRiseValue.textContent()) || '';
+    return (await this.largestRiseValue.textContent()) || "";
   }
 
   /**
@@ -74,7 +74,7 @@ export class DashboardStatsComponent {
     await this.page.waitForFunction(
       ({ selector, expected }) => {
         const element = document.querySelector(selector);
-        const value = parseInt(element?.textContent || '0', 10);
+        const value = parseInt(element?.textContent || "0", 10);
         return value === expected;
       },
       { selector: '[data-testid="stat-value-aktywne-oferty"]', expected: expectedCount },
@@ -131,8 +131,7 @@ export class DashboardStatsComponent {
    * Wait for stats to be loaded and visible
    */
   async waitForLoaded() {
-    await this.container.waitFor({ state: 'visible', timeout: 5000 });
-    await this.activeOffersCard.waitFor({ state: 'visible', timeout: 5000 });
+    await this.container.waitFor({ state: "visible", timeout: 5000 });
+    await this.activeOffersCard.waitFor({ state: "visible", timeout: 5000 });
   }
 }
-

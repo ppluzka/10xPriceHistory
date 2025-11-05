@@ -3,13 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -23,9 +17,7 @@ interface PasswordChangeFormProps {
 const passwordChangeSchema = z
   .object({
     currentPassword: z.string().min(1, "Aktualne hasło jest wymagane"),
-    newPassword: z
-      .string()
-      .min(8, "Nowe hasło musi mieć co najmniej 8 znaków"),
+    newPassword: z.string().min(8, "Nowe hasło musi mieć co najmniej 8 znaków"),
     confirmPassword: z.string().min(1, "Potwierdzenie hasła jest wymagane"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -35,9 +27,7 @@ const passwordChangeSchema = z
 
 type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>;
 
-export default function PasswordChangeForm({
-  onSubmit,
-}: PasswordChangeFormProps) {
+export default function PasswordChangeForm({ onSubmit }: PasswordChangeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -66,9 +56,7 @@ export default function PasswordChangeForm({
       toast.success("Hasło zostało zmienione");
       reset(); // Wyczyść formularz po sukcesie
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Nie udało się zmienić hasła"
-      );
+      toast.error(error instanceof Error ? error.message : "Nie udało się zmienić hasła");
     } finally {
       setIsSubmitting(false);
     }
@@ -80,11 +68,7 @@ export default function PasswordChangeForm({
         <CardTitle>Zmiana hasła</CardTitle>
       </CardHeader>
       <CardContent>
-        <form
-          id="password-change-form"
-          onSubmit={handleSubmit(handleFormSubmit)}
-          className="space-y-4"
-        >
+        <form id="password-change-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           {/* Aktualne hasło */}
           <div className="space-y-2">
             <Label htmlFor="current-password">Aktualne hasło</Label>
@@ -96,11 +80,7 @@ export default function PasswordChangeForm({
               disabled={isSubmitting}
               {...register("currentPassword")}
             />
-            {errors.currentPassword && (
-              <p className="text-sm text-destructive">
-                {errors.currentPassword.message}
-              </p>
-            )}
+            {errors.currentPassword && <p className="text-sm text-destructive">{errors.currentPassword.message}</p>}
           </div>
 
           {/* Nowe hasło */}
@@ -114,11 +94,7 @@ export default function PasswordChangeForm({
               disabled={isSubmitting}
               {...register("newPassword")}
             />
-            {errors.newPassword && (
-              <p className="text-sm text-destructive">
-                {errors.newPassword.message}
-              </p>
-            )}
+            {errors.newPassword && <p className="text-sm text-destructive">{errors.newPassword.message}</p>}
           </div>
 
           {/* Potwierdzenie nowego hasła */}
@@ -132,24 +108,15 @@ export default function PasswordChangeForm({
               disabled={isSubmitting}
               {...register("confirmPassword")}
             />
-            {errors.confirmPassword && (
-              <p className="text-sm text-destructive">
-                {errors.confirmPassword.message}
-              </p>
-            )}
+            {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
           </div>
         </form>
       </CardContent>
       <CardFooter>
-        <Button
-          type="submit"
-          form="password-change-form"
-          disabled={isSubmitting}
-        >
+        <Button type="submit" form="password-change-form" disabled={isSubmitting}>
           {isSubmitting ? "Zmiana hasła..." : "Zmień hasło"}
         </Button>
       </CardFooter>
     </Card>
   );
 }
-

@@ -84,7 +84,7 @@ test.describe("Dashboard - Add Offer", () => {
     await expect(validationError).toHaveText("URL musi być z otomoto.pl");
   });
 
-  test("should successfully add a new offer", async ({ page }) => {
+  test("should successfully add a new offer", async () => {
     // Use a real Otomoto.pl URL for testing
     // Note: This will make a real API call to scrape the page
     const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html";
@@ -109,7 +109,7 @@ test.describe("Dashboard - Add Offer", () => {
     expect(urlValue).toBe("");
   });
 
-  test("should handle multiple offers", async ({ page }) => {
+  test("should handle multiple offers", async () => {
     const offers = [
       "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6GzoTH.html",
       "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6GJ7AY.html",

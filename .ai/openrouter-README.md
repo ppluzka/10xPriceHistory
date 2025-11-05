@@ -19,6 +19,7 @@ Kompletna implementacja integracji z OpenRouter API dla aplikacji 10xPriceHistor
 ### 1. Instalacja zależności
 
 Zależności są już zainstalowane w projekcie:
+
 - `ajv` - walidacja JSON Schema
 - `p-retry` - retry z exponential backoff
 - `p-limit` - rate limiting
@@ -80,9 +81,7 @@ const response = await fetch("/api/llm", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    messages: [
-      { role: "user", content: "Analyze this car price: 65000 PLN" },
-    ],
+    messages: [{ role: "user", content: "Analyze this car price: 65000 PLN" }],
   }),
 });
 
@@ -150,15 +149,18 @@ console.log(data);
 ## Pliki projektu
 
 ### Core Service
+
 - **`src/lib/openrouter.service.ts`** - główny serwis integracji
 - **`src/lib/rate-limiter.service.ts`** - zaawansowany rate limiting per-user
 
 ### API Endpoints
+
 - **`src/pages/api/llm.ts`** - endpoint proxy dla LLM
   - `POST /api/llm` - chat completion
   - `GET /api/llm` - health check
 
 ### Types
+
 - **`src/types.ts`** - typy TypeScript dla całego projektu
   - `ChatMessage`, `ChatMessageRole`
   - `SendChatParams`, `ModelResponse`
@@ -167,6 +169,7 @@ console.log(data);
   - `OpenRouterError`, `OpenRouterErrorCode`
 
 ### Documentation
+
 - **`.ai/openrouter-service-implementation-plan.md`** - szczegółowy plan implementacji
 - **`.ai/openrouter-usage-examples.md`** - przykłady użycia
 - **`.ai/openrouter-observability.md`** - monitoring i observability
@@ -178,23 +181,25 @@ console.log(data);
 
 ### Environment Variables
 
-| Zmienna | Wymagana | Domyślna wartość | Opis |
-|---------|----------|------------------|------|
-| `OPENROUTER_API_KEY` | ✅ Tak | - | Klucz API z OpenRouter |
-| `OPENROUTER_BASE_URL` | ❌ Nie | `https://openrouter.ai/api/v1` | Base URL API |
-| `OPENROUTER_DEFAULT_MODEL` | ❌ Nie | `gpt-4o-mini` | Domyślny model |
-| `OPENROUTER_TIMEOUT_MS` | ❌ Nie | `60000` | Timeout (ms) |
-| `OPENROUTER_MAX_RETRIES` | ❌ Nie | `3` | Maks. retry |
+| Zmienna                    | Wymagana | Domyślna wartość               | Opis                   |
+| -------------------------- | -------- | ------------------------------ | ---------------------- |
+| `OPENROUTER_API_KEY`       | ✅ Tak   | -                              | Klucz API z OpenRouter |
+| `OPENROUTER_BASE_URL`      | ❌ Nie   | `https://openrouter.ai/api/v1` | Base URL API           |
+| `OPENROUTER_DEFAULT_MODEL` | ❌ Nie   | `gpt-4o-mini`                  | Domyślny model         |
+| `OPENROUTER_TIMEOUT_MS`    | ❌ Nie   | `60000`                        | Timeout (ms)           |
+| `OPENROUTER_MAX_RETRIES`   | ❌ Nie   | `3`                            | Maks. retry            |
 
 ### Rate Limiting
 
 Domyślna konfiguracja rate limitera:
 
 **Development:**
+
 - 1000 requests / minute (global)
 - 50 concurrent requests
 
 **Production:**
+
 - 100 requests / minute (per user)
 - 20 concurrent requests
 
@@ -204,10 +209,10 @@ Można dostosować w konstruktorze:
 import { EnhancedRateLimiter } from "./lib/rate-limiter.service";
 
 const rateLimiter = new EnhancedRateLimiter({
-  maxRequests: 50,      // 50 requestów
-  windowMs: 60000,      // na minutę
-  perUser: true,        // per user
-  concurrency: 10,      // 10 równoległych
+  maxRequests: 50, // 50 requestów
+  windowMs: 60000, // na minutę
+  perUser: true, // per user
+  concurrency: 10, // 10 równoległych
 });
 
 const service = new OpenRouterService({
@@ -219,6 +224,7 @@ const service = new OpenRouterService({
 ### Model Selection
 
 Wspierane modele (przykłady):
+
 - `gpt-4o-mini` - szybki, tani (domyślny)
 - `gpt-4o` - najbardziej zaawansowany
 - `claude-3-opus` - wysokiej jakości odpowiedzi
@@ -239,15 +245,16 @@ constructor(options: OpenRouterServiceOptions)
 ```
 
 **Options:**
+
 ```typescript
 interface OpenRouterServiceOptions {
-  apiKey: string;                    // Wymagane
-  baseUrl?: string;                  // Opcjonalne
-  defaultModel?: string;             // Opcjonalne
-  timeoutMs?: number;                // Opcjonalne
-  maxRetries?: number;               // Opcjonalne
+  apiKey: string; // Wymagane
+  baseUrl?: string; // Opcjonalne
+  defaultModel?: string; // Opcjonalne
+  timeoutMs?: number; // Opcjonalne
+  maxRetries?: number; // Opcjonalne
   rateLimiter?: RateLimiterInterface; // Opcjonalne
-  logger?: LoggerInterface;          // Opcjonalne
+  logger?: LoggerInterface; // Opcjonalne
 }
 ```
 
@@ -258,16 +265,17 @@ interface OpenRouterServiceOptions {
 Wysyła chat completion request.
 
 **Params:**
+
 ```typescript
 interface SendChatParams {
-  messages: ChatMessage[];           // Wymagane
-  model?: string;                    // Opcjonalne
-  response_format?: ResponseFormat;  // Opcjonalne
-  temperature?: number;              // 0-2, domyślnie 1
-  top_p?: number;                    // 0-1, domyślnie 1
-  max_tokens?: number;               // 1-32000
-  presence_penalty?: number;         // -2 do 2
-  frequency_penalty?: number;        // -2 do 2
+  messages: ChatMessage[]; // Wymagane
+  model?: string; // Opcjonalne
+  response_format?: ResponseFormat; // Opcjonalne
+  temperature?: number; // 0-2, domyślnie 1
+  top_p?: number; // 0-1, domyślnie 1
+  max_tokens?: number; // 1-32000
+  presence_penalty?: number; // -2 do 2
+  frequency_penalty?: number; // -2 do 2
   metadata?: {
     correlationId?: string;
     userId?: string;
@@ -284,10 +292,11 @@ interface SendChatParams {
 Parsuje i waliduje strukturyzowaną odpowiedź.
 
 **Returns:**
+
 ```typescript
 interface ValidatedResponse<T> {
-  data: T;                          // Zwalidowane dane
-  raw: string;                      // Raw JSON string
+  data: T; // Zwalidowane dane
+  raw: string; // Raw JSON string
   metadata: {
     model: string;
     tokens?: {
@@ -362,6 +371,7 @@ Czyści zasoby (cache, timery).
 ### Problem: "OPENROUTER_API_KEY environment variable is not set"
 
 **Rozwiązanie:**
+
 1. Utwórz plik `.env` w głównym katalogu
 2. Dodaj `OPENROUTER_API_KEY=sk-or-v1-...`
 3. Restart dev server
@@ -369,6 +379,7 @@ Czyści zasoby (cache, timery).
 ### Problem: "Rate limit exceeded"
 
 **Rozwiązanie:**
+
 1. Sprawdź usage: `rateLimiter.getStatus("user_id")`
 2. Zwiększ limity w konfiguracji
 3. Lub zaczekaj na reset okresu (pokazany w error)
@@ -376,6 +387,7 @@ Czyści zasoby (cache, timery).
 ### Problem: "Authentication failed: 401"
 
 **Rozwiązanie:**
+
 1. Sprawdź czy klucz API jest poprawny
 2. Sprawdź czy klucz nie wygasł
 3. Wygeneruj nowy klucz na https://openrouter.ai/keys
@@ -383,6 +395,7 @@ Czyści zasoby (cache, timery).
 ### Problem: "Request timeout after 60000ms"
 
 **Rozwiązanie:**
+
 1. Zwiększ timeout: `timeoutMs: 120000`
 2. Użyj mniejszego modelu (szybszy)
 3. Zmniejsz `max_tokens`
@@ -391,6 +404,7 @@ Czyści zasoby (cache, timery).
 ### Problem: "Response validation failed"
 
 **Rozwiązanie:**
+
 1. Sprawdź czy JSON Schema jest poprawny
 2. Dodaj `strict: false` dla lenient mode
 3. Sprawdź prompt - czy prosi o poprawny format?
@@ -399,6 +413,7 @@ Czyści zasoby (cache, timery).
 ### Problem: High error rate (>5%)
 
 **Rozwiązanie:**
+
 1. Sprawdź logi: `metricsCollector.getMetrics()`
 2. Sprawdź health: `GET /api/llm`
 3. Monitoruj OpenRouter status: https://status.openrouter.ai
@@ -407,6 +422,7 @@ Czyści zasoby (cache, timery).
 ### Problem: Wysokie koszty tokenów
 
 **Rozwiązanie:**
+
 1. Użyj tańszego modelu: `gpt-4o-mini` zamiast `gpt-4o`
 2. Ogranicz `max_tokens`
 3. Skróć system prompt
@@ -431,6 +447,7 @@ curl http://localhost:4321/api/metrics \
 ### Kluczowe wskaźniki
 
 Monitoruj te metryki:
+
 - ✅ **Success Rate** > 99%
 - ✅ **P95 Latency** < 5s
 - ✅ **Error Rate** < 1%
@@ -443,16 +460,19 @@ Zobacz więcej w: `.ai/openrouter-observability.md`
 ## Dodatkowe zasoby
 
 ### Dokumentacja zewnętrzna
+
 - [OpenRouter API Docs](https://openrouter.ai/docs)
 - [OpenRouter Models](https://openrouter.ai/models)
 - [OpenRouter Pricing](https://openrouter.ai/pricing)
 
 ### Dokumentacja projektu
+
 - [Plan implementacji](./.ai/openrouter-service-implementation-plan.md)
 - [Przykłady użycia](./.ai/openrouter-usage-examples.md)
 - [Observability](./.ai/openrouter-observability.md)
 
 ### Support
+
 - OpenRouter Discord: https://discord.gg/openrouter
 - OpenRouter Status: https://status.openrouter.ai
 
@@ -461,6 +481,7 @@ Zobacz więcej w: `.ai/openrouter-observability.md`
 ## Changelog
 
 ### v1.0.0 (2025-11-02)
+
 - ✅ Implementacja podstawowego serwisu
 - ✅ JSON Schema validation (AJV)
 - ✅ Retry z exponential backoff
@@ -480,4 +501,3 @@ Część projektu 10xPriceHistory.
 ---
 
 **Pytania?** Sprawdź dokumentację lub kontakt z zespołem developerskim.
-

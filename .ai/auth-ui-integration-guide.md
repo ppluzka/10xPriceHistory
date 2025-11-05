@@ -9,6 +9,7 @@ Wszystkie komponenty UI zostały zaimplementowane zgodnie ze specyfikacją w `au
 ## Zaimplementowane pliki
 
 ### Komponenty React
+
 ```
 src/components/auth/
 ├── LoginForm.tsx                    ✅ Zaimplementowane
@@ -23,6 +24,7 @@ src/components/navigation/
 ```
 
 ### Strony Astro
+
 ```
 src/pages/
 ├── login.astro                      ✅ Zaimplementowane
@@ -34,6 +36,7 @@ src/pages/
 ```
 
 ### Layouts i utilities
+
 ```
 src/layouts/
 └── AuthLayout.astro                 ✅ Zaimplementowane
@@ -43,6 +46,7 @@ src/lib/utils/
 ```
 
 ### Zaktualizowane strony
+
 ```
 src/pages/
 └── index.astro                      ✅ Zaktualizowane (dodano PublicHeader)
@@ -71,13 +75,13 @@ export const prerender = false;
 // Placeholder dla development (usunąć po implementacji middleware):
 const user = {
   id: "dev-user-id",
-  email: "dev@example.com"
+  email: "dev@example.com",
 };
 ---
 
 <Layout title="Dashboard">
   <Header client:load user={user} currentPath={Astro.url.pathname} />
-  
+
   <main class="container mx-auto px-4 py-8">
     <DashboardView client:load />
   </main>
@@ -105,13 +109,13 @@ export const prerender = false;
 // Placeholder dla development (usunąć po implementacji middleware):
 const user = {
   id: "dev-user-id",
-  email: "dev@example.com"
+  email: "dev@example.com",
 };
 ---
 
 <Layout title="Ustawienia">
   <Header client:load user={user} currentPath={Astro.url.pathname} />
-  
+
   <main class="container mx-auto px-4 py-8">
     <SettingsView client:load />
   </main>
@@ -141,13 +145,13 @@ const { id } = Astro.params;
 // Placeholder dla development:
 const user = {
   id: "dev-user-id",
-  email: "dev@example.com"
+  email: "dev@example.com",
 };
 ---
 
 <Layout title="Szczegóły oferty">
   <Header client:load user={user} currentPath={Astro.url.pathname} />
-  
+
   <main class="container mx-auto px-4 py-8">
     <OfferDetailsPage client:load offerId={id!} />
   </main>
@@ -180,7 +184,10 @@ import { supabaseClient } from "../db/supabase.client.ts";
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.supabase = supabaseClient;
 
-  const { data: { session }, error } = await supabaseClient.auth.getSession();
+  const {
+    data: { session },
+    error,
+  } = await supabaseClient.auth.getSession();
 
   if (session && !error) {
     context.locals.current_user_id = session.user.id;
@@ -195,10 +202,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Ochrona chronionych stron
-  const protectedRoutes = ['/dashboard', '/settings', '/offer'];
-  const isProtectedRoute = protectedRoutes.some(route => 
-    context.url.pathname.startsWith(route)
-  );
+  const protectedRoutes = ["/dashboard", "/settings", "/offer"];
+  const isProtectedRoute = protectedRoutes.some((route) => context.url.pathname.startsWith(route));
 
   if (isProtectedRoute && !context.locals.user) {
     const returnUrl = encodeURIComponent(context.url.pathname + context.url.search);
@@ -251,29 +256,26 @@ import type { APIRoute } from "astro";
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const { email, password } = await request.json();
-    
+
     // TODO: Implement Supabase Auth login
     // const { data, error } = await locals.supabase.auth.signInWithPassword({
     //   email,
     //   password,
     // });
-    
+
     // Placeholder response:
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         message: "Login endpoint not implemented yet",
-        user: { id: "dev-id", email } 
+        user: { id: "dev-id", email },
       }),
-      { 
+      {
         status: 501, // Not Implemented
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: "Invalid request" }),
-      { status: 400 }
-    );
+    return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
   }
 };
 ```
@@ -283,6 +285,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 Obecnie możesz testować:
 
 ### ✅ Co działa:
+
 - Renderowanie wszystkich formularzy
 - Walidacja client-side (email, hasło, itp.)
 - Wizualne feedback (loading states, error messages)
@@ -291,6 +294,7 @@ Obecnie możesz testować:
 - Nawigacja między stronami
 
 ### ⏳ Co NIE działa (wymaga backendu):
+
 - Faktyczne logowanie/rejestracja
 - Wysyłanie emaili weryfikacyjnych
 - Zmiana hasła
@@ -301,6 +305,7 @@ Obecnie możesz testować:
 ### Jak przetestować UI:
 
 1. **Uruchom dev server:**
+
    ```bash
    npm run dev
    ```
@@ -358,20 +363,22 @@ Po implementacji middleware, usuń/zastąp:
 // ❌ Usuń to:
 const user = {
   id: "dev-user-id",
-  email: "dev@example.com"
+  email: "dev@example.com",
 };
 
 // ✅ Zamień na:
 const user = Astro.locals.user;
 if (!user) {
-  return Astro.redirect('/login');
+  return Astro.redirect("/login");
 }
 ```
 
 ## Troubleshooting
 
 ### Problem: "Cannot find module '@/components/auth'"
+
 **Rozwiązanie:** Sprawdź czy `tsconfig.json` ma poprawne path aliases:
+
 ```json
 {
   "compilerOptions": {
@@ -383,12 +390,15 @@ if (!user) {
 ```
 
 ### Problem: React component nie renderuje się
+
 **Rozwiązanie:** Sprawdź czy używasz `client:load` directive:
+
 ```astro
 <LoginForm client:load />
 ```
 
 ### Problem: Tailwind classes nie działają
+
 **Rozwiązanie:** Upewnij się że `@/styles/global.css` jest importowany w layout.
 
 ## Dodatkowe zasoby
@@ -397,4 +407,3 @@ if (!user) {
 - README komponentów: `src/components/auth/README.md`
 - PRD: `.ai/prd.md`
 - Diagram journey: `.ai/diagrams/journey.md`
-

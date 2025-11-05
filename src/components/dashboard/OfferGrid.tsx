@@ -31,18 +31,12 @@ export default function OfferGrid({ offers, isLoading, onDeleteOffer, onRecheckO
   return (
     <div className="space-y-4" data-testid="offers-section">
       <h2 className="text-xl font-semibold">Twoje obserwowane oferty</h2>
-      
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="offers-grid">
         {offers.map((offer) => (
-          <OfferCard
-            key={offer.id}
-            offer={offer}
-            onDelete={onDeleteOffer}
-            onRecheck={onRecheckOffer}
-          />
+          <OfferCard key={offer.id} offer={offer} onDelete={onDeleteOffer} onRecheck={onRecheckOffer} />
         ))}
       </div>
     </div>
   );
 }
-

@@ -4,16 +4,16 @@ import { OfferStatus } from "../../../../types";
 
 /**
  * POST /api/offers/:id/recheck
- * 
+ *
  * Purpose: Manually trigger a price check for a single offer
  * Used by: UI "Sprawdź ponownie" button for offers with error status
- * 
+ *
  * Process:
  * 1. Verify user authorization
  * 2. Fetch offer from database
  * 3. Process offer using OfferProcessorService
  * 4. Return updated offer data
- * 
+ *
  * Reference: Implementation Plan Section 8.2
  */
 
@@ -24,13 +24,10 @@ export const POST = async ({ params, locals }: APIContext) => {
     const offerId = params.id;
 
     if (!offerId) {
-      return new Response(
-        JSON.stringify({ error: "Offer ID is required" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Offer ID is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Get current user ID from middleware
@@ -53,13 +50,10 @@ export const POST = async ({ params, locals }: APIContext) => {
       .single();
 
     if (userOfferError || !userOffer) {
-      return new Response(
-        JSON.stringify({ error: "Offer not found or unauthorized" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Offer not found or unauthorized" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Fetch full offer data
@@ -78,10 +72,7 @@ export const POST = async ({ params, locals }: APIContext) => {
 
     // Process offer
     const openRouterApiKey = import.meta.env.OPENROUTER_API_KEY;
-    const offerProcessor = new OfferProcessorService(
-      locals.supabase,
-      openRouterApiKey
-    );
+    const offerProcessor = new OfferProcessorService(locals.supabase, openRouterApiKey);
 
     // Process the offer (this will update status, price history, etc.)
     await offerProcessor.processOffer(offer);
@@ -154,4 +145,3 @@ export const POST = async ({ params, locals }: APIContext) => {
     );
   }
 };
-

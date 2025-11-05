@@ -1,14 +1,14 @@
 /**
  * OpenRouter Client - Frontend Helper
- * 
+ *
  * This file provides a simple client-side interface for interacting
  * with the OpenRouter API through the backend proxy endpoint.
- * 
+ *
  * Usage in React components:
- * 
+ *
  * ```tsx
  * import { sendChatCompletion } from "../lib/openrouter.client";
- * 
+ *
  * const response = await sendChatCompletion({
  *   messages: [{ role: "user", content: "Hello!" }],
  * });
@@ -37,12 +37,7 @@ export class OpenRouterClientError extends Error {
   statusCode: number;
   retryAfter?: number;
 
-  constructor(
-    message: string,
-    statusCode: number,
-    code?: string,
-    retryAfter?: number
-  ) {
+  constructor(message: string, statusCode: number, code?: string, retryAfter?: number) {
     super(message);
     this.name = "OpenRouterClientError";
     this.statusCode = statusCode;
@@ -53,11 +48,11 @@ export class OpenRouterClientError extends Error {
 
 /**
  * Send a chat completion request to the backend
- * 
+ *
  * @param params Chat completion parameters
  * @returns Model response
  * @throws {OpenRouterClientError} On API errors
- * 
+ *
  * @example
  * ```ts
  * const response = await sendChatCompletion({
@@ -67,13 +62,11 @@ export class OpenRouterClientError extends Error {
  *   ],
  *   temperature: 0.7
  * });
- * 
+ *
  * console.log(response.choices[0].message.content);
  * ```
  */
-export async function sendChatCompletion(
-  params: Omit<SendChatParams, "metadata">
-): Promise<ModelResponse> {
+export async function sendChatCompletion(params: Omit<SendChatParams, "metadata">): Promise<ModelResponse> {
   const response = await fetch("/api/llm", {
     method: "POST",
     headers: {
@@ -94,10 +87,7 @@ export async function sendChatCompletion(
   }
 
   if (!data.success || !data.data) {
-    throw new OpenRouterClientError(
-      "Invalid response from server",
-      response.status
-    );
+    throw new OpenRouterClientError("Invalid response from server", response.status);
   }
 
   return data.data;
@@ -105,21 +95,18 @@ export async function sendChatCompletion(
 
 /**
  * Send a simple chat message (convenience method)
- * 
+ *
  * @param message User message
  * @param systemPrompt Optional system prompt
  * @returns Assistant's response text
- * 
+ *
  * @example
  * ```ts
  * const answer = await chat("What's the weather?", "You are a weather expert.");
  * console.log(answer);
  * ```
  */
-export async function chat(
-  message: string,
-  systemPrompt?: string
-): Promise<string> {
+export async function chat(message: string, systemPrompt?: string): Promise<string> {
   const messages: ChatMessage[] = [];
 
   if (systemPrompt) {
@@ -135,17 +122,17 @@ export async function chat(
 
 /**
  * Send a structured request with JSON Schema validation
- * 
+ *
  * @param params Chat completion parameters with response_format
  * @returns Validated structured data
- * 
+ *
  * @example
  * ```ts
  * interface PriceAnalysis {
  *   recommendation: string;
  *   confidence: number;
  * }
- * 
+ *
  * const result = await sendStructuredCompletion<PriceAnalysis>({
  *   messages: [{ role: "user", content: "Analyze this price" }],
  *   response_format: {
@@ -165,13 +152,11 @@ export async function chat(
  *     }
  *   }
  * });
- * 
+ *
  * console.log(result.recommendation);
  * ```
  */
-export async function sendStructuredCompletion<T = unknown>(
-  params: Omit<SendChatParams, "metadata">
-): Promise<T> {
+export async function sendStructuredCompletion<T = unknown>(params: Omit<SendChatParams, "metadata">): Promise<T> {
   if (!params.response_format) {
     throw new Error("response_format is required for structured completion");
   }
@@ -196,10 +181,7 @@ export async function sendStructuredCompletion<T = unknown>(
   }
 
   if (!apiResponse.success || !apiResponse.data) {
-    throw new OpenRouterClientError(
-      "Invalid response from server",
-      response.status
-    );
+    throw new OpenRouterClientError("Invalid response from server", response.status);
   }
 
   return apiResponse.data;
@@ -207,9 +189,9 @@ export async function sendStructuredCompletion<T = unknown>(
 
 /**
  * Check health of the OpenRouter service
- * 
+ *
  * @returns True if service is healthy
- * 
+ *
  * @example
  * ```ts
  * const isHealthy = await checkHealth();
@@ -255,4 +237,3 @@ export function userMessage(content: string): ChatMessage {
 export function assistantMessage(content: string): ChatMessage {
   return { role: "assistant", content };
 }
-

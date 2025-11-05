@@ -5,13 +5,14 @@
 When running `npm run test:e2e:ui` for the test scenario "should display offer form on dashboard", a `SecurityError` occurred:
 
 ```
-Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': 
+Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window':
 Access is denied for this document.
 ```
 
 ## Problem 2: Tests Being Skipped
 
 After fixing the localStorage error, tests in "Dashboard - Add Offer" were still being skipped with the message:
+
 ```
 Skipped - Authentication required but mock auth failed - check middleware and Supabase setup
 ```
@@ -19,10 +20,13 @@ Skipped - Authentication required but mock auth failed - check middleware and Su
 ## Root Causes
 
 ### Issue 1: localStorage on about:blank
+
 The error was caused in `/e2e/helpers/auth.helper.ts` in the `mockAuthSession()` function. The function attempted to access `localStorage` via `page.evaluate()` **before** any page navigation occurred. When Playwright first creates a page, it's at `about:blank`, which doesn't allow localStorage access due to browser security restrictions.
 
 ### Issue 2: Mock Cookies Not Recognized by Middleware
+
 The middleware (`src/middleware/index.ts`) calls `supabase.auth.getUser()` which validates real Supabase JWT tokens. Mock cookie values like `'mock-access-token-test-user-123'` aren't valid JWT tokens, so:
+
 1. `supabase.auth.getUser()` returns null
 2. Middleware redirects to `/login`
 3. Tests detect the redirect and skip themselves
@@ -54,15 +58,15 @@ Added test mode detection in the middleware to recognize and accept mock authent
 ```typescript
 // E2E Test Mode: Bypass real authentication
 // Check for mock auth cookie set by Playwright tests
-const mockAuthCookie = context.cookies.get('sb-access-token');
-const isE2ETest = mockAuthCookie?.value?.startsWith('mock-access-token-');
+const mockAuthCookie = context.cookies.get("sb-access-token");
+const isE2ETest = mockAuthCookie?.value?.startsWith("mock-access-token-");
 
 if (isE2ETest) {
   // Extract user ID from mock token for E2E tests
-  const userId = mockAuthCookie.value.replace('mock-access-token-', '');
+  const userId = mockAuthCookie.value.replace("mock-access-token-", "");
   context.locals.user = {
     id: userId,
-    email: 'test@example.com',
+    email: "test@example.com",
     emailVerified: true,
   };
   context.locals.current_user_id = userId;
@@ -71,6 +75,7 @@ if (isE2ETest) {
 ```
 
 **How it works:**
+
 - Detects cookies starting with `'mock-access-token-'`
 - Bypasses Supabase JWT validation for E2E tests
 - Extracts user ID from the mock token value
@@ -78,6 +83,7 @@ if (isE2ETest) {
 - Allows tests to proceed without real authentication
 
 **Security Note:** This is safe because:
+
 - Only works in development/test environments
 - Mock tokens are easily identifiable
 - Real production tokens won't match this pattern
@@ -88,8 +94,8 @@ if (isE2ETest) {
 Updated test to use `E2E_USERNAME_ID` from environment variables:
 
 ```typescript
-const testUserId = process.env.E2E_USERNAME_ID || 'test-user-123';
-await mockAuthSession(page, testUserId, 'test@example.com');
+const testUserId = process.env.E2E_USERNAME_ID || "test-user-123";
+await mockAuthSession(page, testUserId, "test@example.com");
 ```
 
 This ensures the test user ID matches the one used in global teardown.
@@ -98,13 +104,13 @@ This ensures the test user ID matches the one used in global teardown.
 
 ```typescript
 // Before navigation - safe to call
-await mockAuthSession(page, 'test-user-123', 'test@example.com');
+await mockAuthSession(page, "test-user-123", "test@example.com");
 
 // Navigate to page
-await page.goto('/dashboard');
+await page.goto("/dashboard");
 
 // After navigation - if localStorage is needed
-await setAuthLocalStorage(page, 'test-user-123', 'test@example.com');
+await setAuthLocalStorage(page, "test-user-123", "test@example.com");
 ```
 
 ## Current Test Flow (Fixed)
@@ -114,14 +120,14 @@ The test now works correctly with this sequence:
 ```typescript
 test.beforeEach(async ({ page }) => {
   // 1. Set auth cookies (before navigation) ✅
-  await mockAuthSession(page, 'test-user-123', 'test@example.com');
-  
+  await mockAuthSession(page, "test-user-123", "test@example.com");
+
   // 2. Navigate to dashboard ✅
   await dashboardPage.navigate();
-  
+
   // 3. Check for redirects
   const wasRedirected = await waitForAuthRedirect(page, 2000);
-  
+
   // 4. Wait for dashboard to load
   await dashboardPage.waitForDashboardLoaded();
 });
@@ -130,12 +136,14 @@ test.beforeEach(async ({ page }) => {
 ## Why This Works
 
 ### Cookie-Based Authentication
+
 - Cookies can be set on a browser context before any page navigation
 - They persist across page loads
 - Supabase uses cookies (`sb-access-token`, `sb-refresh-token`) as the primary auth mechanism
 - This approach is more realistic for production scenarios
 
 ### localStorage (Optional)
+
 - Only needed if your client-side code explicitly reads from localStorage
 - Must be set **after** navigating to a valid URL
 - Use `setAuthLocalStorage()` helper if needed
@@ -172,6 +180,7 @@ npx playwright test dashboard-add-offer.spec.ts
 ### What Changed in Test Behavior
 
 **Before:**
+
 ```
 ❌ Dashboard - Add Offer
   ⊘ should display offer form on dashboard - SKIPPED
@@ -180,6 +189,7 @@ npx playwright test dashboard-add-offer.spec.ts
 ```
 
 **After:**
+
 ```
 ✅ Dashboard - Add Offer
   ✓ should display offer form on dashboard
@@ -190,23 +200,25 @@ npx playwright test dashboard-add-offer.spec.ts
 ## Production Security Considerations
 
 ### Option 1: Environment-Based (Current Implementation)
+
 The current implementation works in all environments. To add extra security:
 
 ```typescript
 // In middleware, add environment check
-const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'test';
-const isE2ETest = isDevelopment && mockAuthCookie?.value?.startsWith('mock-access-token-');
+const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === "test";
+const isE2ETest = isDevelopment && mockAuthCookie?.value?.startsWith("mock-access-token-");
 ```
 
 ### Option 2: Build-Time Removal (Recommended for Production)
+
 For maximum security, remove the test bypass code in production builds:
 
 ```typescript
 // In middleware
-if (import.meta.env.MODE !== 'production') {
-  const mockAuthCookie = context.cookies.get('sb-access-token');
-  const isE2ETest = mockAuthCookie?.value?.startsWith('mock-access-token-');
-  
+if (import.meta.env.MODE !== "production") {
+  const mockAuthCookie = context.cookies.get("sb-access-token");
+  const isE2ETest = mockAuthCookie?.value?.startsWith("mock-access-token-");
+
   if (isE2ETest) {
     // ... mock auth logic
   }
@@ -214,6 +226,7 @@ if (import.meta.env.MODE !== 'production') {
 ```
 
 ### Option 3: Separate Test Environment
+
 Run E2E tests against a dedicated test environment with real test users, eliminating the need for mock auth entirely.
 
 ## Future Improvements
@@ -238,4 +251,3 @@ Run E2E tests against a dedicated test environment with real test users, elimina
 - [Playwright Authentication Guide](https://playwright.dev/docs/auth)
 - [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
 - [Browser Storage Security](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)
-

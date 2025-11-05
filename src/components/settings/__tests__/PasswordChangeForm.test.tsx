@@ -27,16 +27,10 @@ describe("PasswordChangeForm", () => {
       render(<PasswordChangeForm onSubmit={mockOnSubmit} />);
 
       // Check for all password fields
-      expect(
-        screen.getByLabelText(/aktualne hasło/i)
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/aktualne hasło/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^nowe hasło$/i)).toBeInTheDocument();
-      expect(
-        screen.getByLabelText(/potwierdź nowe hasło/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /zmień hasło/i })
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/potwierdź nowe hasło/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /zmień hasło/i })).toBeInTheDocument();
     });
 
     it("should render password inputs with correct types", () => {
@@ -58,10 +52,7 @@ describe("PasswordChangeForm", () => {
       const newPassword = screen.getByLabelText(/^nowe hasło$/i);
       const confirmPassword = screen.getByLabelText(/potwierdź nowe hasło/i);
 
-      expect(currentPassword).toHaveAttribute(
-        "autocomplete",
-        "current-password"
-      );
+      expect(currentPassword).toHaveAttribute("autocomplete", "current-password");
       expect(newPassword).toHaveAttribute("autocomplete", "new-password");
       expect(confirmPassword).toHaveAttribute("autocomplete", "new-password");
     });
@@ -76,9 +67,7 @@ describe("PasswordChangeForm", () => {
       const submitButton = screen.getByRole("button", { name: /zmień hasło/i });
       await user.click(submitButton);
 
-      expect(
-        await screen.findByText(/aktualne hasło jest wymagane/i)
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/aktualne hasło jest wymagane/i)).toBeInTheDocument();
       expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
@@ -98,9 +87,7 @@ describe("PasswordChangeForm", () => {
       const submitButton = screen.getByRole("button", { name: /zmień hasło/i });
       await user.click(submitButton);
 
-      expect(
-        await screen.findByText(/nowe hasło musi mieć co najmniej 8 znaków/i)
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/nowe hasło musi mieć co najmniej 8 znaków/i)).toBeInTheDocument();
       expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
@@ -120,9 +107,7 @@ describe("PasswordChangeForm", () => {
       const submitButton = screen.getByRole("button", { name: /zmień hasło/i });
       await user.click(submitButton);
 
-      expect(
-        await screen.findByText(/hasła muszą być identyczne/i)
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/hasła muszą być identyczne/i)).toBeInTheDocument();
       expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
@@ -140,9 +125,7 @@ describe("PasswordChangeForm", () => {
       const submitButton = screen.getByRole("button", { name: /zmień hasło/i });
       await user.click(submitButton);
 
-      expect(
-        await screen.findByText(/potwierdzenie hasła jest wymagane/i)
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/potwierdzenie hasła jest wymagane/i)).toBeInTheDocument();
       expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
@@ -167,15 +150,9 @@ describe("PasswordChangeForm", () => {
         expect(mockOnSubmit).toHaveBeenCalled();
       });
 
-      expect(
-        screen.queryByText(/aktualne hasło jest wymagane/i)
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText(/nowe hasło musi mieć co najmniej 8 znaków/i)
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText(/hasła muszą być identyczne/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/aktualne hasło jest wymagane/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/nowe hasło musi mieć co najmniej 8 znaków/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/hasła muszą być identyczne/i)).not.toBeInTheDocument();
     });
   });
 
@@ -269,9 +246,7 @@ describe("PasswordChangeForm", () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          "Nie udało się zmienić hasła"
-        );
+        expect(toast.error).toHaveBeenCalledWith("Nie udało się zmienić hasła");
       });
     });
 
@@ -347,9 +322,7 @@ describe("PasswordChangeForm", () => {
       await user.click(submitButton);
 
       // Check loading state
-      expect(
-        screen.getByRole("button", { name: /zmiana hasła\.\.\./i })
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: /zmiana hasła\.\.\./i })).toBeDisabled();
       expect(currentPassword).toBeDisabled();
       expect(newPassword).toBeDisabled();
       expect(confirmPassword).toBeDisabled();
@@ -358,9 +331,7 @@ describe("PasswordChangeForm", () => {
       resolveSubmit!();
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /zmień hasło/i })
-        ).toBeEnabled();
+        expect(screen.getByRole("button", { name: /zmień hasło/i })).toBeEnabled();
       });
     });
   });
@@ -412,7 +383,7 @@ describe("PasswordChangeForm", () => {
       await user.type(confirmPassword, "newpass456");
 
       const submitButton = screen.getByRole("button", { name: /zmień hasło/i });
-      
+
       // Try to submit multiple times quickly
       await user.click(submitButton);
       await user.click(submitButton);
@@ -479,4 +450,3 @@ describe("PasswordChangeForm", () => {
     });
   });
 });
-

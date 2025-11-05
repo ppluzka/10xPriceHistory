@@ -69,19 +69,22 @@ npm run test:e2e:headed   # Headed mode + czyszczenie
 ## 🔍 Weryfikacja
 
 ### 1. Sprawdź logi w konsoli
+
 Po zakończeniu testów szukaj komunikatów:
+
 - `🧹 Starting E2E test teardown...`
 - `✨ E2E test teardown completed successfully`
 
 ### 2. Sprawdź bazę danych
+
 ```sql
 -- Sprawdź soft-deleted subskrypcje użytkownika testowego
-SELECT * FROM user_offer 
+SELECT * FROM user_offer
 WHERE user_id = '<E2E_USERNAME_ID>'
 AND deleted_at IS NOT NULL;
 
 -- Sprawdź czy nie ma osieroconych ofert
-SELECT * FROM offers 
+SELECT * FROM offers
 WHERE id NOT IN (
   SELECT DISTINCT offer_id FROM user_offer WHERE deleted_at IS NULL
 );
@@ -90,6 +93,7 @@ WHERE id NOT IN (
 ## 🐛 Rozwiązywanie problemów
 
 ### Problem: Brak zmiennych środowiskowych
+
 ```
 ❌ Missing required environment variables:
   - SUPABASE_URL
@@ -99,17 +103,23 @@ WHERE id NOT IN (
 **Rozwiązanie**: Upewnij się, że `.env.test` istnieje i zawiera wszystkie wymagane zmienne.
 
 ### Problem: Teardown nie wykonuje się
-**Rozwiązanie**: 
+
+**Rozwiązanie**:
+
 - Sprawdź `playwright.config.ts` - powinna być linia: `globalTeardown: "./e2e/global-teardown.ts"`
 - Zweryfikuj ścieżkę do pliku teardown
 
 ### Problem: Błędy uprawnień bazy danych
+
 **Rozwiązanie**:
+
 - Sprawdź czy `SUPABASE_KEY` ma odpowiednie uprawnienia
 - W środowisku testowym rozważ użycie service role key (ostrożnie!)
 
 ### Problem: Usuwa za dużo/za mało danych
+
 **Rozwiązanie**:
+
 - Sprawdź czy `E2E_USERNAME_ID` jest ustawiony prawidłowo
 - Zweryfikuj czy testy tworzą dane z odpowiednim user_id
 - Przejrzyj logi teardown aby zobaczyć co zostało usunięte
@@ -117,12 +127,14 @@ WHERE id NOT IN (
 ## 🔒 Bezpieczeństwo
 
 ### ✅ Dobre praktyki
+
 - Zawsze ustawiaj `E2E_USERNAME_ID`
 - Używaj osobnej instancji Supabase do testów
 - NIE używaj danych produkcyjnych w testach
 - Przechowuj credentials jako secrets w CI/CD
 
 ### ⚠️ Ostrzeżenia
+
 - NIE ustawiaj produkcyjnych credentials w `.env.test`
 - NIE uruchamiaj bez `E2E_USERNAME_ID` na produkcyjnej bazie
 - ZAWSZE weryfikuj dane przed i po testach
@@ -130,6 +142,7 @@ WHERE id NOT IN (
 ## 📖 Pełna dokumentacja
 
 Więcej informacji w:
+
 - **`e2e/E2E_TEARDOWN_DOC.md`** - Kompletny przewodnik (EN)
 - **`.ai/e2e-teardown-implementation-summary.md`** - Podsumowanie implementacji
 
@@ -167,4 +180,3 @@ Więcej informacji w:
 
 **Data implementacji**: 2 listopada 2025  
 **Status**: ✅ Aktywne i skonfigurowane
-

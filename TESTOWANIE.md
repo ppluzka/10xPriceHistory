@@ -7,12 +7,14 @@ Twoje środowisko testowe zostało w pełni skonfigurowane i jest gotowe do uży
 ## 📦 Co Zostało Zainstalowane
 
 ### Testy Jednostkowe (Unit Tests)
+
 - **Vitest** - Szybki framework do testów jednostkowych
 - **Testing Library** - Narzędzia do testowania komponentów React
 - **MSW** - Mock Service Worker do mockowania API
 - **jsdom** - Symulacja DOM dla Node.js
 
 ### Testy E2E (End-to-End)
+
 - **Playwright** - Nowoczesny framework do testów E2E
 - **Chromium** - Przeglądarka do uruchamiania testów
 
@@ -114,15 +116,15 @@ describe('MyComponent', () => {
 
 ```typescript
 // e2e/moja-funkcja.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('użytkownik może się zalogować', async ({ page }) => {
-  await page.goto('/login');
-  
-  await page.fill('input[type="email"]', 'test@example.com');
-  await page.fill('input[type="password"]', 'haslo123');
+test("użytkownik może się zalogować", async ({ page }) => {
+  await page.goto("/login");
+
+  await page.fill('input[type="email"]', "test@example.com");
+  await page.fill('input[type="password"]', "haslo123");
   await page.click('button[type="submit"]');
-  
+
   await expect(page).toHaveURL(/dashboard/);
 });
 ```
@@ -131,15 +133,15 @@ test('użytkownik może się zalogować', async ({ page }) => {
 
 ```typescript
 // e2e/auth-flow.spec.ts
-import { test, expect } from './fixtures/auth.fixture';
+import { test, expect } from "./fixtures/auth.fixture";
 
-test('pełny proces logowania', async ({ loginPage, dashboardPage }) => {
+test("pełny proces logowania", async ({ loginPage, dashboardPage }) => {
   // Nawiguj do strony logowania
   await loginPage.navigate();
-  
+
   // Zaloguj się
-  await loginPage.login('test@example.com', 'haslo123');
-  
+  await loginPage.login("test@example.com", "haslo123");
+
   // Sprawdź czy jesteś na dashboardzie
   await expect(dashboardPage.header).toBeVisible();
 });
@@ -149,22 +151,22 @@ test('pełny proces logowania', async ({ loginPage, dashboardPage }) => {
 
 ### Testy Jednostkowe
 
-| Komenda | Opis |
-|---------|------|
-| `npm test` | Uruchom wszystkie testy jednostkowe |
-| `npm run test:watch` | Uruchom w trybie watch (automatyczne ponowne uruchamianie) |
-| `npm run test:ui` | Uruchom z interfejsem graficznym |
-| `npm run test:coverage` | Uruchom z raportem pokrycia kodu |
+| Komenda                 | Opis                                                       |
+| ----------------------- | ---------------------------------------------------------- |
+| `npm test`              | Uruchom wszystkie testy jednostkowe                        |
+| `npm run test:watch`    | Uruchom w trybie watch (automatyczne ponowne uruchamianie) |
+| `npm run test:ui`       | Uruchom z interfejsem graficznym                           |
+| `npm run test:coverage` | Uruchom z raportem pokrycia kodu                           |
 
 ### Testy E2E
 
-| Komenda | Opis |
-|---------|------|
-| `npm run test:e2e` | Uruchom wszystkie testy E2E |
-| `npm run test:e2e:ui` | Uruchom z interfejsem graficznym (polecane) |
-| `npm run test:e2e:headed` | Uruchom z widoczną przeglądarką |
-| `npm run test:e2e:debug` | Uruchom w trybie debugowania |
-| `npm run playwright:install` | Zainstaluj przeglądarkę Chromium |
+| Komenda                      | Opis                                        |
+| ---------------------------- | ------------------------------------------- |
+| `npm run test:e2e`           | Uruchom wszystkie testy E2E                 |
+| `npm run test:e2e:ui`        | Uruchom z interfejsem graficznym (polecane) |
+| `npm run test:e2e:headed`    | Uruchom z widoczną przeglądarką             |
+| `npm run test:e2e:debug`     | Uruchom w trybie debugowania                |
+| `npm run playwright:install` | Zainstaluj przeglądarkę Chromium            |
 
 ## 📝 Przykładowe Testy
 
@@ -173,6 +175,7 @@ test('pełny proces logowania', async ({ loginPage, dashboardPage }) => {
 Lokalizacja: `src/components/ui/button.test.tsx`
 
 **Sprawdza:**
+
 - ✅ Renderowanie komponentu
 - ✅ Warianty stylów (default, destructive, outline)
 - ✅ Rozmiary (default, sm, lg)
@@ -187,6 +190,7 @@ Lokalizacja: `src/components/ui/button.test.tsx`
 Lokalizacja: `e2e/auth.spec.ts`
 
 **Sprawdza:**
+
 - ✅ Wyświetlanie strony logowania
 - ✅ Błędy przy nieprawidłowych danych
 - ✅ Nawigację do strony odzyskiwania hasła
@@ -198,15 +202,17 @@ Lokalizacja: `e2e/auth.spec.ts`
 ### Testy Jednostkowe
 
 ✅ **Testuj zachowanie, nie implementację**
+
 ```typescript
 // ✅ Dobrze - testujesz co użytkownik widzi
-expect(screen.getByRole('button', { name: /zapisz/i })).toBeInTheDocument();
+expect(screen.getByRole("button", { name: /zapisz/i })).toBeInTheDocument();
 
 // ❌ Źle - testujesz szczegóły implementacji
 expect(component.state.isVisible).toBe(true);
 ```
 
 ✅ **Używaj userEvent zamiast fireEvent**
+
 ```typescript
 // ✅ Dobrze - realistyczna interakcja
 const user = userEvent.setup();
@@ -217,10 +223,11 @@ fireEvent.click(button);
 ```
 
 ✅ **Mockuj zewnętrzne zależności**
+
 ```typescript
 // Mockowanie API z MSW
 server.use(
-  http.get('/api/offers', () => {
+  http.get("/api/offers", () => {
     return HttpResponse.json({ data: mockOffers });
   })
 );
@@ -229,33 +236,36 @@ server.use(
 ### Testy E2E
 
 ✅ **Używaj Page Object Model**
+
 ```typescript
 // ✅ Dobrze - kod jest czysty i łatwy w utrzymaniu
 await loginPage.navigate();
 await loginPage.login(email, password);
 
 // ❌ Źle - kod jest powtarzalny i trudny w utrzymaniu
-await page.goto('/login');
-await page.fill('#email', email);
-await page.fill('#password', password);
-await page.click('button');
+await page.goto("/login");
+await page.fill("#email", email);
+await page.fill("#password", password);
+await page.click("button");
 ```
 
 ✅ **Używaj semantycznych selektorów**
+
 ```typescript
 // ✅ Dobrze
-page.getByRole('button', { name: /zaloguj/i })
-page.getByLabel('Email')
+page.getByRole("button", { name: /zaloguj/i });
+page.getByLabel("Email");
 
 // ❌ Źle
-page.locator('.btn-primary')
-page.locator('#email-input')
+page.locator(".btn-primary");
+page.locator("#email-input");
 ```
 
 ✅ **Korzystaj z auto-waiting**
+
 ```typescript
 // ✅ Dobrze - Playwright czeka automatycznie
-await expect(page.locator('h1')).toBeVisible();
+await expect(page.locator("h1")).toBeVisible();
 
 // ❌ Źle - niepotrzebne ręczne czekanie
 await page.waitForTimeout(1000);
@@ -266,11 +276,13 @@ await page.waitForTimeout(1000);
 ### Testy Jednostkowe
 
 **Interfejs Graficzny (polecane):**
+
 ```bash
 npm run test:ui
 ```
 
 **Tryb Watch z przeglądarką:**
+
 ```bash
 npm run test:watch
 # Naciśnij 'b' aby otworzyć w przeglądarce
@@ -279,16 +291,19 @@ npm run test:watch
 ### Testy E2E
 
 **UI Mode (polecane):**
+
 ```bash
 npm run test:e2e:ui
 ```
 
 **Tryb Debug:**
+
 ```bash
 npm run test:e2e:debug
 ```
 
 **Z widoczną przeglądarką:**
+
 ```bash
 npm run test:e2e:headed
 ```
@@ -321,11 +336,11 @@ open coverage/index.html
 Lokalizacja: `src/test/factories/offer.factory.ts`
 
 ```typescript
-import { createMockOffer, createMockOffers } from '@/test/factories/offer.factory';
+import { createMockOffer, createMockOffers } from "@/test/factories/offer.factory";
 
 // Utwórz jedną ofertę
 const offer = createMockOffer({
-  title: 'Testowy Produkt',
+  title: "Testowy Produkt",
   current_price: 99.99,
 });
 
@@ -333,7 +348,7 @@ const offer = createMockOffer({
 const offers = createMockOffers(5);
 
 // Utwórz historię cen
-const history = createMockPriceHistorySeries('offer-id', 10);
+const history = createMockPriceHistorySeries("offer-id", 10);
 ```
 
 ### Mockowanie API
@@ -341,10 +356,10 @@ const history = createMockPriceHistorySeries('offer-id', 10);
 Lokalizacja: `src/test/mocks/handlers.ts`
 
 ```typescript
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 export const handlers = [
-  http.get('/api/offers', () => {
+  http.get("/api/offers", () => {
     return HttpResponse.json({
       data: createMockOffers(3),
     });
@@ -355,7 +370,9 @@ export const handlers = [
 ## 🚨 Częste Problemy
 
 ### Problem: "not wrapped in act(...)"
+
 **Rozwiązanie:** Użyj `await` z user events
+
 ```typescript
 // ✅ Dobrze
 await user.click(button);
@@ -365,17 +382,21 @@ user.click(button);
 ```
 
 ### Problem: Element nie został znaleziony
+
 **Rozwiązanie:** Użyj właściwych selektorów z auto-waiting
+
 ```typescript
 // ✅ Dobrze
-await expect(page.getByRole('button')).toBeVisible();
+await expect(page.getByRole("button")).toBeVisible();
 
 // ❌ Źle
-expect(page.locator('.button')).toBeTruthy();
+expect(page.locator(".button")).toBeTruthy();
 ```
 
 ### Problem: Testy są niestabilne (flaky)
+
 **Rozwiązanie:** Unikaj ręcznych opóźnień, używaj auto-waiting
+
 ```typescript
 // ✅ Dobrze
 await expect(element).toBeVisible();
@@ -415,5 +436,4 @@ Twoje środowisko testowe jest w pełni skonfigurowane i gotowe do użycia. Wszy
 
 ---
 
-*Dla bardziej szczegółowych informacji, zobacz pełną dokumentację w [TESTING.md](./TESTING.md)*
-
+_Dla bardziej szczegółowych informacji, zobacz pełną dokumentację w [TESTING.md](./TESTING.md)_

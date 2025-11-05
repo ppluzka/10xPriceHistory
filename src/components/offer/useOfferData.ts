@@ -73,14 +73,14 @@ export function useOfferData({ initialOffer, initialHistory }: UseOfferDataProps
     return [...history]
       .reverse() // Reverse to show oldest to newest (chronological order)
       .map((entry) => {
-      const date = new Date(entry.checkedAt);
-      return {
-        date: formatDateShort(date),
-        fullDate: formatDateFull(date),
-        price: entry.price,
-        currency: entry.currency,
-      };
-    });
+        const date = new Date(entry.checkedAt);
+        return {
+          date: formatDateShort(date),
+          fullDate: formatDateFull(date),
+          price: entry.price,
+          currency: entry.currency,
+        };
+      });
   }, [history]);
 
   return {
@@ -109,7 +109,7 @@ function calculateObservationDuration(history: PriceHistoryDto[]): number {
   // - First item (newest) = last check
   const firstCheck = new Date(history[history.length - 1].checkedAt);
   const lastCheck = new Date(history[0].checkedAt);
-  
+
   const diffMs = lastCheck.getTime() - firstCheck.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   return Math.max(0, diffDays);

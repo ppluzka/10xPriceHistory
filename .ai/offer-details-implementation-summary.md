@@ -11,6 +11,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 ## Zaimplementowane Komponenty
 
 ### 1. Strona Astro: `/src/pages/offer/[id].astro`
+
 - ✅ Renderowanie serwerowe (SSR) z `prerender = false`
 - ✅ Pobieranie danych z API po stronie serwera
 - ✅ Obsługa błędów: 404 (Not Found), 403 (Forbidden), 500 (Server Error)
@@ -20,6 +21,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 ### 2. Komponenty React
 
 #### `/src/components/offer/OfferDetailsPage.tsx`
+
 - ✅ Główny kontener widoku
 - ✅ Layout z CSS Grid (główna kolumna + sidebar)
 - ✅ Obsługa stanów: loading, error, status oferty
@@ -28,6 +30,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 - ✅ Link powrotu do dashboard
 
 #### `/src/components/offer/OfferHeader.tsx`
+
 - ✅ Responsywny nagłówek z obrazem
 - ✅ Wyświetlanie tytułu, miasta, linku do Otomoto
 - ✅ Badge'e z procentowymi zmianami cen
@@ -35,6 +38,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 - ✅ Ikony SVG dla lepszej czytelności
 
 #### `/src/components/offer/OfferStats.tsx`
+
 - ✅ Panel boczny ze statystykami w komponencie Card
 - ✅ Statystyki: min/max/avg cena
 - ✅ Trend cenowy (wzrostowy/spadkowy/stabilny)
@@ -43,6 +47,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 - ✅ Poprawne odmiany polskich słów
 
 #### `/src/components/offer/PriceHistoryChart.tsx`
+
 - ✅ Interaktywny wykres liniowy z Recharts
 - ✅ ResponsiveContainer dla pełnej responsywności
 - ✅ Custom tooltip z pełnymi danymi (data, cena, waluta)
@@ -52,6 +57,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 - ✅ Stylowanie zgodne z motywem Tailwind
 
 #### `/src/components/offer/PriceHistoryTable.tsx`
+
 - ✅ Tabela z komponentami Shadcn/ui
 - ✅ Kolumny: Data sprawdzenia, Cena, Waluta
 - ✅ Podświetlenie wierszy ze zmianą ceny
@@ -61,6 +67,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 - ✅ Licznik rekordów z poprawnymi odmianami
 
 #### `/src/components/offer/useOfferData.ts`
+
 - ✅ Custom hook zarządzający danymi
 - ✅ Transformacja DTO → ViewModel z `useMemo`
 - ✅ Obliczanie statystyk:
@@ -70,6 +77,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 - ✅ Przygotowanie danych do wykresu i komponentów
 
 ### 3. Typy TypeScript: `/src/types.ts`
+
 - ✅ `OfferHeaderViewModel` - dane nagłówka
 - ✅ `OfferStatsViewModel` - statystyki cenowe
 - ✅ `PriceHistoryChartViewModel` - dane wykresu
@@ -77,6 +85,7 @@ Zaimplementowano pełny widok szczegółów oferty zgodnie z planem implementacj
 ## Integracja z API
 
 Wykorzystano istniejące endpointy:
+
 - ✅ `GET /api/offers/{id}` - szczegóły oferty
 - ✅ `GET /api/offers/{id}/history?size=1000` - historia cen
 
@@ -93,6 +102,7 @@ Wykorzystano istniejące endpointy:
 ## Komponenty Shadcn/ui
 
 Dodane komponenty:
+
 - ✅ `card` - karty dla sekcji
 - ✅ `badge` - oznaczenia zmian cen
 - ✅ `table` - tabela historii
@@ -100,12 +110,14 @@ Dodane komponenty:
 ## Funkcjonalności
 
 ### Obsługa Interakcji Użytkownika
+
 - ✅ Hover na wykresie → tooltip z danymi
 - ✅ Kliknięcie linku "Zobacz na Otomoto" → nowa karta
 - ✅ Sticky sidebar przy przewijaniu
 - ✅ Link powrotu do dashboard
 
 ### Obsługa Przypadków Brzegowych
+
 - ✅ Oferta nie istnieje → strona 404
 - ✅ Brak dostępu → strona 403
 - ✅ Błąd serwera → strona 500
@@ -115,6 +127,7 @@ Dodane komponenty:
 - ✅ Brak obrazu → ukrycie sekcji
 
 ### Responsywność
+
 - ✅ Mobile-first design
 - ✅ Breakpointy: `md:`, `lg:`
 - ✅ Elastyczny layout z CSS Grid
@@ -122,6 +135,7 @@ Dodane komponenty:
 - ✅ Sticky sidebar tylko na dużych ekranach
 
 ### Dostępność (a11y)
+
 - ✅ Semantyczne HTML (header, aside, section)
 - ✅ Alt teksty dla obrazów
 - ✅ Aria labels dla ikon
@@ -131,6 +145,7 @@ Dodane komponenty:
 ## Stylowanie
 
 ### Wykorzystane Klasy Tailwind
+
 - Layout: `container`, `mx-auto`, `grid`, `flex`
 - Spacing: `px-4`, `py-8`, `gap-6`, `space-y-8`
 - Typography: `text-3xl`, `font-bold`, `text-muted-foreground`
@@ -140,6 +155,7 @@ Dodane komponenty:
 - Accessibility: `sr-only`, `focus-visible:`
 
 ### Motywy CSS Variables
+
 - `hsl(var(--primary))`
 - `hsl(var(--muted-foreground))`
 - `hsl(var(--border))`
@@ -166,19 +182,19 @@ src/
 
 ## Zgodność z Planem Implementacji
 
-| Wymaganie | Status |
-|-----------|--------|
-| Routing `/offer/[id]` | ✅ |
-| SSR z pobieraniem danych | ✅ |
-| ViewModels dla komponentów | ✅ |
-| Custom hook `useOfferData` | ✅ |
-| Komponenty React (6 szt.) | ✅ |
-| Interaktywny wykres Recharts | ✅ |
-| Tabela z historią | ✅ |
-| Panel statystyk | ✅ |
-| Obsługa błędów | ✅ |
-| Responsywność | ✅ |
-| Accessibility | ✅ |
+| Wymaganie                    | Status |
+| ---------------------------- | ------ |
+| Routing `/offer/[id]`        | ✅     |
+| SSR z pobieraniem danych     | ✅     |
+| ViewModels dla komponentów   | ✅     |
+| Custom hook `useOfferData`   | ✅     |
+| Komponenty React (6 szt.)    | ✅     |
+| Interaktywny wykres Recharts | ✅     |
+| Tabela z historią            | ✅     |
+| Panel statystyk              | ✅     |
+| Obsługa błędów               | ✅     |
+| Responsywność                | ✅     |
+| Accessibility                | ✅     |
 
 ## Testowanie
 
@@ -246,4 +262,3 @@ Implementacja została ukończona zgodnie z planem. Wszystkie 10 kroków z planu
 10. ✅ Weryfikacja i dokumentacja
 
 Widok jest gotowy do testowania manualnego i deploymentu.
-

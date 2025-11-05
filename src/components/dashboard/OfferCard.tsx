@@ -34,9 +34,9 @@ export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps
   const handleRecheckClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!onRecheck || isRechecking) return;
-    
+
     setIsRechecking(true);
     try {
       await onRecheck(String(offer.id));
@@ -205,9 +205,12 @@ export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps
             <p className="text-lg font-bold" data-testid="offer-card-price">
               {formatPrice(offer.currentPrice, offer.currency)}
             </p>
-            
+
             {offer.percentChangeFromFirst !== 0 && (
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPriceChangeVariant(offer.percentChangeFromFirst)}`} data-testid="offer-card-price-change">
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPriceChangeVariant(offer.percentChangeFromFirst)}`}
+                data-testid="offer-card-price-change"
+              >
                 {formatPercentage(offer.percentChangeFromFirst)}
               </span>
             )}
@@ -215,7 +218,7 @@ export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps
 
           {/* Last Checked */}
           {offer.lastChecked && (
-              <p className="text-xs text-muted-foreground" data-testid="offer-card-last-checked">
+            <p className="text-xs text-muted-foreground" data-testid="offer-card-last-checked">
               Ostatnie sprawdzenie: {new Date(offer.lastChecked).toLocaleDateString("pl-PL")}
             </p>
           )}
@@ -239,14 +242,7 @@ export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path
                       className="opacity-75"
                       fill="currentColor"
@@ -292,33 +288,25 @@ export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps
       {showDeleteConfirm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={handleCancelDelete}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Potwierdź usunięcie oferty"
           data-testid="offer-delete-modal"
         >
-          <div
-            className="bg-card rounded-lg shadow-lg p-6 max-w-sm mx-4 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <button type="button" className="fixed inset-0 -z-10" onClick={handleCancelDelete} aria-label="Zamknij" />
+          <div className="bg-card rounded-lg shadow-lg p-6 max-w-sm mx-4 space-y-4">
             <div>
               <h3 className="text-lg font-semibold">Usuń ofertę</h3>
               <p className="text-sm text-muted-foreground mt-2">
                 Czy na pewno chcesz przestać śledzić tę ofertę? Ta akcja jest nieodwracalna.
               </p>
             </div>
-            
+
             <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={handleCancelDelete}
-                data-testid="offer-delete-cancel-button"
-              >
+              <Button variant="outline" onClick={handleCancelDelete} data-testid="offer-delete-cancel-button">
                 Anuluj
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleConfirmDelete}
-                data-testid="offer-delete-confirm-button"
-              >
+              <Button variant="destructive" onClick={handleConfirmDelete} data-testid="offer-delete-confirm-button">
                 Usuń
               </Button>
             </div>
@@ -328,4 +316,3 @@ export default function OfferCard({ offer, onDelete, onRecheck }: OfferCardProps
     </div>
   );
 }
-

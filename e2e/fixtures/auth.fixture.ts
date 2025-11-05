@@ -1,15 +1,15 @@
-import { test as base } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { DashboardPage } from '../pages/DashboardPage';
+import { test as base } from "@playwright/test";
+import { LoginPage } from "../pages/LoginPage";
+import { DashboardPage } from "../pages/DashboardPage";
 
 /**
  * Test fixtures for authentication-related tests
  * Extends base test with common page objects
  */
-type AuthFixtures = {
+interface AuthFixtures {
   loginPage: LoginPage;
   dashboardPage: DashboardPage;
-};
+}
 
 export const test = base.extend<AuthFixtures>({
   loginPage: async ({ page }, use) => {
@@ -23,5 +23,4 @@ export const test = base.extend<AuthFixtures>({
   },
 });
 
-export { expect } from '@playwright/test';
-
+export { expect } from "@playwright/test";

@@ -46,10 +46,10 @@ npx playwright test --grep "login"
 ### Basic E2E Test
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('basic test example', async ({ page }) => {
-  await page.goto('/');
+test("basic test example", async ({ page }) => {
+  await page.goto("/");
   await expect(page).toHaveTitle(/10xPriceHistory/);
 });
 ```
@@ -57,12 +57,12 @@ test('basic test example', async ({ page }) => {
 ### Using Page Object Model
 
 ```typescript
-import { test, expect } from './fixtures/auth.fixture';
+import { test, expect } from "./fixtures/auth.fixture";
 
-test('login flow', async ({ loginPage, dashboardPage }) => {
+test("login flow", async ({ loginPage, dashboardPage }) => {
   await loginPage.navigate();
-  await loginPage.login('user@example.com', 'password');
-  
+  await loginPage.login("user@example.com", "password");
+
   await expect(dashboardPage.header).toBeVisible();
 });
 ```
@@ -71,8 +71,8 @@ test('login flow', async ({ loginPage, dashboardPage }) => {
 
 ```typescript
 // e2e/pages/SettingsPage.ts
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 export class SettingsPage extends BasePage {
   readonly passwordInput: Locator;
@@ -80,12 +80,12 @@ export class SettingsPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.passwordInput = page.locator('#password');
+    this.passwordInput = page.locator("#password");
     this.saveButton = page.locator('button[type="submit"]');
   }
 
   async navigate() {
-    await this.goto('/settings');
+    await this.goto("/settings");
   }
 
   async changePassword(newPassword: string) {
@@ -98,10 +98,10 @@ export class SettingsPage extends BasePage {
 ### Test Hooks
 
 ```typescript
-test.describe('Feature Tests', () => {
+test.describe("Feature Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Run before each test
-    await page.goto('/');
+    await page.goto("/");
   });
 
   test.afterEach(async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('Feature Tests', () => {
     await page.context().clearCookies();
   });
 
-  test('feature test', async ({ page }) => {
+  test("feature test", async ({ page }) => {
     // Your test here
   });
 });
@@ -118,23 +118,23 @@ test.describe('Feature Tests', () => {
 ### API Testing
 
 ```typescript
-test('API endpoint test', async ({ request }) => {
-  const response = await request.get('/api/offers');
-  
+test("API endpoint test", async ({ request }) => {
+  const response = await request.get("/api/offers");
+
   expect(response.ok()).toBeTruthy();
   expect(response.status()).toBe(200);
-  
+
   const data = await response.json();
-  expect(data).toHaveProperty('offers');
+  expect(data).toHaveProperty("offers");
 });
 ```
 
 ### Visual Regression Testing
 
 ```typescript
-test('visual regression', async ({ page }) => {
-  await page.goto('/dashboard');
-  await expect(page).toHaveScreenshot('dashboard.png');
+test("visual regression", async ({ page }) => {
+  await page.goto("/dashboard");
+  await expect(page).toHaveScreenshot("dashboard.png");
 });
 ```
 
@@ -160,22 +160,27 @@ test('visual regression', async ({ page }) => {
 7. **Test realistic user flows** - Test complete user journeys, not just individual features
 
 8. **Handle authentication properly:**
+
    ```typescript
    test.beforeEach(async ({ page }) => {
      // Login before each test
-     await page.goto('/login');
-     await page.fill('#email', 'test@example.com');
-     await page.fill('#password', 'password');
+     await page.goto("/login");
+     await page.fill("#email", "test@example.com");
+     await page.fill("#password", "password");
      await page.click('button[type="submit"]');
-     await page.waitForURL('**/dashboard');
+     await page.waitForURL("**/dashboard");
    });
    ```
 
 9. **Use test.describe.serial** for tests that must run in order:
    ```typescript
-   test.describe.serial('ordered tests', () => {
-     test('first', async ({ page }) => { /* ... */ });
-     test('second', async ({ page }) => { /* ... */ });
+   test.describe.serial("ordered tests", () => {
+     test("first", async ({ page }) => {
+       /* ... */
+     });
+     test("second", async ({ page }) => {
+       /* ... */
+     });
    });
    ```
 
@@ -184,6 +189,7 @@ test('visual regression', async ({ page }) => {
 The E2E test configuration is in `playwright.config.ts` at the project root.
 
 Key settings:
+
 - **Browser:** Chromium only (as per guidelines)
 - **Base URL:** http://localhost:4321
 - **Parallel execution:** Enabled by default
@@ -195,16 +201,19 @@ Key settings:
 ## Debugging Tests
 
 ### Using Playwright Inspector
+
 ```bash
 npm run test:e2e:debug
 ```
 
 ### Using UI Mode (Recommended)
+
 ```bash
 npm run test:e2e:ui
 ```
 
 Features:
+
 - Watch tests run in real-time
 - Inspect DOM snapshots
 - View network activity
@@ -212,23 +221,27 @@ Features:
 - Debug specific tests
 
 ### Using Trace Viewer
+
 After a test failure:
+
 ```bash
 npx playwright show-trace trace.zip
 ```
 
 ### Using console.log
+
 ```typescript
-test('debug test', async ({ page }) => {
-  const text = await page.locator('.title').textContent();
-  console.log('Title text:', text);
+test("debug test", async ({ page }) => {
+  const text = await page.locator(".title").textContent();
+  console.log("Title text:", text);
 });
 ```
 
 ### Using page.pause()
+
 ```typescript
-test('pause test', async ({ page }) => {
-  await page.goto('/');
+test("pause test", async ({ page }) => {
+  await page.goto("/");
   await page.pause(); // Pauses test execution
 });
 ```
@@ -271,10 +284,12 @@ jobs:
 After all E2E tests complete, a global teardown script automatically cleans up test data from the Supabase database.
 
 **What gets cleaned**:
+
 - `user_offer` records (soft-deleted)
 - Orphaned `offers` records
 
 **Configuration** (in `.env.test`):
+
 ```bash
 SUPABASE_URL=###           # Your test Supabase URL
 SUPABASE_KEY=###           # Your test Supabase key
@@ -282,6 +297,7 @@ E2E_USERNAME_ID=###        # Test user ID (recommended)
 ```
 
 **How it works**:
+
 ```bash
 npm run test:e2e          # Tests run, teardown executes automatically
 
@@ -298,27 +314,32 @@ npm run test:e2e          # Tests run, teardown executes automatically
 ## Common Issues
 
 ### Tests timeout
+
 - Increase timeout in `playwright.config.ts`
 - Use `{ timeout: 10000 }` on specific assertions
 - Ensure the dev server is running
 
 ### Element not found
+
 - Use proper auto-waiting locators
 - Check if element is in viewport
 - Verify the selector is correct
 
 ### Authentication issues
+
 - Clear cookies before tests
 - Use proper fixtures for authenticated tests
 - Consider using storage state for persistent auth
 
 ### Flaky tests
+
 - Avoid `page.waitForTimeout()`
 - Use proper locators with auto-waiting
 - Ensure proper test isolation
 - Check for race conditions
 
 ### Teardown issues
+
 - Check `.env.test` has correct Supabase credentials
 - Verify `E2E_USERNAME_ID` matches your test user
 - Review console output for teardown logs
@@ -331,4 +352,3 @@ npm run test:e2e          # Tests run, teardown executes automatically
 - [Debugging Guide](https://playwright.dev/docs/debug)
 - [Page Object Model](https://playwright.dev/docs/pom)
 - [E2E Teardown Documentation](./E2E_TEARDOWN_DOC.md)
-

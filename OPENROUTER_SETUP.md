@@ -28,16 +28,19 @@ OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
 ### 3. Test the Installation
 
 Start the dev server:
+
 ```bash
 npm run dev
 ```
 
 Test the health endpoint:
+
 ```bash
 curl http://localhost:4321/api/llm
 ```
 
 Expected response:
+
 ```json
 {
   "status": "healthy",
@@ -61,6 +64,7 @@ curl -X POST http://localhost:4321/api/llm \
 ## 📚 Documentation
 
 Full documentation is available in `.ai/` directory:
+
 - `openrouter-README.md` - Main documentation
 - `openrouter-usage-examples.md` - Usage examples
 - `openrouter-observability.md` - Monitoring guide
@@ -69,14 +73,17 @@ Full documentation is available in `.ai/` directory:
 ## 🔧 Implementation Files
 
 ### Backend
+
 - `src/lib/openrouter.service.ts` - Core service
 - `src/lib/rate-limiter.service.ts` - Rate limiting
 - `src/pages/api/llm.ts` - API endpoint
 
 ### Frontend
+
 - `src/lib/openrouter.client.ts` - Client helper
 
 ### Types
+
 - `src/types.ts` - TypeScript definitions
 
 ## ✅ Verification Checklist
@@ -108,6 +115,7 @@ Full documentation is available in `.ai/` directory:
 ## 💰 Cost Management
 
 Monitor your token usage:
+
 - OpenRouter dashboard: https://openrouter.ai/activity
 - Default model (gpt-4o-mini) is cost-effective
 - Set up billing alerts in OpenRouter dashboard

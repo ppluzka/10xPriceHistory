@@ -20,7 +20,7 @@ import { createSupabaseServiceRoleClient } from "../../../db/supabase.client";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
   // Step 1: Verify cron secret
   const authHeader = request.headers.get("Authorization");
   const cronSecret = import.meta.env.CRON_SECRET;
@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     // Step 2: Use service role client for CRON operations (bypasses RLS)
     const supabaseService = createSupabaseServiceRoleClient();
-    
+
     // Get active offers (only those being tracked by at least one user)
     const { data: offers, error } = await supabaseService.from("offers").select("*").eq("status", "active");
 

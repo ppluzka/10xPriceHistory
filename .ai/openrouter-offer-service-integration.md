@@ -63,11 +63,13 @@ Metoda `extractOfferData()` została przeprojektowana:
 Używa OpenRouter do ekstrakcji danych:
 
 **Optymalizacja tokenów:**
+
 - Ekstraktuje tylko istotne części HTML (meta tagi, główna treść)
 - Ogranicza zawartość body do 5000 znaków
 - Redukuje koszty API
 
 **JSON Schema:**
+
 ```typescript
 {
   type: "object",
@@ -83,12 +85,14 @@ Używa OpenRouter do ekstrakcji danych:
 ```
 
 **Prompt systemowy:**
+
 ```
-You are a web scraping assistant specialized in extracting structured data 
+You are a web scraping assistant specialized in extracting structured data
 from Otomoto.pl (Polish car marketplace) listings.
 ```
 
 **Parametry LLM:**
+
 - Temperature: 0.1 (niski dla konsystentnej ekstrakcji)
 - Max tokens: 500
 - Walidacja odpowiedzi przez JSON Schema
@@ -96,6 +100,7 @@ from Otomoto.pl (Polish car marketplace) listings.
 #### Metoda fallback: `extractWithCheerio()`
 
 Zachowana jako zapasowa metoda ekstrakcji:
+
 - CSS selektory dla Otomoto.pl
 - Obsługa różnych struktur HTML
 - Walidacja wyekstrahowanych danych
@@ -127,11 +132,11 @@ let openRouterService: OpenRouterService | null = null;
 function getOpenRouterService(): OpenRouterService {
   if (!openRouterService) {
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
-    
+
     if (!apiKey) {
       throw new Error("OPENROUTER_API_KEY environment variable is not set");
     }
-    
+
     openRouterService = new OpenRouterService({
       apiKey,
       baseUrl: import.meta.env.OPENROUTER_BASE_URL,
@@ -144,7 +149,7 @@ function getOpenRouterService(): OpenRouterService {
         : undefined,
     });
   }
-  
+
   return openRouterService;
 }
 ```
@@ -255,6 +260,7 @@ console.log(`Cheerio extraction successful: ${title}, ${price} ${currency}, ${ci
 ### OpenRouterServiceError
 
 LLM service może rzucić następujące błędy:
+
 - `AUTH_ERROR` - błąd autentykacji
 - `RATE_LIMIT_ERROR` - przekroczony limit requestów
 - `TIMEOUT_ERROR` - timeout requesta
@@ -266,6 +272,7 @@ LLM service może rzucić następujące błędy:
 ### Fallback do Cheerio
 
 Jeśli LLM extraction zawiedzie, system automatycznie:
+
 1. Loguje błąd
 2. Próbuje użyć Cheerio extraction
 3. Jeśli obie metody zawodzą, zwraca błąd użytkownikowi
@@ -283,6 +290,7 @@ curl -X POST http://localhost:4321/api/offers \
 ```
 
 Sprawdź logi w konsoli:
+
 - `Using LLM extraction for offer data`
 - `LLM extraction successful: ...`
 - `Tokens used: ...`
@@ -300,6 +308,7 @@ curl -X POST http://localhost:4321/api/offers \
 ```
 
 Sprawdź logi:
+
 - `Using Cheerio extraction for offer data`
 - `Cheerio extraction successful: ...`
 
@@ -307,13 +316,13 @@ Sprawdź logi:
 
 ### Porównanie metod
 
-| Metryka | LLM Extraction | Cheerio Extraction |
-|---------|---------------|-------------------|
-| Czas wykonania | ~2-5s | ~0.5-1s |
-| Odporność na zmiany | ⭐⭐⭐⭐⭐ | ⭐⭐ |
-| Koszt | ~$0.001-0.002 | Darmowe |
-| Dokładność | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Tokeny | ~300-500 | N/A |
+| Metryka             | LLM Extraction | Cheerio Extraction |
+| ------------------- | -------------- | ------------------ |
+| Czas wykonania      | ~2-5s          | ~0.5-1s            |
+| Odporność na zmiany | ⭐⭐⭐⭐⭐     | ⭐⭐               |
+| Koszt               | ~$0.001-0.002  | Darmowe            |
+| Dokładność          | ⭐⭐⭐⭐⭐     | ⭐⭐⭐⭐           |
+| Tokeny              | ~300-500       | N/A                |
 
 ### Rekomendacje
 
@@ -340,6 +349,7 @@ Przetwarzaj wiele ofert jednocześnie dla oszczędności tokenów.
 ### 3. Fine-tuning
 
 Możliwość treningu własnego modelu na danych Otomoto.pl dla:
+
 - Lepszej dokładności
 - Niższych kosztów
 - Szybszej ekstrakcji
@@ -351,6 +361,7 @@ Użyj LLM do generowania optymalnych selektorów CSS dla Cheerio fallback.
 ### 5. Monitoring OpenRouter
 
 Integracja z OpenRouter webhooks dla monitorowania:
+
 - Kosztów
 - Użycia
 - Błędów
@@ -367,4 +378,3 @@ Integracja z OpenRouter webhooks dla monitorowania:
 ✅ Logowanie i monitoring
 
 Integracja jest gotowa do użycia w środowisku produkcyjnym!
-

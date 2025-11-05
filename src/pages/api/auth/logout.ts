@@ -71,4 +71,3 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 // Disable prerendering for this API route (SSR required)
 export const prerender = false;
-

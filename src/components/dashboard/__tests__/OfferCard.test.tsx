@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import OfferCard from "../OfferCard";
@@ -7,7 +7,7 @@ import { createMockOfferDto } from "../../../test/factories/dashboard.factory";
 
 // Mock Button component from shadcn/ui
 vi.mock("../../ui/button", () => ({
-  Button: ({ children, onClick, className, ...props }: any) => (
+  Button: ({ children, onClick, className, ...props }: React.ComponentProps<"button">) => (
     <button onClick={onClick} className={className} {...props}>
       {children}
     </button>
@@ -223,7 +223,7 @@ describe("OfferCard", () => {
       const offer = createMockOfferDto({ status: "active" });
 
       // Act
-      const { container } = render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
+      render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
       const badge = screen.getByText("Aktywna");
@@ -326,9 +326,7 @@ describe("OfferCard", () => {
 
       // Assert
       expect(screen.getByText("Usuń ofertę")).toBeInTheDocument();
-      expect(
-        screen.getByText(/czy na pewno chcesz przestać śledzić/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/czy na pewno chcesz przestać śledzić/i)).toBeInTheDocument();
     });
 
     it("should prevent link navigation when clicking delete button", async () => {
@@ -507,7 +505,7 @@ describe("OfferCard", () => {
       const offer = createMockOfferDto();
 
       // Act
-      const { container } = render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
+      render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
       const link = screen.getByRole("link");
@@ -538,7 +536,7 @@ describe("OfferCard", () => {
       });
 
       // Act
-      const { container } = render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
+      render(<OfferCard offer={offer} onDelete={mockOnDelete} />);
 
       // Assert
       const title = screen.getByText(offer.title);
@@ -589,4 +587,3 @@ describe("OfferCard", () => {
     });
   });
 });
-

@@ -69,6 +69,7 @@ supabase migration up
 ```
 
 To uruchomi:
+
 - `20251104000000_monitoring_tables.sql` - tabele system_logs i error_log
 - `20251104000001_pg_cron_jobs.sql` - scheduled jobs
 
@@ -78,9 +79,9 @@ W Supabase SQL Editor uruchom:
 
 ```sql
 -- Sprawdź czy tabele zostały utworzone
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
   AND table_name IN ('system_logs', 'error_log');
 
 -- Powinno zwrócić:
@@ -133,17 +134,17 @@ DECLARE
 BEGIN
   -- ⚠️ ZMIEŃ NA SWÓJ DOMAIN PRODUKCYJNY
   api_url := 'https://your-production-domain.com/api/cron/check-prices';
-  
+
   -- Dla development lokalnie:
   -- api_url := 'http://localhost:4321/api/cron/check-prices';
-  
+
   cron_secret := current_setting('app.cron_secret', true);
-  
+
   IF cron_secret IS NULL OR cron_secret = '' THEN
     RAISE WARNING 'CRON_SECRET not configured';
     RETURN;
   END IF;
-  
+
   PERFORM
     net.http_post(
       url := api_url,
@@ -153,7 +154,7 @@ BEGIN
       ),
       body := jsonb_build_object('triggered_by', 'pg_cron')
     );
-    
+
   RAISE NOTICE 'Price check job triggered at %', NOW();
 END;
 $$;
@@ -178,17 +179,17 @@ BEGIN
   -- Pobierz URL z ustawień bazy
   api_url := current_setting('app.api_url', true);
   cron_secret := current_setting('app.cron_secret', true);
-  
+
   IF api_url IS NULL OR api_url = '' THEN
     RAISE WARNING 'API URL not configured in app.api_url';
     RETURN;
   END IF;
-  
+
   IF cron_secret IS NULL OR cron_secret = '' THEN
     RAISE WARNING 'CRON_SECRET not configured';
     RETURN;
   END IF;
-  
+
   PERFORM
     net.http_post(
       url := api_url,
@@ -198,7 +199,7 @@ BEGIN
       ),
       body := jsonb_build_object('triggered_by', 'pg_cron')
     );
-    
+
   RAISE NOTICE 'Price check job triggered at %', NOW();
 END;
 $$;
@@ -258,23 +259,23 @@ curl -X POST http://localhost:4321/api/cron/check-prices \
 
 ```sql
 -- Zobacz ostatnie zdarzenia
-SELECT 
+SELECT
   event_type,
   offer_id,
   message,
-  created_at 
-FROM system_logs 
-ORDER BY created_at DESC 
+  created_at
+FROM system_logs
+ORDER BY created_at DESC
 LIMIT 50;
 
 -- Zobacz ostatnie błędy
-SELECT 
+SELECT
   offer_id,
   error_message,
   attempt_number,
-  created_at 
-FROM error_log 
-ORDER BY created_at DESC 
+  created_at
+FROM error_log
+ORDER BY created_at DESC
 LIMIT 20;
 ```
 
@@ -283,7 +284,7 @@ LIMIT 20;
 ```sql
 -- Oblicz success rate z ostatnich 24h
 WITH recent_checks AS (
-  SELECT 
+  SELECT
     event_type,
     COUNT(*) as count
   FROM system_logs
@@ -291,10 +292,10 @@ WITH recent_checks AS (
     AND event_type IN ('price_check_success', 'price_check_failed')
   GROUP BY event_type
 )
-SELECT 
+SELECT
   ROUND(
-    (SELECT count FROM recent_checks WHERE event_type = 'price_check_success')::NUMERIC / 
-    (SELECT SUM(count) FROM recent_checks) * 100, 
+    (SELECT count FROM recent_checks WHERE event_type = 'price_check_success')::NUMERIC /
+    (SELECT SUM(count) FROM recent_checks) * 100,
     2
   ) as success_rate_percent;
 
@@ -308,11 +309,12 @@ SELECT
 ### Problem: CRON job nie uruchamia się
 
 **Diagnoza:**
+
 ```sql
 -- Sprawdź execution history
-SELECT * 
-FROM cron.job_run_details 
-ORDER BY start_time DESC 
+SELECT *
+FROM cron.job_run_details
+ORDER BY start_time DESC
 LIMIT 20;
 
 -- Sprawdź czy extension jest włączony
@@ -320,6 +322,7 @@ SELECT * FROM pg_extension WHERE extname = 'pg_cron';
 ```
 
 **Rozwiązanie:**
+
 - Upewnij się, że `pg_cron` jest włączony w Extensions
 - Sprawdź logi Supabase w Dashboard → Logs → Postgres
 
@@ -328,21 +331,24 @@ SELECT * FROM pg_extension WHERE extname = 'pg_cron';
 ### Problem: HTTP request fails (timeout/connection refused)
 
 **Diagnoza:**
+
 ```sql
 -- Zobacz pg_net responses
-SELECT * 
-FROM net._http_response 
-ORDER BY id DESC 
+SELECT *
+FROM net._http_response
+ORDER BY id DESC
 LIMIT 10;
 ```
 
 **Możliwe przyczyny:**
+
 1. **Localhost URL w produkcji**: Zmień `api_url` na publiczny domain
 2. **Nieprawidłowy CRON_SECRET**: Zweryfikuj czy taki sam w `.env` i bazie
 3. **Application nie działa**: Upewnij się że Astro app jest uruchomiony
 4. **Firewall**: Supabase musi mieć dostęp do Twojego API
 
 **Rozwiązanie:**
+
 ```sql
 -- Ustaw prawidłowy production URL
 ALTER DATABASE postgres SET app.api_url = 'https://your-actual-domain.com/api/cron/check-prices';
@@ -353,9 +359,10 @@ ALTER DATABASE postgres SET app.api_url = 'https://your-actual-domain.com/api/cr
 ### Problem: Wysokie error rate (>15%)
 
 **Diagnoza:**
+
 ```sql
 -- Zobacz najczęstsze błędy
-SELECT 
+SELECT
   error_message,
   COUNT(*) as occurrences
 FROM error_log
@@ -365,7 +372,7 @@ ORDER BY occurrences DESC
 LIMIT 10;
 
 -- Sprawdź które oferty mają problemy
-SELECT 
+SELECT
   o.id,
   o.url,
   o.status,
@@ -379,12 +386,14 @@ LIMIT 20;
 ```
 
 **Możliwe przyczyny:**
+
 1. **Zmiana struktury Otomoto**: Selektory przestały działać
 2. **Rate limiting**: Za dużo requestów
 3. **OpenRouter API down**: AI fallback nie działa
 4. **Nieaktualne oferty**: Dużo ofert już usuniętych
 
 **Rozwiązania:**
+
 - Zaktualizuj selektory dla problematycznych ofert
 - Zwiększ opóźnienia między requestami (w `ScrapingService`)
 - Sprawdź dostępność OpenRouter API
@@ -395,19 +404,20 @@ LIMIT 20;
 ### Problem: Alert nie wysyłany mimo wysokiego error rate
 
 **Diagnoza:**
+
 ```sql
 -- Sprawdź ostatni wysłany alert
-SELECT * 
-FROM system_logs 
-WHERE event_type = 'alert_sent' 
-ORDER BY created_at DESC 
+SELECT *
+FROM system_logs
+WHERE event_type = 'alert_sent'
+ORDER BY created_at DESC
 LIMIT 1;
 
 -- Sprawdź success rate
-SELECT 
+SELECT
   ROUND(
-    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC / 
-    COUNT(*)::NUMERIC * 100, 
+    COUNT(CASE WHEN event_type = 'price_check_success' THEN 1 END)::NUMERIC /
+    COUNT(*)::NUMERIC * 100,
     2
   ) as success_rate
 FROM system_logs
@@ -416,11 +426,13 @@ WHERE created_at > NOW() - INTERVAL '24 hours'
 ```
 
 **Możliwe przyczyny:**
+
 1. **Cooldown period**: Alert był wysłany w ciągu ostatnich 6h
 2. **Brak webhook URL**: `ALERT_WEBHOOK_URL` nie skonfigurowany
 3. **Error rate < 15%**: System jest poniżej progu
 
 **Rozwiązanie:**
+
 - Sprawdź `.env` czy `ALERT_WEBHOOK_URL` jest ustawiony
 - Zweryfikuj webhook URL (test curl)
 - Cooldown można skrócić w `MonitoringService` (domyślnie 6h)
@@ -430,9 +442,10 @@ WHERE created_at > NOW() - INTERVAL '24 hours'
 ### Problem: Oferta wciąż w statusie ERROR mimo prawidłowego sprawdzenia
 
 **Rozwiązanie:**
+
 ```sql
 -- Ręcznie zmień status na active
-UPDATE offers 
+UPDATE offers
 SET status = 'active'
 WHERE id = 'offer-id-here';
 
@@ -445,18 +458,18 @@ WHERE id = 'offer-id-here';
 
 ```sql
 -- Reset wszystkich ofert ERROR do ACTIVE (ostrożnie!)
-UPDATE offers 
-SET status = 'active' 
+UPDATE offers
+SET status = 'active'
 WHERE status = 'error';
 
 -- Usuń oferty REMOVED (soft delete przez user_offer)
 -- (To się dzieje automatycznie przez UI)
 
 -- Wyczyść stare logi (>90 dni)
-DELETE FROM error_log 
+DELETE FROM error_log
 WHERE created_at < NOW() - INTERVAL '90 days';
 
-DELETE FROM system_logs 
+DELETE FROM system_logs
 WHERE created_at < NOW() - INTERVAL '30 days';
 
 -- Wyłącz scheduled job tymczasowo
@@ -515,4 +528,3 @@ SELECT cron.schedule(
 - [ ] Success rate ≥90% po 24h
 
 System jest gotowy! 🚀
-

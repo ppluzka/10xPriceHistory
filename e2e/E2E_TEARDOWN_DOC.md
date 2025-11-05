@@ -24,7 +24,7 @@ The teardown script requires these environment variables from `.env.test`:
 
 ```bash
 SUPABASE_URL=###           # Supabase instance URL
-SUPABASE_KEY=###           # Supabase anon key  
+SUPABASE_KEY=###           # Supabase anon key
 E2E_USERNAME_ID=###        # Test user ID (optional but recommended)
 ```
 
@@ -43,16 +43,13 @@ E2E_USERNAME_ID=###        # Test user ID (optional but recommended)
 ```typescript
 // Soft-delete user's offer subscriptions
 await supabase
-  .from('user_offer')
+  .from("user_offer")
   .update({ deleted_at: new Date().toISOString() })
-  .eq('user_id', e2eUserId)
-  .is('deleted_at', null);
+  .eq("user_id", e2eUserId)
+  .is("deleted_at", null);
 
 // Clean up orphaned offers
-await supabase
-  .from('offers')
-  .delete()
-  .not('id', 'in', /* active user_offer offer_ids */);
+await supabase.from("offers").delete().not("id", "in" /* active user_offer offer_ids */);
 ```
 
 ### When E2E_USERNAME_ID is NOT Set (Use with Caution)
@@ -69,10 +66,10 @@ await supabase
 ```typescript
 export default defineConfig({
   // ... other config
-  
+
   /* Global teardown - runs after all tests complete */
   globalTeardown: "./e2e/global-teardown.ts",
-  
+
   // ... rest of config
 });
 ```
@@ -116,9 +113,9 @@ The teardown script provides detailed console output:
 try {
   // Cleanup logic
 } catch (error) {
-  console.error('❌ Error during teardown:', error);
+  console.error("❌ Error during teardown:", error);
   // Don't fail - tests are already complete
-  console.error('⚠️  Teardown failed but not blocking test results');
+  console.error("⚠️  Teardown failed but not blocking test results");
 }
 ```
 
@@ -141,6 +138,7 @@ E2E_USERNAME_ID=00000000-0000-0000-0000-000000000001
 ### 3. Verify Test Data Isolation
 
 Ensure your tests:
+
 - Use the test user ID from environment variables
 - Don't create data outside the test user scope
 - Clean up any custom test data in test-specific `afterAll` hooks if needed
@@ -148,6 +146,7 @@ Ensure your tests:
 ### 4. Review Teardown Logs
 
 Check the console output after test runs to verify:
+
 - Correct number of records cleaned
 - No unexpected errors
 - Data being removed matches test expectations
@@ -159,6 +158,7 @@ Check the console output after test runs to verify:
 **Problem**: Global teardown doesn't execute
 
 **Solutions**:
+
 - Verify `globalTeardown` is set in `playwright.config.ts`
 - Check that the path `./e2e/global-teardown.ts` is correct
 - Ensure TypeScript compilation is successful
@@ -168,6 +168,7 @@ Check the console output after test runs to verify:
 **Problem**: Script reports missing SUPABASE_URL or SUPABASE_KEY
 
 **Solutions**:
+
 - Verify `.env.test` file exists in project root
 - Check environment variables are not commented out
 - Ensure dotenv is loading the file: `dotenv.config({ path: '.env.test' })`
@@ -177,6 +178,7 @@ Check the console output after test runs to verify:
 **Problem**: Teardown removes more or less data than expected
 
 **Solutions**:
+
 - Verify `E2E_USERNAME_ID` matches your test user
 - Check test data is being created with correct user association
 - Review console logs to see what was cleaned
@@ -187,6 +189,7 @@ Check the console output after test runs to verify:
 **Problem**: Supabase returns permission errors during cleanup
 
 **Solutions**:
+
 - Verify the SUPABASE_KEY has appropriate permissions
 - Check Row Level Security (RLS) policies allow deletion
 - For test environments, consider using service role key (with caution)
@@ -201,13 +204,10 @@ If your tests create data in other tables, extend the teardown script:
 ```typescript
 // Example: Also clean up price_history table
 if (e2eUserId) {
-  const { error } = await supabase
-    .from('price_history')
-    .delete()
-    .in('offer_id', /* offer IDs from test user */);
-    
+  const { error } = await supabase.from("price_history").delete().in("offer_id" /* offer IDs from test user */);
+
   if (error) {
-    console.error('Error cleaning price_history:', error);
+    console.error("Error cleaning price_history:", error);
   }
 }
 ```
@@ -215,6 +215,7 @@ if (e2eUserId) {
 ### Monitoring Cleanup Performance
 
 For large datasets, you may want to:
+
 1. Add timing logs to track cleanup duration
 2. Implement batch deletion for large record counts
 3. Consider database-level cleanup (SQL scripts) for CI environments
@@ -230,7 +231,7 @@ For large datasets, you may want to:
 
 ```typescript
 // 1. Test runs (creates data)
-test('should add offer', async ({ page }) => {
+test("should add offer", async ({ page }) => {
   // ... test creates offers in database
 });
 
@@ -275,4 +276,3 @@ Store test credentials as secrets, never commit them to repository.
 **Last Updated**: November 2, 2025  
 **Implemented By**: AI Assistant  
 **Status**: ✅ Active and Configured
-

@@ -1,9 +1,11 @@
 # API Endpoint Implementation Plan: GET /offers
 
 ## 1. Przegląd punktu końcowego
+
 Zwraca listę aktywnych subskrypcji ofert Otomoto.pl dla uwierzytelnionego użytkownika wraz z obsługą paginacji i sortowania.
 
 ## 2. Szczegóły żądania
+
 - Metoda HTTP: GET
 - Struktura URL: `/api/offers`
 - Nagłówki:
@@ -14,11 +16,13 @@ Zwraca listę aktywnych subskrypcji ofert Otomoto.pl dla uwierzytelnionego użyt
   - sort (opcjonalny, string, domyślnie `created_at`) – nazwa kolumny sortowania: `created_at`, `last_checked`, `title`
 
 ## 3. Wykorzystywane typy
+
 - OfferDto (src/types.ts) – reprezentacja pojedynczej oferty
 - PaginatedDto<OfferDto> (src/types.ts) – wrapper paginacyjny
 - Brak Command Model – zapytanie bez ciała
 
 ## 4. Szczegóły odpowiedzi
+
 - Kod 200 OK
 - Body:
   ```json
@@ -49,6 +53,7 @@ Zwraca listę aktywnych subskrypcji ofert Otomoto.pl dla uwierzytelnionego użyt
   - 500 Internal Server Error – nieoczekiwany błąd serwera
 
 ## 5. Przepływ danych
+
 1. **Middleware** w `src/middleware/index.ts` weryfikuje JWT i ustawia `locals.supabase` i `locals.current_user_id`.
 2. **Handler GET /api/offers**:
    - Odczyt parametrów `page`, `size`, `sort` z `request.url.searchParams`.
@@ -58,10 +63,10 @@ Zwraca listę aktywnych subskrypcji ofert Otomoto.pl dla uwierzytelnionego użyt
    - Zapytanie do Supabase:
      ```ts
      const query = supabase
-       .from('offers')
-       .select(`*, user_offer(user_id,deleted_at)`, { count: 'exact' })
-       .eq('user_offer.user_id', userId)
-       .is('user_offer.deleted_at', null)
+       .from("offers")
+       .select(`*, user_offer(user_id,deleted_at)`, { count: "exact" })
+       .eq("user_offer.user_id", userId)
+       .is("user_offer.deleted_at", null)
        .order(sort, { ascending: false })
        .range((page - 1) * size, page * size - 1);
      ```
@@ -70,18 +75,21 @@ Zwraca listę aktywnych subskrypcji ofert Otomoto.pl dla uwierzytelnionego użyt
 4. Handler formatuje odpowiedź i zwraca ją klientowi.
 
 ## 6. Względy bezpieczeństwa
+
 - **Autoryzacja** i **RLS**: Supabase Row-Level Security zapewnia dostęp tylko do `user_offer` użytkownika.
 - Zapytania Supabase używają parametrów, co chroni przed SQL injection.
 - Brak operacji SSRF ani wywołań zewnętrznych.
 
 ## 7. Obsługa błędów
-| Kod  | Scenariusz                                    | Działanie                                  |
-|------|-----------------------------------------------|--------------------------------------------|
-| 400  | Nieprawidłowe lub brakujące parametry query   | Zwraca szczegóły walidacji Zod              |
-| 401  | Brak / nieprawidłowy JWT                      | Zwraca `Unauthorized`                       |
-| 500  | Błąd zapytania do Supabase lub nieoczekiwany  | Loguje błąd, zwraca `Internal Server Error` |
+
+| Kod | Scenariusz                                   | Działanie                                   |
+| --- | -------------------------------------------- | ------------------------------------------- |
+| 400 | Nieprawidłowe lub brakujące parametry query  | Zwraca szczegóły walidacji Zod              |
+| 401 | Brak / nieprawidłowy JWT                     | Zwraca `Unauthorized`                       |
+| 500 | Błąd zapytania do Supabase lub nieoczekiwany | Loguje błąd, zwraca `Internal Server Error` |
 
 ## 8. Rozważania dotyczące wydajności
+
 - Korzystanie z indeksów: `idx_user_offer_user_deleted`, `idx_offers_status_checked`.
 - Limit/offset na bazie danych; rozważ paginację kursorem dla dużych zestawów.
 - Możliwość cachowania odpowiedzi na warstwie frontendowej lub CDN.
@@ -122,6 +130,7 @@ Zwraca listę aktywnych subskrypcji ofert Otomoto.pl dla uwierzytelnionego użyt
    - 3 ostrzeżenia (console.log dla error logging - akceptowalne)
 
 ### 📊 Implementation Summary:
+
 - **Files Created**: 3 (offers.ts, offer.service.ts, implementation-summary.md)
 - **Files Modified**: 5 (middleware, env.d.ts, supabase.client.ts, README.md, api-plan.md)
 - **Performance**: Optimized from N+1 to 2 queries

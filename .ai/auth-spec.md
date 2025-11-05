@@ -3,10 +3,13 @@
 ## 1. WPROWADZENIE
 
 ### 1.1 Cel dokumentu
+
 Dokument określa szczegółową architekturę techniczną systemu autentykacji dla aplikacji PriceHistory, obejmującą rejestrację, logowanie, wylogowanie, weryfikację email, zmianę hasła oraz usuwanie konta użytkownika.
 
 ### 1.2 Zakres funkcjonalny
+
 Specyfikacja realizuje następujące historyjki użytkownika z PRD:
+
 - US-001: Rejestracja nowego konta
 - US-002: Weryfikacja konta email
 - US-003: Logowanie do systemu
@@ -15,6 +18,7 @@ Specyfikacja realizuje następujące historyjki użytkownika z PRD:
 - US-006: Usunięcie konta
 
 ### 1.3 Założenia techniczne
+
 - **Frontend**: Astro 5 (SSR), React 19, TypeScript 5, Tailwind 4, Shadcn/ui
 - **Backend**: Supabase Auth + PostgreSQL z Row Level Security
 - **Architektura**: Server-Side Rendering z Astro middleware dla autoryzacji
@@ -31,33 +35,39 @@ Specyfikacja realizuje następujące historyjki użytkownika z PRD:
 **Lokalizacja**: `src/pages/`
 
 ##### `/login.astro` - Strona logowania
+
 **Odpowiedzialność**:
+
 - Renderowanie layoutu strony logowania
 - Server-side sprawdzenie czy użytkownik jest już zalogowany (redirect do /dashboard)
 - Osadzenie formularza logowania (React component)
 - Wyświetlanie komunikatów z query params (np. `?verified=true`)
 
 **Struktura**:
+
 ```typescript
 // Pseudokod
 export const prerender = false; // SSR wymagane
 
 const session = await Astro.locals.supabase.auth.getSession();
 if (session.data.session) {
-  return Astro.redirect('/dashboard');
+  return Astro.redirect("/dashboard");
 }
 
-const verified = Astro.url.searchParams.get('verified');
-const error = Astro.url.searchParams.get('error');
+const verified = Astro.url.searchParams.get("verified");
+const error = Astro.url.searchParams.get("error");
 ```
 
 **Integracja z layoutem**:
+
 - Layout: `src/layouts/AuthLayout.astro` (nowy, dedykowany dla stron auth)
 - Wyśrodkowany formularz, responsywny design
 - Logo i branding
 
 ##### `/register.astro` - Strona rejestracji
+
 **Odpowiedzialność**:
+
 - Renderowanie formularza rejestracji
 - Server-side sprawdzenie czy użytkownik jest już zalogowany (redirect)
 - Osadzenie formularza rejestracji z captcha
@@ -65,38 +75,46 @@ const error = Astro.url.searchParams.get('error');
 **Struktura**: Analogiczna do `/login.astro`
 
 ##### `/verify-email.astro` - Strona potwierdzenia weryfikacji
+
 **Odpowiedzialność**:
+
 - Wyświetlenie informacji o pomyślnej weryfikacji
 - Komunikat o konieczności sprawdzenia emaila po rejestracji
 - Możliwość wysłania linku ponownie
 
 **Przepływ**:
+
 1. Po rejestracji → redirect na `/verify-email?email={encoded_email}`
 2. Po kliknięciu w link weryfikacyjny → Supabase przekierowuje do `/auth/callback` (patrz niżej)
 
 ##### `/auth/callback.astro` - Obsługa callback z Supabase
+
 **Odpowiedzialność**:
+
 - Przechwytuje callback po weryfikacji email lub OAuth (przyszłość)
 - Wymiana kodu na sesję (Supabase Auth SDK)
 - Redirect do `/dashboard` lub `/login?error=...`
 
 **Implementacja**:
+
 ```typescript
 export const prerender = false;
 
-const code = Astro.url.searchParams.get('code');
+const code = Astro.url.searchParams.get("code");
 if (code) {
   const { error } = await Astro.locals.supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return Astro.redirect('/login?error=verification_failed');
+    return Astro.redirect("/login?error=verification_failed");
   }
-  return Astro.redirect('/dashboard?verified=true');
+  return Astro.redirect("/dashboard?verified=true");
 }
-return Astro.redirect('/login');
+return Astro.redirect("/login");
 ```
 
 ##### `/forgot-password.astro` - Reset hasła (MVP: opcjonalny)
+
 **Odpowiedzialność**:
+
 - Formularz z polem email
 - Wysłanie linku resetującego przez Supabase
 - Komunikat o wysłaniu emaila
@@ -110,9 +128,11 @@ return Astro.redirect('/login');
 **Lokalizacja**: `src/components/auth/`
 
 ##### `LoginForm.tsx` - Formularz logowania
+
 **Typ**: Client React Component (`client:load`)
 
 **Odpowiedzialność**:
+
 - Zarządzanie stanem formularza (email, hasło)
 - Walidacja po stronie klienta (format email, długość hasła)
 - Wywołanie API endpoint `/api/auth/login`
@@ -120,6 +140,7 @@ return Astro.redirect('/login');
 - Loading state podczas wysyłania
 
 **Props**:
+
 ```typescript
 interface LoginFormProps {
   redirectTo?: string; // Gdzie przekierować po logowaniu (default: /dashboard)
@@ -128,6 +149,7 @@ interface LoginFormProps {
 ```
 
 **Stan komponentu**:
+
 ```typescript
 interface LoginFormState {
   email: string;
@@ -138,11 +160,13 @@ interface LoginFormState {
 ```
 
 **Walidacja**:
+
 - Email: regex RFC 5322 simplified
 - Hasło: minimum 8 znaków (zgodnie z US-001)
 - Real-time walidacja przy onBlur, submit walidacja przed wysłaniem
 
 **Obsługa błędów**:
+
 - `400 Bad Request` → "Nieprawidłowy format danych"
 - `401 Unauthorized` → "Nieprawidłowy email lub hasło"
 - `403 Forbidden (unverified)` → "Potwierdź email przed logowaniem" + link do ponownego wysłania
@@ -150,13 +174,16 @@ interface LoginFormState {
 - `500 Server Error` → "Wystąpił błąd, spróbuj ponownie"
 
 **Integracja z UI**:
+
 - Komponenty z Shadcn/ui: `Input`, `Button`, `Label`, `Alert`
 - Toast notifications (Sonner) dla sukcesu/błędów
 
 ##### `RegisterForm.tsx` - Formularz rejestracji
+
 **Typ**: Client React Component (`client:load`)
 
 **Odpowiedzialność**:
+
 - Zarządzanie stanem formularza (email, hasło, potwierdzenie hasła)
 - Walidacja: zgodność haseł, siła hasła
 - Integracja z hCaptcha lub Cloudflare Turnstile
@@ -164,6 +191,7 @@ interface LoginFormState {
 - Rate limiting UI (disable po 3 próbach z jednego IP)
 
 **Props**:
+
 ```typescript
 interface RegisterFormProps {
   captchaSiteKey: string; // Przekazany z env przez Astro
@@ -171,6 +199,7 @@ interface RegisterFormProps {
 ```
 
 **Stan**:
+
 ```typescript
 interface RegisterFormState {
   email: string;
@@ -179,31 +208,36 @@ interface RegisterFormState {
   captchaToken: string | null;
   isLoading: boolean;
   error: string | null;
-  passwordStrength: 'weak' | 'medium' | 'strong'; // Wizualne wskazanie siły
+  passwordStrength: "weak" | "medium" | "strong"; // Wizualne wskazanie siły
 }
 ```
 
 **Walidacja**:
+
 - Email: format, długość max 255 znaków
 - Hasło: min 8 znaków, zalecane: 1 cyfra, 1 wielka litera
 - Potwierdzenie hasła: musi być identyczne
 - Captcha: wymagany token przed submit
 
 **Obsługa błędów**:
+
 - `400 Bad Request` → Wyświetl szczegóły walidacji
 - `409 Conflict` → "Email jest już zarejestrowany"
 - `429 Too Many Requests` → "Zbyt wiele prób rejestracji z tego IP"
 - `500 Server Error` → "Wystąpił błąd, spróbuj ponownie"
 
 ##### `ResendVerificationButton.tsx` - Ponowne wysłanie linku
+
 **Typ**: Client React Component (`client:load`)
 
 **Odpowiedzialność**:
+
 - Przycisk do ponownego wysłania linku weryfikacyjnego
 - Cooldown timer (60 sekund) po wysłaniu
 - Wywołanie `/api/auth/resend-verification`
 
 **Props**:
+
 ```typescript
 interface ResendVerificationButtonProps {
   email: string;
@@ -211,6 +245,7 @@ interface ResendVerificationButtonProps {
 ```
 
 **Stan**:
+
 ```typescript
 interface State {
   isLoading: boolean;
@@ -220,17 +255,21 @@ interface State {
 ```
 
 ##### `PasswordChangeForm.tsx` - Już istnieje
+
 **Lokalizacja**: `src/components/settings/PasswordChangeForm.tsx`
 
 **Wymagane modyfikacje**:
+
 - Integracja z Supabase Auth API zamiast mock
 - Wywołanie `/api/auth/change-password`
 - Dodanie walidacji: aktualne hasło, nowe hasło (min 8), potwierdzenie
 
 ##### `DeleteAccountSection.tsx` - Już istnieje
+
 **Lokalizacja**: `src/components/settings/DeleteAccountSection.tsx`
 
 **Wymagane modyfikacje**:
+
 - Integracja z `/api/auth/delete-account`
 - Modal z potwierdzeniem: użytkownik musi wpisać "USUŃ"
 - Obsługa anonimizacji danych przez backend
@@ -242,18 +281,21 @@ interface State {
 **Modyfikacje istniejących stron**:
 
 ##### `/dashboard.astro`
+
 **Zmiany**:
+
 - Dodanie sprawdzenia sesji w middleware (już istnieje szkielet w `src/middleware/index.ts`)
 - Redirect do `/login` jeśli brak sesji
 - Przekazanie danych użytkownika do komponentu React
 
 **Implementacja server-side**:
+
 ```typescript
 export const prerender = false;
 
 const session = await Astro.locals.supabase.auth.getSession();
 if (!session.data.session) {
-  return Astro.redirect('/login');
+  return Astro.redirect("/login");
 }
 
 const user = session.data.session.user;
@@ -261,9 +303,11 @@ Astro.locals.current_user_id = user.id; // Zastąpienie DEFAULT_USER_ID
 ```
 
 ##### `/settings.astro`
+
 **Zmiany**: Analogiczne do `/dashboard.astro`
 
 ##### `/offer/[id].astro`
+
 **Zmiany**: Analogiczne, weryfikacja dostępu do oferty przez RLS w zapytaniu DB
 
 ---
@@ -271,15 +315,18 @@ Astro.locals.current_user_id = user.id; // Zastąpienie DEFAULT_USER_ID
 #### 2.1.4 Komponenty nawigacyjne
 
 ##### `Header.tsx` (nowy)
+
 **Typ**: React Component
 
 **Odpowiedzialność**:
+
 - Nawigacja dla zalogowanych użytkowników
 - Wyświetlanie emaila użytkownika (lub Avatar w przyszłości)
 - Przycisk "Wyloguj"
 - Responsywny hamburger menu na mobile
 
 **Props**:
+
 ```typescript
 interface HeaderProps {
   user: {
@@ -290,15 +337,18 @@ interface HeaderProps {
 ```
 
 **Nawigacja**:
+
 - Logo → `/dashboard`
 - "Dashboard" → `/dashboard`
 - "Ustawienia" → `/settings`
 - "Wyloguj" → wywołanie `/api/auth/logout` i redirect
 
 ##### `PublicHeader.tsx` (nowy)
+
 **Typ**: React Component
 
 **Odpowiedzialność**:
+
 - Nawigacja dla niezalogowanych (landing page)
 - Przyciski "Zaloguj" i "Zarejestruj"
 
@@ -307,38 +357,44 @@ interface HeaderProps {
 ### 2.2 Layouty
 
 #### `AuthLayout.astro` (nowy)
+
 **Lokalizacja**: `src/layouts/AuthLayout.astro`
 
 **Odpowiedzialność**:
+
 - Dedykowany layout dla stron auth (login, register)
 - Wyśrodkowane karty formularzy
 - Minimalistyczny design bez nawigacji głównej
 - Logo i link powrotny do landing page
 
 **Struktura**:
+
 ```astro
 ---
-import '@/styles/global.css';
+import "@/styles/global.css";
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html>
-<head>
-  <title>{Astro.props.title} - PriceHistory</title>
-</head>
-<body class="bg-gray-50">
-  <div class="min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-md">
-      <slot />
+  <head>
+    <title>{Astro.props.title} - PriceHistory</title>
+  </head>
+  <body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center">
+      <div class="w-full max-w-md">
+        <slot />
+      </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>
 ```
 
 #### `Layout.astro` (modyfikacja istniejącego)
+
 **Lokalizacja**: `src/layouts/Layout.astro`
 
 **Zmiany**:
+
 - Dodanie `<Header>` dla stron chronionych
 - Przekazanie danych użytkownika z Astro.locals
 - Warunkowe renderowanie: PublicHeader vs Header
@@ -348,6 +404,7 @@ import '@/styles/global.css';
 ### 2.3 Przepływy użytkownika (User Flows)
 
 #### 2.3.1 Flow rejestracji
+
 ```
 1. Użytkownik wchodzi na /register
    ├─ Jeśli zalogowany → redirect /dashboard
@@ -380,6 +437,7 @@ import '@/styles/global.css';
 ```
 
 #### 2.3.2 Flow logowania
+
 ```
 1. Użytkownik wchodzi na /login
    ├─ Jeśli zalogowany → redirect /dashboard
@@ -405,6 +463,7 @@ import '@/styles/global.css';
 ```
 
 #### 2.3.3 Flow wylogowania
+
 ```
 1. Użytkownik klika "Wyloguj" w Header
    └─ onClick → POST /api/auth/logout
@@ -418,6 +477,7 @@ import '@/styles/global.css';
 ```
 
 #### 2.3.4 Flow zmiany hasła
+
 ```
 1. Użytkownik wchodzi na /settings (wymaga auth)
    └─ Renderuj PasswordChangeForm
@@ -438,6 +498,7 @@ import '@/styles/global.css';
 ```
 
 #### 2.3.5 Flow usunięcia konta
+
 ```
 1. Użytkownik wchodzi na /settings → sekcja "Niebezpieczne akcje"
    └─ Przycisk: "Usuń konto"
@@ -464,22 +525,27 @@ import '@/styles/global.css';
 #### 2.4.1 Walidacja client-side
 
 **Email**:
+
 - Regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
 - Komunikat: "Wprowadź prawidłowy adres email"
 
 **Hasło (rejestracja/zmiana)**:
+
 - Min 8 znaków: "Hasło musi mieć minimum 8 znaków"
 - Zalecane (warning, nie blokuje): "Dla bezpieczeństwa użyj cyfr i wielkich liter"
 
 **Potwierdzenie hasła**:
+
 - Musi być identyczne: "Hasła nie są identyczne"
 
 **Captcha**:
+
 - Wymagany token: "Potwierdź że nie jesteś robotem"
 
 #### 2.4.2 Komunikaty błędów API
 
 Wszystkie błędy zwracane w formacie:
+
 ```typescript
 interface ErrorResponse {
   error: string;
@@ -489,6 +555,7 @@ interface ErrorResponse {
 ```
 
 **Kody błędów**:
+
 - `EMAIL_ALREADY_EXISTS` (409)
 - `INVALID_CREDENTIALS` (401)
 - `EMAIL_NOT_VERIFIED` (403)
@@ -502,11 +569,13 @@ interface ErrorResponse {
 ### 2.5 Obsługa loading states i feedback
 
 #### Loading indicators:
+
 - **Formularze**: Spinner + disabled inputs podczas submit
 - **Przyciski**: Loading spinner zamiast tekstu
 - **Skeleton screens**: Nie wymagane dla auth (szybkie operacje)
 
 #### Success feedback:
+
 - **Toast notifications** (Sonner):
   - "Zalogowano pomyślnie"
   - "Hasło zostało zmienione"
@@ -516,6 +585,7 @@ interface ErrorResponse {
   - `/login?registered=true` → Banner: "Sprawdź email"
 
 #### Error feedback:
+
 - **Inline errors**: Pod polami formularza (kolor czerwony)
 - **Toast errors**: Dla błędów API (5s auto-dismiss)
 - **Banner errors**: Dla błędów krytycznych (wymaga dismiss)
@@ -529,23 +599,27 @@ interface ErrorResponse {
 **Lokalizacja**: `src/pages/api/auth/`
 
 #### 3.1.1 POST `/api/auth/register`
+
 **Odpowiedzialność**: Rejestracja nowego użytkownika
 
 **Request Body**:
+
 ```typescript
 {
-  email: string;      // Max 255 znaków, format email
-  password: string;   // Min 8 znaków
+  email: string; // Max 255 znaków, format email
+  password: string; // Min 8 znaków
   captchaToken: string; // Token z hCaptcha/Turnstile
 }
 ```
 
 **Walidacja**:
+
 1. Schema validation (Zod)
 2. Weryfikacja captcha token (HTTP request do hCaptcha API)
 3. Rate limiting: max 3 rejestracje z jednego IP/24h (sprawdzenie w tabeli `registration_attempts`)
 
 **Logika**:
+
 ```typescript
 // 1. Walidacja inputu
 const validated = RegisterSchema.parse(body);
@@ -553,13 +627,13 @@ const validated = RegisterSchema.parse(body);
 // 2. Weryfikacja captcha
 const captchaValid = await verifyCaptcha(validated.captchaToken, clientIp);
 if (!captchaValid) {
-  return new Response(JSON.stringify({ error: 'Invalid captcha' }), { status: 400 });
+  return new Response(JSON.stringify({ error: "Invalid captcha" }), { status: 400 });
 }
 
 // 3. Rate limiting check
 const attemptCount = await checkRegistrationAttempts(clientIp);
 if (attemptCount >= 3) {
-  return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
+  return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429 });
 }
 
 // 4. Rejestracja przez Supabase Auth
@@ -568,19 +642,23 @@ const { data, error } = await supabase.auth.signUp({
   password: validated.password,
   options: {
     emailRedirectTo: `${siteUrl}/auth/callback`,
-  }
+  },
 });
 
 // 5. Log attempt
 await logRegistrationAttempt(clientIp, data?.user?.id);
 
 // 6. Zwróć sukces
-return new Response(JSON.stringify({ 
-  message: 'Registration successful. Check your email.' 
-}), { status: 201 });
+return new Response(
+  JSON.stringify({
+    message: "Registration successful. Check your email.",
+  }),
+  { status: 201 }
+);
 ```
 
 **Response**:
+
 - `201 Created`: Sukces
 - `400 Bad Request`: Błąd walidacji/captcha
 - `409 Conflict`: Email już istnieje
@@ -588,9 +666,11 @@ return new Response(JSON.stringify({
 - `500 Server Error`: Błąd serwera
 
 #### 3.1.2 POST `/api/auth/login`
+
 **Odpowiedzialność**: Logowanie użytkownika
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -599,6 +679,7 @@ return new Response(JSON.stringify({
 ```
 
 **Logika**:
+
 ```typescript
 // 1. Walidacja
 const validated = LoginSchema.parse(body);
@@ -612,18 +693,24 @@ const { data, error } = await supabase.auth.signInWithPassword({
 // 3. Obsługa błędów
 if (error) {
   // Email niezweryfikowany
-  if (error.message.includes('Email not confirmed')) {
-    return new Response(JSON.stringify({ 
-      error: 'Email not verified',
-      code: 'EMAIL_NOT_VERIFIED' 
-    }), { status: 403 });
+  if (error.message.includes("Email not confirmed")) {
+    return new Response(
+      JSON.stringify({
+        error: "Email not verified",
+        code: "EMAIL_NOT_VERIFIED",
+      }),
+      { status: 403 }
+    );
   }
-  
+
   // Nieprawidłowe dane
-  return new Response(JSON.stringify({ 
-    error: 'Invalid credentials',
-    code: 'INVALID_CREDENTIALS' 
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: "Invalid credentials",
+      code: "INVALID_CREDENTIALS",
+    }),
+    { status: 401 }
+  );
 }
 
 // 4. Ustaw session cookie (Supabase SDK robi to automatycznie)
@@ -631,25 +718,31 @@ if (error) {
 await ensureUserPreferencesExist(data.session.user.id);
 
 // 6. Zwróć sukces
-return new Response(JSON.stringify({ 
-  message: 'Login successful',
-  user: {
-    id: data.session.user.id,
-    email: data.session.user.email,
-  }
-}), { status: 200 });
+return new Response(
+  JSON.stringify({
+    message: "Login successful",
+    user: {
+      id: data.session.user.id,
+      email: data.session.user.email,
+    },
+  }),
+  { status: 200 }
+);
 ```
 
 **Response**:
+
 - `200 OK`: Sukces
 - `401 Unauthorized`: Nieprawidłowe dane
 - `403 Forbidden`: Email niezweryfikowany
 - `500 Server Error`: Błąd serwera
 
 #### 3.1.3 POST `/api/auth/logout`
+
 **Odpowiedzialność**: Wylogowanie użytkownika
 
 **Logika**:
+
 ```typescript
 // 1. Wylogowanie przez Supabase
 const { error } = await supabase.auth.signOut();
@@ -659,17 +752,20 @@ if (error) {
 }
 
 // 2. Usunięcie cookies (Supabase SDK robi to automatycznie)
-return new Response(JSON.stringify({ message: 'Logged out' }), { status: 200 });
+return new Response(JSON.stringify({ message: "Logged out" }), { status: 200 });
 ```
 
 **Response**:
+
 - `200 OK`: Sukces
 - `500 Server Error`: Błąd
 
 #### 3.1.4 POST `/api/auth/resend-verification`
+
 **Odpowiedzialność**: Ponowne wysłanie emaila weryfikacyjnego
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -677,6 +773,7 @@ return new Response(JSON.stringify({ message: 'Logged out' }), { status: 200 });
 ```
 
 **Logika**:
+
 ```typescript
 // 1. Walidacja
 const validated = ResendSchema.parse(body);
@@ -684,18 +781,21 @@ const validated = ResendSchema.parse(body);
 // 2. Rate limiting (max 1 email/minute dla danego adresu)
 const canResend = await checkResendCooldown(validated.email);
 if (!canResend) {
-  return new Response(JSON.stringify({ 
-    error: 'Please wait before resending' 
-  }), { status: 429 });
+  return new Response(
+    JSON.stringify({
+      error: "Please wait before resending",
+    }),
+    { status: 429 }
+  );
 }
 
 // 3. Wysłanie przez Supabase
 const { error } = await supabase.auth.resend({
-  type: 'signup',
+  type: "signup",
   email: validated.email,
   options: {
     emailRedirectTo: `${siteUrl}/auth/callback`,
-  }
+  },
 });
 
 if (error) {
@@ -705,23 +805,29 @@ if (error) {
 // 4. Log resend
 await logResendAttempt(validated.email);
 
-return new Response(JSON.stringify({ 
-  message: 'Verification email sent' 
-}), { status: 200 });
+return new Response(
+  JSON.stringify({
+    message: "Verification email sent",
+  }),
+  { status: 200 }
+);
 ```
 
 **Response**:
+
 - `200 OK`: Email wysłany
 - `429 Too Many Requests`: Cooldown aktywny
 - `400 Bad Request`: Błąd
 - `500 Server Error`: Błąd serwera
 
 #### 3.1.5 POST `/api/auth/change-password`
+
 **Odpowiedzialność**: Zmiana hasła zalogowanego użytkownika
 
 **Uwaga**: Wymaga aktywnej sesji (middleware sprawdza auth)
 
 **Request Body**:
+
 ```typescript
 {
   currentPassword: string;
@@ -730,11 +836,12 @@ return new Response(JSON.stringify({
 ```
 
 **Logika**:
+
 ```typescript
 // 1. Sprawdzenie sesji (middleware)
 const session = await supabase.auth.getSession();
 if (!session.data.session) {
-  return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 }
 
 // 2. Walidacja
@@ -747,10 +854,13 @@ const { error: reAuthError } = await supabase.auth.signInWithPassword({
 });
 
 if (reAuthError) {
-  return new Response(JSON.stringify({ 
-    error: 'Current password is incorrect',
-    code: 'INVALID_CURRENT_PASSWORD' 
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: "Current password is incorrect",
+      code: "INVALID_CURRENT_PASSWORD",
+    }),
+    { status: 401 }
+  );
 }
 
 // 4. Zmiana hasła
@@ -764,23 +874,29 @@ if (error) {
 
 // 5. Supabase automatycznie wysyła email o zmianie hasła
 
-return new Response(JSON.stringify({ 
-  message: 'Password changed successfully' 
-}), { status: 200 });
+return new Response(
+  JSON.stringify({
+    message: "Password changed successfully",
+  }),
+  { status: 200 }
+);
 ```
 
 **Response**:
+
 - `200 OK`: Hasło zmienione
 - `401 Unauthorized`: Nieprawidłowe aktualne hasło lub brak sesji
 - `400 Bad Request`: Błąd walidacji
 - `500 Server Error`: Błąd serwera
 
 #### 3.1.6 POST `/api/auth/delete-account`
+
 **Odpowiedzialność**: Usunięcie konta użytkownika (anonimizacja)
 
 **Uwaga**: Wymaga aktywnej sesji + potwierdzenie
 
 **Request Body**:
+
 ```typescript
 {
   confirmation: string; // Musi być "USUŃ"
@@ -788,27 +904,28 @@ return new Response(JSON.stringify({
 ```
 
 **Logika**:
+
 ```typescript
 // 1. Sprawdzenie sesji
 const session = await supabase.auth.getSession();
 if (!session.data.session) {
-  return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 }
 
 const userId = session.data.session.user.id;
 
 // 2. Walidacja potwierdzenia
-if (body.confirmation !== 'USUŃ') {
-  return new Response(JSON.stringify({ 
-    error: 'Invalid confirmation' 
-  }), { status: 400 });
+if (body.confirmation !== "USUŃ") {
+  return new Response(
+    JSON.stringify({
+      error: "Invalid confirmation",
+    }),
+    { status: 400 }
+  );
 }
 
 // 3. Soft delete user_offer (RLS pozwala użytkownikowi)
-await supabase
-  .from('user_offer')
-  .update({ deleted_at: new Date().toISOString() })
-  .eq('user_id', userId);
+await supabase.from("user_offer").update({ deleted_at: new Date().toISOString() }).eq("user_id", userId);
 
 // 4. Anonimizacja email w auth.users (wymaga service_role lub function)
 const timestamp = Date.now();
@@ -823,23 +940,27 @@ await adminSupabase.auth.admin.updateUserById(userId, {
 // 5. Usunięcie sesji
 await supabase.auth.signOut();
 
-return new Response(JSON.stringify({ 
-  message: 'Account deleted successfully' 
-}), { status: 200 });
+return new Response(
+  JSON.stringify({
+    message: "Account deleted successfully",
+  }),
+  { status: 200 }
+);
 ```
 
 **Alternatywa**: Implementacja jako Database Function dla bezpieczeństwa:
+
 ```sql
 CREATE OR REPLACE FUNCTION delete_user_account(user_id_param UUID)
 RETURNS void AS $$
 BEGIN
   -- Soft delete offers
-  UPDATE user_offer 
-  SET deleted_at = NOW() 
+  UPDATE user_offer
+  SET deleted_at = NOW()
   WHERE user_id = user_id_param;
-  
+
   -- Anonymize email
-  UPDATE auth.users 
+  UPDATE auth.users
   SET email = 'deleted_' || EXTRACT(EPOCH FROM NOW()) || '@deleted.com',
       encrypted_password = NULL
   WHERE id = user_id_param;
@@ -848,6 +969,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
 **Response**:
+
 - `200 OK`: Konto usunięte
 - `400 Bad Request`: Błąd walidacji
 - `401 Unauthorized`: Brak sesji
@@ -860,31 +982,31 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 **Lokalizacja**: `src/lib/validators/auth.validators.ts`
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const RegisterSchema = z.object({
-  email: z.string().email('Invalid email format').max(255),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  captchaToken: z.string().min(1, 'Captcha is required'),
+  email: z.string().email("Invalid email format").max(255),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  captchaToken: z.string().min(1, "Captcha is required"),
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export const ChangePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
 });
 
 export const ResendVerificationSchema = z.object({
-  email: z.string().email('Invalid email format'),
+  email: z.string().email("Invalid email format"),
 });
 
 export const DeleteAccountSchema = z.object({
-  confirmation: z.literal('USUŃ', { 
-    errorMap: () => ({ message: 'Type USUŃ to confirm' }) 
+  confirmation: z.literal("USUŃ", {
+    errorMap: () => ({ message: "Type USUŃ to confirm" }),
   }),
 });
 
@@ -912,16 +1034,12 @@ export class AuthService {
    * Sprawdza czy użytkownik ma user_preferences, jeśli nie - tworzy
    */
   async ensureUserPreferencesExist(userId: string): Promise<void> {
-    const { data } = await this.supabase
-      .from('user_preferences')
-      .select('user_id')
-      .eq('user_id', userId)
-      .single();
+    const { data } = await this.supabase.from("user_preferences").select("user_id").eq("user_id", userId).single();
 
     if (!data) {
-      await this.supabase.from('user_preferences').insert({
+      await this.supabase.from("user_preferences").insert({
         user_id: userId,
-        default_frequency: '24h',
+        default_frequency: "24h",
       });
     }
   }
@@ -930,8 +1048,11 @@ export class AuthService {
    * Pobiera dane aktualnie zalogowanego użytkownika
    */
   async getCurrentUser() {
-    const { data: { session }, error } = await this.supabase.auth.getSession();
-    
+    const {
+      data: { session },
+      error,
+    } = await this.supabase.auth.getSession();
+
     if (error || !session) {
       return null;
     }
@@ -965,9 +1086,9 @@ export class CaptchaService {
    * Weryfikuje token captcha z hCaptcha
    */
   async verify(token: string, remoteIp?: string): Promise<boolean> {
-    const response = await fetch('https://hcaptcha.com/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const response = await fetch("https://hcaptcha.com/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         secret: this.secretKey,
         response: token,
@@ -982,6 +1103,7 @@ export class CaptchaService {
 ```
 
 Alternatywnie dla Cloudflare Turnstile:
+
 ```typescript
 async verifyTurnstile(token: string, remoteIp?: string): Promise<boolean> {
   const response = await fetch(
@@ -1014,8 +1136,8 @@ async verifyTurnstile(token: string, remoteIp?: string): Promise<boolean> {
 // Dodanie nowych limitów dla auth endpoints
 export const AUTH_RATE_LIMITS = {
   REGISTER: { maxAttempts: 3, windowMs: 24 * 60 * 60 * 1000 }, // 3/24h per IP
-  LOGIN: { maxAttempts: 5, windowMs: 15 * 60 * 1000 },         // 5/15min per IP
-  RESEND: { maxAttempts: 1, windowMs: 60 * 1000 },             // 1/min per email
+  LOGIN: { maxAttempts: 5, windowMs: 15 * 60 * 1000 }, // 5/15min per IP
+  RESEND: { maxAttempts: 1, windowMs: 60 * 1000 }, // 1/min per email
   CHANGE_PASSWORD: { maxAttempts: 3, windowMs: 60 * 60 * 1000 }, // 3/hour per user
 };
 ```
@@ -1023,6 +1145,7 @@ export const AUTH_RATE_LIMITS = {
 **Implementacja w bazie danych**:
 
 Tabela `registration_attempts`:
+
 ```sql
 CREATE TABLE registration_attempts (
   id SERIAL PRIMARY KEY,
@@ -1032,11 +1155,12 @@ CREATE TABLE registration_attempts (
   success BOOLEAN NOT NULL DEFAULT false
 );
 
-CREATE INDEX idx_registration_attempts_ip_time 
+CREATE INDEX idx_registration_attempts_ip_time
   ON registration_attempts(ip_address, attempted_at DESC);
 ```
 
 Tabela `login_attempts`:
+
 ```sql
 CREATE TABLE login_attempts (
   id SERIAL PRIMARY KEY,
@@ -1046,7 +1170,7 @@ CREATE TABLE login_attempts (
   success BOOLEAN NOT NULL DEFAULT false
 );
 
-CREATE INDEX idx_login_attempts_ip_time 
+CREATE INDEX idx_login_attempts_ip_time
   ON login_attempts(ip_address, attempted_at DESC);
 ```
 
@@ -1060,14 +1184,14 @@ CREATE INDEX idx_login_attempts_ip_time
 
 ```typescript
 export enum AuthErrorCode {
-  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-  EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED',
-  EMAIL_ALREADY_EXISTS = 'EMAIL_ALREADY_EXISTS',
-  WEAK_PASSWORD = 'WEAK_PASSWORD',
-  INVALID_CAPTCHA = 'INVALID_CAPTCHA',
-  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  INVALID_TOKEN = 'INVALID_TOKEN',
+  INVALID_CREDENTIALS = "INVALID_CREDENTIALS",
+  EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED",
+  EMAIL_ALREADY_EXISTS = "EMAIL_ALREADY_EXISTS",
+  WEAK_PASSWORD = "WEAK_PASSWORD",
+  INVALID_CAPTCHA = "INVALID_CAPTCHA",
+  RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
+  SESSION_EXPIRED = "SESSION_EXPIRED",
+  INVALID_TOKEN = "INVALID_TOKEN",
 }
 
 export class AuthError extends Error {
@@ -1077,7 +1201,7 @@ export class AuthError extends Error {
     public statusCode: number = 400
   ) {
     super(message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
   }
 
   toJSON() {
@@ -1090,40 +1214,25 @@ export class AuthError extends Error {
 
 // Helper functions
 export function handleSupabaseAuthError(error: any): AuthError {
-  if (error.message.includes('Email not confirmed')) {
-    return new AuthError(
-      AuthErrorCode.EMAIL_NOT_VERIFIED,
-      'Email address is not verified',
-      403
-    );
+  if (error.message.includes("Email not confirmed")) {
+    return new AuthError(AuthErrorCode.EMAIL_NOT_VERIFIED, "Email address is not verified", 403);
   }
 
-  if (error.message.includes('Invalid login credentials')) {
-    return new AuthError(
-      AuthErrorCode.INVALID_CREDENTIALS,
-      'Invalid email or password',
-      401
-    );
+  if (error.message.includes("Invalid login credentials")) {
+    return new AuthError(AuthErrorCode.INVALID_CREDENTIALS, "Invalid email or password", 401);
   }
 
-  if (error.message.includes('User already registered')) {
-    return new AuthError(
-      AuthErrorCode.EMAIL_ALREADY_EXISTS,
-      'Email is already registered',
-      409
-    );
+  if (error.message.includes("User already registered")) {
+    return new AuthError(AuthErrorCode.EMAIL_ALREADY_EXISTS, "Email is already registered", 409);
   }
 
   // Default
-  return new AuthError(
-    AuthErrorCode.INVALID_TOKEN,
-    'Authentication failed',
-    500
-  );
+  return new AuthError(AuthErrorCode.INVALID_TOKEN, "Authentication failed", 500);
 }
 ```
 
 **Middleware error handler** w endpointach:
+
 ```typescript
 try {
   // Logic
@@ -1135,11 +1244,8 @@ try {
   }
 
   // Unexpected error
-  console.error('Unexpected error:', error);
-  return new Response(
-    JSON.stringify({ error: 'Internal server error' }),
-    { status: 500 }
-  );
+  console.error("Unexpected error:", error);
+  return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });
 }
 ```
 
@@ -1152,6 +1258,7 @@ try {
 **Lokalizacja**: `src/middleware/index.ts`
 
 **Zmiany**:
+
 ```typescript
 import { defineMiddleware } from "astro:middleware";
 import { supabaseClient } from "../db/supabase.client.ts";
@@ -1161,7 +1268,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.supabase = supabaseClient;
 
   // 2. Pobierz sesję użytkownika
-  const { data: { session }, error } = await supabaseClient.auth.getSession();
+  const {
+    data: { session },
+    error,
+  } = await supabaseClient.auth.getSession();
 
   // 3. Ustaw user_id (lub null jeśli niezalogowany)
   if (session && !error) {
@@ -1177,10 +1287,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // 4. Ochrona chronionych stron
-  const protectedRoutes = ['/dashboard', '/settings', '/offer'];
-  const isProtectedRoute = protectedRoutes.some(route => 
-    context.url.pathname.startsWith(route)
-  );
+  const protectedRoutes = ["/dashboard", "/settings", "/offer"];
+  const isProtectedRoute = protectedRoutes.some((route) => context.url.pathname.startsWith(route));
 
   if (isProtectedRoute && !context.locals.user) {
     // Redirect do logowania z returnUrl
@@ -1197,6 +1305,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 **Lokalizacja**: `src/env.d.ts`
 
 **Zmiany**:
+
 ```typescript
 /// <reference types="astro/client" />
 
@@ -1215,9 +1324,7 @@ interface ImportMeta {
 
 declare namespace App {
   interface Locals {
-    supabase: import('@supabase/supabase-js').SupabaseClient<
-      import('./db/database.types').Database
-    >;
+    supabase: import("@supabase/supabase-js").SupabaseClient<import("./db/database.types").Database>;
     current_user_id: string | null;
     user: {
       id: string;
@@ -1233,7 +1340,7 @@ declare namespace App {
 **Lokalizacja**: `src/lib/utils/auth.utils.ts`
 
 ```typescript
-import type { AstroGlobal } from 'astro';
+import type { AstroGlobal } from "astro";
 
 /**
  * Sprawdza czy użytkownik jest zalogowany, jeśli nie - przekierowuje do /login
@@ -1241,9 +1348,7 @@ import type { AstroGlobal } from 'astro';
  */
 export function requireAuth(Astro: AstroGlobal) {
   if (!Astro.locals.user) {
-    const returnUrl = encodeURIComponent(
-      Astro.url.pathname + Astro.url.search
-    );
+    const returnUrl = encodeURIComponent(Astro.url.pathname + Astro.url.search);
     return Astro.redirect(`/login?returnUrl=${returnUrl}`);
   }
   return null; // Continue rendering
@@ -1255,7 +1360,7 @@ export function requireAuth(Astro: AstroGlobal) {
  */
 export function requireGuest(Astro: AstroGlobal) {
   if (Astro.locals.user) {
-    return Astro.redirect('/dashboard');
+    return Astro.redirect("/dashboard");
   }
   return null;
 }
@@ -1263,17 +1368,18 @@ export function requireGuest(Astro: AstroGlobal) {
 /**
  * Pobiera return URL z query params lub default
  */
-export function getReturnUrl(Astro: AstroGlobal, defaultUrl = '/dashboard'): string {
-  const returnUrl = Astro.url.searchParams.get('returnUrl');
+export function getReturnUrl(Astro: AstroGlobal, defaultUrl = "/dashboard"): string {
+  const returnUrl = Astro.url.searchParams.get("returnUrl");
   return returnUrl ? decodeURIComponent(returnUrl) : defaultUrl;
 }
 ```
 
 **Użycie w stronie**:
+
 ```astro
 ---
 // dashboard.astro
-import { requireAuth } from '@/lib/utils/auth.utils';
+import { requireAuth } from "@/lib/utils/auth.utils";
 
 const redirect = requireAuth(Astro);
 if (redirect) return redirect;
@@ -1310,22 +1416,26 @@ PUBLIC_SITE_URL=http://localhost:3000  # development
 #### 4.1.2 Konfiguracja Supabase Dashboard
 
 **Authentication Settings** → **URL Configuration**:
+
 - Site URL: `https://pricehistory.pl` (production)
-- Redirect URLs: 
+- Redirect URLs:
   - `http://localhost:3000/auth/callback` (dev)
   - `https://pricehistory.pl/auth/callback` (prod)
 
 **Email Templates**:
+
 - Confirm signup: Customizowany template z brandingiem
 - Change email: Domyślny lub customizowany
 - Reset password: Customizowany (jeśli implementujemy)
 
 **Email Auth**:
+
 - Enable Email provider: ✓
 - Confirm email: Required (wymagane przed logowaniem)
 - Secure email change: Enabled
 
 **Sessions**:
+
 - Inactivity timeout: 7 days (zgodnie z US-003)
 - Refresh token rotation: Enabled
 
@@ -1334,11 +1444,13 @@ PUBLIC_SITE_URL=http://localhost:3000  # development
 **Lokalizacja**: `src/db/supabase.client.ts` (modyfikacja)
 
 **Obecny stan**:
+
 ```typescript
 export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
 ```
 
 **Rozszerzona konfiguracja**:
+
 ```typescript
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types.ts";
@@ -1351,7 +1463,7 @@ export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKe
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce', // Bezpieczniejszy flow dla SSR
+    flowType: "pkce", // Bezpieczniejszy flow dla SSR
   },
 });
 
@@ -1381,12 +1493,14 @@ Supabase Auth używa cookies do przechowywania sesji. W Astro SSR:
 3. **Clear cookies**: `signOut()` usuwa cookies
 
 **Cookie names** (Supabase v2 SSR):
+
 - `sb-<project-ref>-auth-token` - główny token sesji (zawiera access i refresh token jako JSON)
 - Alternatywnie (legacy): `sb-access-token`, `sb-refresh-token`
 
 **Uwaga**: Dokładna nazwa zależy od project ref w Supabase. Middleware używa `getSession()` które automatycznie odczytuje odpowiednie cookies.
 
 **Security**:
+
 - HttpOnly: ✓
 - Secure: ✓ (w production z HTTPS)
 - SameSite: Lax
@@ -1397,19 +1511,23 @@ Supabase Auth używa cookies do przechowywania sesji. W Astro SSR:
 Supabase SDK automatycznie odświeża tokeny przed wygaśnięciem jeśli `autoRefreshToken: true`.
 
 W middleware:
+
 ```typescript
 // getSession() automatycznie refreshuje token jeśli potrzeba
-const { data: { session }, error } = await supabaseClient.auth.getSession();
+const {
+  data: { session },
+  error,
+} = await supabaseClient.auth.getSession();
 ```
 
 #### 4.2.3 Obsługa wygasłych sesji
 
 ```typescript
 // W middleware lub helper
-if (error && error.message.includes('refresh_token_not_found')) {
+if (error && error.message.includes("refresh_token_not_found")) {
   // Token wygasł, wyloguj użytkownika
   context.locals.user = null;
-  return context.redirect('/login?session_expired=true');
+  return context.redirect("/login?session_expired=true");
 }
 ```
 
@@ -1438,6 +1556,7 @@ CREATE POLICY user_preferences_select_authenticated ON user_preferences
 **Auth helper w RLS**: `auth.uid()` zwraca ID zalogowanego użytkownika z JWT tokenu.
 
 **Testowanie RLS**:
+
 ```sql
 -- Test jako określony użytkownik
 SET LOCAL ROLE authenticated;
@@ -1474,17 +1593,22 @@ W Supabase Dashboard → Authentication → Email Templates → Confirm signup:
 ### 4.5 Bezpieczeństwo
 
 #### 4.5.1 Password hashing
+
 Supabase Auth używa bcrypt do hashowania haseł. Nie przechowujemy plain text passwords.
 
 #### 4.5.2 JWT Tokens
+
 - Access token: Krótkoterminowy (1h), zawiera user metadata
 - Refresh token: Długoterminowy (7 dni), używany do odświeżania access tokenu
 
 #### 4.5.3 PKCE Flow
+
 Włączone przez `flowType: 'pkce'` w konfiguracji klienta. Dodatkowa warstwa zabezpieczeń dla auth flows.
 
 #### 4.5.4 Rate limiting
+
 Supabase ma wbudowane rate limiting dla auth endpoints:
+
 - Login: ~100 requests/hour per IP
 - Signup: ~100 requests/hour per IP
 
@@ -1514,13 +1638,13 @@ CREATE TABLE IF NOT EXISTS system_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_system_logs_level_time 
+CREATE INDEX idx_system_logs_level_time
   ON system_logs(level, created_at DESC);
 
-CREATE INDEX idx_system_logs_time 
+CREATE INDEX idx_system_logs_time
   ON system_logs(created_at DESC);
 
-COMMENT ON TABLE system_logs IS 
+COMMENT ON TABLE system_logs IS
   'General system logging for all operations including auth, scraping, and errors';
 
 -- Table: registration_attempts
@@ -1535,13 +1659,13 @@ CREATE TABLE registration_attempts (
   error_code TEXT
 );
 
-CREATE INDEX idx_registration_attempts_ip_time 
+CREATE INDEX idx_registration_attempts_ip_time
   ON registration_attempts(ip_address, attempted_at DESC);
 
-CREATE INDEX idx_registration_attempts_email_time 
+CREATE INDEX idx_registration_attempts_email_time
   ON registration_attempts(email, attempted_at DESC);
 
-COMMENT ON TABLE registration_attempts IS 
+COMMENT ON TABLE registration_attempts IS
   'Logs all registration attempts for rate limiting and security monitoring';
 
 -- Table: login_attempts
@@ -1556,13 +1680,13 @@ CREATE TABLE login_attempts (
   error_code TEXT
 );
 
-CREATE INDEX idx_login_attempts_ip_time 
+CREATE INDEX idx_login_attempts_ip_time
   ON login_attempts(ip_address, attempted_at DESC);
 
-CREATE INDEX idx_login_attempts_email_time 
+CREATE INDEX idx_login_attempts_email_time
   ON login_attempts(email, attempted_at DESC);
 
-COMMENT ON TABLE login_attempts IS 
+COMMENT ON TABLE login_attempts IS
   'Logs all login attempts for security monitoring and rate limiting';
 
 -- Table: password_change_log
@@ -1575,10 +1699,10 @@ CREATE TABLE password_change_log (
   user_agent TEXT
 );
 
-CREATE INDEX idx_password_change_log_user_time 
+CREATE INDEX idx_password_change_log_user_time
   ON password_change_log(user_id, changed_at DESC);
 
-COMMENT ON TABLE password_change_log IS 
+COMMENT ON TABLE password_change_log IS
   'Audit log of password changes for security purposes';
 
 -- Table: email_verification_resends
@@ -1589,10 +1713,10 @@ CREATE TABLE email_verification_resends (
   resent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_email_verification_resends_email_time 
+CREATE INDEX idx_email_verification_resends_email_time
   ON email_verification_resends(email, resent_at DESC);
 
-COMMENT ON TABLE email_verification_resends IS 
+COMMENT ON TABLE email_verification_resends IS
   'Tracks verification email resends for rate limiting';
 
 -- Cleanup function: Delete old logs (retention 90 days)
@@ -1607,7 +1731,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-COMMENT ON FUNCTION cleanup_auth_logs() IS 
+COMMENT ON FUNCTION cleanup_auth_logs() IS
   'Cleans up old auth logs according to retention policy';
 
 -- Schedule cleanup (using pg_cron if available, otherwise manual)
@@ -1636,7 +1760,7 @@ DECLARE
 BEGIN
   -- Get current user ID from JWT
   user_id_param := auth.uid();
-  
+
   IF user_id_param IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
@@ -1645,14 +1769,14 @@ BEGIN
   timestamp_val := EXTRACT(EPOCH FROM NOW())::BIGINT;
 
   -- Soft delete all user offers
-  UPDATE user_offer 
-  SET deleted_at = NOW() 
+  UPDATE user_offer
+  SET deleted_at = NOW()
   WHERE user_id = user_id_param
     AND deleted_at IS NULL;
 
   -- Anonymize email in auth.users
-  UPDATE auth.users 
-  SET 
+  UPDATE auth.users
+  SET
     email = 'deleted_' || timestamp_val || '@deleted.com',
     encrypted_password = NULL,
     email_confirmed_at = NULL
@@ -1668,7 +1792,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-COMMENT ON FUNCTION delete_user_account() IS 
+COMMENT ON FUNCTION delete_user_account() IS
   'Anonymizes user account data (soft delete). Callable by authenticated user to delete their own account.';
 
 -- Grant execute to authenticated users
@@ -1690,6 +1814,7 @@ GRANT EXECUTE ON FUNCTION delete_user_account() TO authenticated;
 #### 6.1.1 Rejestracja
 
 **Test Case 1: Pomyślna rejestracja**
+
 ```
 1. Wejdź na /register
 2. Wypełnij email: test@example.com
@@ -1701,6 +1826,7 @@ Oczekiwany wynik: Redirect na /verify-email, komunikat o sprawdzeniu emaila
 ```
 
 **Test Case 2: Email już istnieje**
+
 ```
 1. Zarejestruj użytkownika test@example.com
 2. Spróbuj zarejestrować ponownie tego samego emaila
@@ -1708,6 +1834,7 @@ Oczekiwany wynik: Błąd 409 "Email jest już zarejestrowany"
 ```
 
 **Test Case 3: Captcha nieprawidłowa**
+
 ```
 1. Wypełnij formularz poprawnie
 2. NIE rozwiąż captcha lub użyj nieprawidłowego tokenu
@@ -1715,6 +1842,7 @@ Oczekiwany wynik: Błąd "Potwierdź że nie jesteś robotem"
 ```
 
 **Test Case 4: Rate limiting**
+
 ```
 1. Zarejestruj 3 konta z tego samego IP w ciągu 24h
 2. Spróbuj zarejestrować 4. konto
@@ -1724,6 +1852,7 @@ Oczekiwany wynik: Błąd 429 "Zbyt wiele prób rejestracji z tego IP"
 #### 6.1.2 Logowanie
 
 **Test Case 1: Pomyślne logowanie**
+
 ```
 1. Zarejestruj i zweryfikuj konto
 2. Wejdź na /login
@@ -1733,6 +1862,7 @@ Oczekiwany wynik: Redirect na /dashboard, sesja aktywna
 ```
 
 **Test Case 2: Nieprawidłowe hasło**
+
 ```
 1. Wprowadź prawidłowy email
 2. Wprowadź nieprawidłowe hasło
@@ -1740,6 +1870,7 @@ Oczekiwany wynik: Błąd "Nieprawidłowy email lub hasło"
 ```
 
 **Test Case 3: Email niezweryfikowany**
+
 ```
 1. Zarejestruj konto BEZ weryfikacji emaila
 2. Spróbuj się zalogować
@@ -1747,6 +1878,7 @@ Oczekiwany wynik: Błąd "Potwierdź email przed logowaniem" + przycisk resend
 ```
 
 **Test Case 4: Redirect po logowaniu**
+
 ```
 1. Jako niezalogowany próbuj wejść na /settings
 2. System przekierowuje na /login?returnUrl=/settings
@@ -1757,6 +1889,7 @@ Oczekiwany wynik: Redirect na /settings (a nie /dashboard)
 #### 6.1.3 Zmiana hasła
 
 **Test Case 1: Pomyślna zmiana**
+
 ```
 1. Zaloguj się
 2. Wejdź na /settings
@@ -1768,12 +1901,14 @@ Oczekiwany wynik: Toast "Hasło zostało zmienione", email informujący o zmiani
 ```
 
 **Test Case 2: Nieprawidłowe aktualne hasło**
+
 ```
 1. W formularzu zmiany hasła wprowadź nieprawidłowe aktualne hasło
 Oczekiwany wynik: Błąd "Aktualne hasło jest nieprawidłowe"
 ```
 
 **Test Case 3: Nowe hasło za krótkie**
+
 ```
 1. Wprowadź nowe hasło: "123"
 Oczekiwany wynik: Błąd walidacji "Hasło musi mieć minimum 8 znaków"
@@ -1782,18 +1917,20 @@ Oczekiwany wynik: Błąd walidacji "Hasło musi mieć minimum 8 znaków"
 #### 6.1.4 Usunięcie konta
 
 **Test Case 1: Pomyślne usunięcie**
+
 ```
 1. Zaloguj się
 2. Wejdź na /settings → "Usuń konto"
 3. W modal wpisz "USUŃ"
 4. Kliknij "Usuń konto"
-Oczekiwany wynik: 
+Oczekiwany wynik:
   - Soft delete user_offer (deleted_at ustawiony)
   - Email anonimizowany do deleted_{timestamp}@deleted.com
   - Wylogowanie i redirect na /
 ```
 
 **Test Case 2: Nieprawidłowe potwierdzenie**
+
 ```
 1. W modal wpisz "usuń" (małe litery) zamiast "USUŃ"
 Oczekiwany wynik: Przycisk "Usuń konto" pozostaje disabled
@@ -1806,43 +1943,44 @@ Oczekiwany wynik: Przycisk "Usuń konto" pozostaje disabled
 **Framework**: Playwright lub Cypress
 
 **Przykładowy test E2E**:
+
 ```typescript
 // tests/auth/registration.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('User Registration', () => {
-  test('should register new user successfully', async ({ page }) => {
-    await page.goto('/register');
-    
+test.describe("User Registration", () => {
+  test("should register new user successfully", async ({ page }) => {
+    await page.goto("/register");
+
     const email = `test-${Date.now()}@example.com`;
     await page.fill('[name="email"]', email);
-    await page.fill('[name="password"]', 'TestPass123');
-    await page.fill('[name="confirmPassword"]', 'TestPass123');
-    
+    await page.fill('[name="password"]', "TestPass123");
+    await page.fill('[name="confirmPassword"]', "TestPass123");
+
     // Mock captcha (w dev environment)
     await page.evaluate(() => {
       (window as any).mockCaptcha = true;
     });
-    
+
     await page.click('button[type="submit"]');
-    
+
     // Should redirect to verify-email
     await expect(page).toHaveURL(/\/verify-email/);
-    await expect(page.locator('text=Sprawdź email')).toBeVisible();
+    await expect(page.locator("text=Sprawdź email")).toBeVisible();
   });
 
-  test('should show error for existing email', async ({ page }) => {
-    await page.goto('/register');
-    
+  test("should show error for existing email", async ({ page }) => {
+    await page.goto("/register");
+
     // Use existing email
-    await page.fill('[name="email"]', 'existing@example.com');
-    await page.fill('[name="password"]', 'TestPass123');
-    await page.fill('[name="confirmPassword"]', 'TestPass123');
-    
+    await page.fill('[name="email"]', "existing@example.com");
+    await page.fill('[name="password"]', "TestPass123");
+    await page.fill('[name="confirmPassword"]', "TestPass123");
+
     await page.click('button[type="submit"]');
-    
+
     // Should show error
-    await expect(page.locator('text=Email jest już zarejestrowany')).toBeVisible();
+    await expect(page.locator("text=Email jest już zarejestrowany")).toBeVisible();
   });
 });
 ```
@@ -1854,45 +1992,46 @@ test.describe('User Registration', () => {
 **Framework**: Vitest
 
 **Przykład: Walidatory**
+
 ```typescript
 // tests/unit/auth.validators.test.ts
-import { describe, it, expect } from 'vitest';
-import { RegisterSchema } from '@/lib/validators/auth.validators';
+import { describe, it, expect } from "vitest";
+import { RegisterSchema } from "@/lib/validators/auth.validators";
 
-describe('RegisterSchema', () => {
-  it('should validate correct registration data', () => {
+describe("RegisterSchema", () => {
+  it("should validate correct registration data", () => {
     const data = {
-      email: 'test@example.com',
-      password: 'TestPass123',
-      captchaToken: 'valid-token',
+      email: "test@example.com",
+      password: "TestPass123",
+      captchaToken: "valid-token",
     };
-    
+
     const result = RegisterSchema.safeParse(data);
     expect(result.success).toBe(true);
   });
 
-  it('should reject invalid email', () => {
+  it("should reject invalid email", () => {
     const data = {
-      email: 'invalid-email',
-      password: 'TestPass123',
-      captchaToken: 'valid-token',
+      email: "invalid-email",
+      password: "TestPass123",
+      captchaToken: "valid-token",
     };
-    
+
     const result = RegisterSchema.safeParse(data);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('Invalid email');
+    expect(result.error?.issues[0].message).toContain("Invalid email");
   });
 
-  it('should reject short password', () => {
+  it("should reject short password", () => {
     const data = {
-      email: 'test@example.com',
-      password: '123',
-      captchaToken: 'valid-token',
+      email: "test@example.com",
+      password: "123",
+      captchaToken: "valid-token",
     };
-    
+
     const result = RegisterSchema.safeParse(data);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('at least 8 characters');
+    expect(result.error?.issues[0].message).toContain("at least 8 characters");
   });
 });
 ```
@@ -1904,6 +2043,7 @@ describe('RegisterSchema', () => {
 ### 7.1 Zmienne środowiskowe
 
 **Development** (`.env.local`):
+
 ```env
 SUPABASE_URL=http://localhost:54321
 SUPABASE_KEY=your-local-anon-key
@@ -1914,6 +2054,7 @@ PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 **Production** (VPS environment variables):
+
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-production-anon-key
@@ -1928,6 +2069,7 @@ PUBLIC_SITE_URL=https://pricehistory.pl
 ### 7.2 Checklist wdrożenia
 
 **Przed wdrożeniem**:
+
 - [ ] Migracje bazy danych zastosowane w Supabase
 - [ ] RLS policies włączone i przetestowane
 - [ ] Zmienne środowiskowe production ustawione
@@ -1937,6 +2079,7 @@ PUBLIC_SITE_URL=https://pricehistory.pl
 - [ ] HTTPS włączony na domenie (wymagane dla secure cookies)
 
 **Po wdrożeniu**:
+
 - [ ] Test rejestracji + weryfikacja email
 - [ ] Test logowania
 - [ ] Test zmiany hasła
@@ -1951,6 +2094,7 @@ PUBLIC_SITE_URL=https://pricehistory.pl
 ### 8.1 Metryki do śledzenia
 
 **Authentication metrics**:
+
 - Liczba rejestracji dziennie/tygodniowo
 - Success rate logowania (successful_logins / total_attempts)
 - Liczba nieudanych prób logowania (security)
@@ -1958,18 +2102,19 @@ PUBLIC_SITE_URL=https://pricehistory.pl
 - Liczba usuniętych kont
 
 **Query**:
+
 ```sql
 -- Daily registrations
-SELECT DATE(attempted_at) as date, COUNT(*) 
-FROM registration_attempts 
-WHERE success = true 
+SELECT DATE(attempted_at) as date, COUNT(*)
+FROM registration_attempts
+WHERE success = true
 GROUP BY DATE(attempted_at)
 ORDER BY date DESC;
 
 -- Failed login attempts (security alert)
 SELECT email, COUNT(*) as failed_attempts
 FROM login_attempts
-WHERE success = false 
+WHERE success = false
   AND attempted_at > NOW() - INTERVAL '1 hour'
 GROUP BY email
 HAVING COUNT(*) > 5;
@@ -1983,9 +2128,9 @@ HAVING COUNT(*) > 5;
 
 ```typescript
 export enum LogLevel {
-  INFO = 'info',
-  WARNING = 'warning',
-  ERROR = 'error',
+  INFO = "info",
+  WARNING = "warning",
+  ERROR = "error",
 }
 
 export interface LogEntry {
@@ -1999,7 +2144,7 @@ export class Logger {
   constructor(private supabase: SupabaseClient<Database>) {}
 
   async log(entry: LogEntry): Promise<void> {
-    await this.supabase.from('system_logs').insert({
+    await this.supabase.from("system_logs").insert({
       level: entry.level,
       message: entry.message,
       context: entry.context || {},
@@ -2022,29 +2167,30 @@ export class Logger {
 ```
 
 **Przykładowe logi auth**:
+
 ```typescript
 // Po rejestracji
-await logger.info('User registered', { 
-  userId: user.id, 
-  email: user.email 
+await logger.info("User registered", {
+  userId: user.id,
+  email: user.email,
 });
 
 // Po nieudanym logowaniu
-await logger.warning('Failed login attempt', { 
-  email: attemptedEmail, 
+await logger.warning("Failed login attempt", {
+  email: attemptedEmail,
   ip: clientIp,
-  reason: 'invalid_credentials' 
+  reason: "invalid_credentials",
 });
 
 // Po zmianie hasła
-await logger.info('Password changed', { 
-  userId: user.id 
+await logger.info("Password changed", {
+  userId: user.id,
 });
 
 // Po usunięciu konta
-await logger.info('Account deleted', { 
+await logger.info("Account deleted", {
   userId: user.id,
-  email: anonymizedEmail 
+  email: anonymizedEmail,
 });
 ```
 
@@ -2055,43 +2201,51 @@ await logger.info('Account deleted', {
 ### 9.1 Implementowane zabezpieczenia
 
 ✅ **Hasła**:
+
 - Hashing przez Supabase Auth (bcrypt)
 - Minimalna długość 8 znaków
 - Brak przechowywania plain text
 
 ✅ **Sesje**:
+
 - JWT tokens (access + refresh)
 - HttpOnly, Secure cookies
 - 7 dni timeout
 - Auto-refresh przez Supabase SDK
 
 ✅ **Rate Limiting**:
+
 - Rejestracja: 3/24h per IP
 - Logowanie: 5/15min per IP
 - Resend email: 1/minute per email
 - Zmiana hasła: 3/hour per user
 
 ✅ **CAPTCHA**:
+
 - hCaptcha lub Cloudflare Turnstile
 - Wymagany przy rejestracji
 - Server-side verification
 
 ✅ **Row Level Security**:
+
 - Wszystkie tabele user-facing mają RLS
 - Izolacja danych użytkowników
 - Automatyczna weryfikacja przez `auth.uid()`
 
 ✅ **Email Verification**:
+
 - Wymagana przed pełnym dostępem
 - Link ważny 24h
 - Możliwość resend z rate limiting
 
 ✅ **Audit Logging**:
+
 - Rejestracja, logowanie, zmiana hasła, usunięcie konta
 - IP address tracking
 - Retention 90 dni
 
 ✅ **Input Validation**:
+
 - Client-side (React)
 - Server-side (Zod schemas)
 - SQL injection protection (prepared statements/RLS)
@@ -2101,28 +2255,34 @@ await logger.info('Account deleted', {
 ### 9.2 Potencjalne rozszerzenia (poza MVP)
 
 🔮 **2FA (Two-Factor Authentication)**:
+
 - TOTP przez Supabase Auth
 - Opcjonalne dla użytkowników premium
 
 🔮 **OAuth Providers**:
+
 - Google Sign-In
 - Facebook Login
 - Łatwe do dodania przez Supabase
 
 🔮 **Password Reset**:
+
 - Formularz /forgot-password
 - Email z linkiem resetującym
 - Supabase Auth ma built-in support
 
 🔮 **Account Recovery**:
+
 - Backup codes
 - Security questions
 
 🔮 **Advanced Rate Limiting**:
+
 - IP reputation scoring
 - Distributed rate limiting (Redis)
 
 🔮 **Brute Force Protection**:
+
 - Account lockout po X nieudanych prób
 - CAPTCHA po 3 nieudanych próbach logowania
 
@@ -2132,7 +2292,7 @@ await logger.info('Account deleted', {
 
 ### 10.1 Kluczowe decyzje architektoniczne
 
-1. **Supabase Auth jako fundament**: 
+1. **Supabase Auth jako fundament**:
    - Gotowe rozwiązanie, battle-tested
    - Integracja z PostgreSQL i RLS
    - Email verification out of the box
@@ -2304,6 +2464,7 @@ Browser                  Middleware             Supabase Auth         Database
 ## 11. KOLEJNOŚĆ IMPLEMENTACJI
 
 ### 11.1 Faza 1: Fundament (Dzień 1-2)
+
 1. Migracje bazy danych (`auth_tables.sql`, `delete_account_function.sql`)
 2. Konfiguracja Supabase Auth (Dashboard settings, email templates)
 3. Modyfikacja `supabase.client.ts` (auth config, admin client)
@@ -2312,6 +2473,7 @@ Browser                  Middleware             Supabase Auth         Database
 6. AuthLayout + auth utilities
 
 ### 11.2 Faza 2: Rejestracja i logowanie (Dzień 2-3)
+
 1. Walidatory Zod (`auth.validators.ts`)
 2. Serwisy (`auth.service.ts`, `captcha.service.ts`, `logger.service.ts`)
 3. Endpoint `/api/auth/register`
@@ -2322,6 +2484,7 @@ Browser                  Middleware             Supabase Auth         Database
 8. Integracja captcha
 
 ### 11.3 Faza 3: Weryfikacja email (Dzień 3)
+
 1. Endpoint `/api/auth/resend-verification`
 2. Strona `/verify-email.astro`
 3. Komponent `ResendVerificationButton.tsx`
@@ -2329,6 +2492,7 @@ Browser                  Middleware             Supabase Auth         Database
 5. Testy weryfikacji
 
 ### 11.4 Faza 4: Zarządzanie kontem (Dzień 4)
+
 1. Endpoint `/api/auth/change-password`
 2. Endpoint `/api/auth/delete-account`
 3. Modyfikacja `PasswordChangeForm.tsx`
@@ -2336,6 +2500,7 @@ Browser                  Middleware             Supabase Auth         Database
 5. Integracja z `/settings.astro`
 
 ### 11.5 Faza 5: Ochrona stron (Dzień 4-5)
+
 1. Guards w middleware (redirect niezalogowanych)
 2. Modyfikacja `/dashboard.astro` (auth required)
 3. Modyfikacja `/settings.astro` (auth required)
@@ -2344,12 +2509,14 @@ Browser                  Middleware             Supabase Auth         Database
 6. Integracja z istniejącym `Layout.astro`
 
 ### 11.6 Faza 6: Rate limiting i security (Dzień 5)
+
 1. Implementacja rate limiting checks w endpointach
 2. Logging wszystkich operacji auth
 3. Error handling i custom error types
 4. Testy security (brute force, rate limits)
 
 ### 11.7 Faza 7: Testy i deployment (Dzień 6-7)
+
 1. Testy jednostkowe (validators, services)
 2. Testy integracyjne (E2E z Playwright)
 3. Testy manualne wszystkich flows
@@ -2377,11 +2544,13 @@ Browser                  Middleware             Supabase Auth         Database
 ```
 
 **Opcjonalnie (jeśli używamy hCaptcha React component)**:
+
 ```bash
 npm install @hcaptcha/react-hcaptcha
 ```
 
 **Opcjonalnie (jeśli używamy Cloudflare Turnstile)**:
+
 ```bash
 npm install @marsidev/react-turnstile
 ```
@@ -2391,6 +2560,7 @@ npm install @marsidev/react-turnstile
 ## 13. CHECKLIST ZGODNOŚCI Z PRD
 
 ✅ **US-001: Rejestracja nowego konta**
+
 - [x] Formularz: email, hasło, potwierdzenie hasła
 - [x] Walidacja formatu email (regex)
 - [x] Hasło min 8 znaków
@@ -2401,6 +2571,7 @@ npm install @marsidev/react-turnstile
 - [x] Błąd przy przekroczeniu: "Zbyt wiele prób rejestracji"
 
 ✅ **US-002: Weryfikacja konta email**
+
 - [x] Email z unikalnym linkiem
 - [x] Link ważny 24h (Supabase default)
 - [x] Potwierdzenie email w bazie
@@ -2409,6 +2580,7 @@ npm install @marsidev/react-turnstile
 - [x] Możliwość ponownego wysłania linku
 
 ✅ **US-003: Logowanie do systemu**
+
 - [x] Formularz: email, hasło
 - [x] Weryfikacja przez Supabase Auth
 - [x] Redirect do /dashboard przy sukcesie
@@ -2417,12 +2589,14 @@ npm install @marsidev/react-turnstile
 - [x] Session timeout 7 dni
 
 ✅ **US-004: Wylogowanie z systemu**
+
 - [x] Przycisk "Wyloguj" w nawigacji
 - [x] Zakończenie sesji Supabase
 - [x] Redirect do /
 - [x] Redirect do /login przy próbie dostępu bez sesji
 
 ✅ **US-005: Zmiana hasła**
+
 - [x] Formularz w /settings
 - [x] Pola: aktualne, nowe, potwierdzenie
 - [x] Weryfikacja aktualnego hasła
@@ -2432,10 +2606,11 @@ npm install @marsidev/react-turnstile
 - [x] Email informujący o zmianie
 
 ✅ **US-006: Usunięcie konta**
+
 - [x] Opcja w /settings, sekcja "Niebezpieczne akcje"
 - [x] Modal potwierdzający z ostrzeżeniem
 - [x] Input: wpisz "USUŃ"
-- [x] Anonimizacja: deleted_{timestamp}@deleted.com
+- [x] Anonimizacja: deleted\_{timestamp}@deleted.com
 - [x] Usunięcie hasła i danych auth
 - [x] Soft delete user_offer
 - [x] Historia cen pozostaje
@@ -2479,6 +2654,7 @@ npm install @marsidev/react-turnstile
 **Problem**: Istniejące endpointy używają `DEFAULT_USER_ID`
 
 **Lokalizacje do aktualizacji**:
+
 - `src/pages/api/dashboard.ts`
 - `src/pages/api/offers.ts`
 - `src/pages/api/offers/[id].ts`
@@ -2486,6 +2662,7 @@ npm install @marsidev/react-turnstile
 - `src/pages/api/preferences.ts`
 
 **Wzorzec aktualizacji**:
+
 ```typescript
 // PRZED (obecny stan)
 const userId = DEFAULT_USER_ID;
@@ -2493,7 +2670,7 @@ const userId = DEFAULT_USER_ID;
 // PO (z autentykacją)
 const userId = Astro.locals.current_user_id;
 if (!userId) {
-  return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 }
 ```
 
@@ -2503,17 +2680,13 @@ if (!userId) {
 
 ```typescript
 // Po zalogowaniu sprawdź czy user ma preferences
-const { data: prefs } = await supabase
-  .from('user_preferences')
-  .select('user_id')
-  .eq('user_id', userId)
-  .single();
+const { data: prefs } = await supabase.from("user_preferences").select("user_id").eq("user_id", userId).single();
 
 if (!prefs) {
   // Utwórz domyślne preferencje
-  await supabase.from('user_preferences').insert({
+  await supabase.from("user_preferences").insert({
     user_id: userId,
-    default_frequency: '24h',
+    default_frequency: "24h",
   });
 }
 ```
@@ -2529,18 +2702,14 @@ if (!prefs) {
 ```typescript
 // ✅ POPRAWNIE
 export async function GET({ locals }: APIContext) {
-  const { data } = await locals.supabase
-    .from('user_offer')
-    .select('*');
+  const { data } = await locals.supabase.from("user_offer").select("*");
   // RLS automatycznie filtruje do user_id z sesji
 }
 
 // ❌ ŹLE
-import { supabaseClient } from '@/db/supabase.client';
+import { supabaseClient } from "@/db/supabase.client";
 export async function GET() {
-  const { data } = await supabaseClient
-    .from('user_offer')
-    .select('*');
+  const { data } = await supabaseClient.from("user_offer").select("*");
   // RLS nie zadziała - brak kontekstu sesji
 }
 ```
@@ -2550,6 +2719,7 @@ export async function GET() {
 **Scenariusz**: Jeśli w dev environment masz dane z `DEFAULT_USER_ID`, migracja nie jest potrzebna (dev data).
 
 **Dla production**: Upewnij się że:
+
 1. Nie ma danych z `DEFAULT_USER_ID` w production
 2. Migracje auth są zastosowane PRZED pierwszym użytkownikiem
 
@@ -2558,6 +2728,7 @@ export async function GET() {
 **Obecna struktura**: `src/pages/index.astro` (US-030)
 
 **Wymagane zmiany**:
+
 - Dodaj `PublicHeader` z przyciskami "Zaloguj" / "Zarejestruj"
 - Sprawdź czy użytkownik jest zalogowany - jeśli tak, pokaż "Przejdź do Dashboard"
 
@@ -2568,11 +2739,7 @@ const user = Astro.locals.user;
 ---
 
 <Layout>
-  {user ? (
-    <a href="/dashboard">Przejdź do Dashboard</a>
-  ) : (
-    <a href="/register">Zacznij za darmo</a>
-  )}
+  {user ? <a href="/dashboard">Przejdź do Dashboard</a> : <a href="/register">Zacznij za darmo</a>}
 </Layout>
 ```
 
@@ -2602,17 +2769,20 @@ const user = Astro.locals.user;
 ### 16.2 Testing strategy
 
 **Unit tests** (Vitest):
+
 - Validators (Zod schemas)
 - Error handlers
 - Auth utilities
 
 **Integration tests** (Playwright):
+
 - Full registration flow
 - Login flow
 - Password change
 - Account deletion
 
 **Manual testing checklist**:
+
 - [ ] Rejestracja z captcha
 - [ ] Email verification link
 - [ ] Login z verified/unverified account
@@ -2625,18 +2795,22 @@ const user = Astro.locals.user;
 ### 16.3 Potencjalne pułapki
 
 ⚠️ **PKCE flow w Supabase**:
+
 - Wymaga odpowiedniej konfiguracji `emailRedirectTo`
 - Testuj w różnych środowiskach (localhost vs production URL)
 
 ⚠️ **Captcha w development**:
+
 - Użyj test keys dla hCaptcha/Turnstile
 - Rozważ env variable do wyłączenia captcha w dev
 
 ⚠️ **IP address w rate limiting**:
+
 - Za proxy: sprawdź `X-Forwarded-For`, `X-Real-IP`
 - W Astro: `Astro.clientAddress` (może być proxy IP)
 
 ⚠️ **Session timing**:
+
 - Access token: 1h (Supabase default)
 - Refresh token: 7 dni (zgodnie z PRD)
 - Upewnij się że Supabase nie ma innego ustawienia
@@ -2652,13 +2826,14 @@ const user = Astro.locals.user;
 ✅ **US-003**: Wszystkie kryteria pokryte w sekcjach 2.1.2, 3.1.2, 4.2  
 ✅ **US-004**: Wszystkie kryteria pokryte w sekcjach 2.1.4, 3.1.3  
 ✅ **US-005**: Wszystkie kryteria pokryte w sekcjach 2.1.2, 3.1.5  
-✅ **US-006**: Wszystkie kryteria pokryte w sekcjach 2.1.2, 3.1.6, 5.2  
+✅ **US-006**: Wszystkie kryteria pokryte w sekcjach 2.1.2, 3.1.6, 5.2
 
 ### 17.2 Zgodność z harmonogramem
 
 **Tydzień 1 (PRD 1.6)**: Autentykacja, dodawanie URL, podstawowy scraping, lista ofert
 
 **Auth-spec pokrywa**:
+
 - ✅ Faza 1-3 (Dni 1-3): Fundament + Rejestracja/Logowanie + Weryfikacja
 - ✅ Integracja z istniejącymi endpointami (sekcja 15.1)
 - ✅ User_preferences auto-tworzenie (sekcja 15.2)
@@ -2684,6 +2859,7 @@ Wersja: 1.1 (zaktualizowana po weryfikacji z PRD)
 Status: Gotowy do implementacji
 
 **Changelog v1.1**:
+
 - ✅ Dodano tabelę `system_logs` w migracji (wymagana przez delete_user_account)
 - ✅ Zaktualizowano nazwy cookies Supabase (sb-<project-ref>-auth-token)
 - ✅ Dodano sekcję 15: Integracja z istniejącymi funkcjonalnościami
@@ -2691,4 +2867,3 @@ Status: Gotowy do implementacji
 - ✅ Dodano sekcję 17: Kompatybilność z PRD
 - ✅ Rozszerzono cleanup function o system_logs
 - ✅ Dodano uwagi o potencjalnych pułapkach
-

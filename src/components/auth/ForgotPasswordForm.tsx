@@ -29,54 +29,57 @@ export default function ForgotPasswordForm() {
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setError(null);
+      setSuccess(false);
 
-    // Validate email
-    if (!validateEmail(email)) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        // Handle specific error codes
-        switch (response.status) {
-          case 429:
-            setError("Zbyt wiele prób. Spróbuj ponownie za chwilę");
-            break;
-          case 400:
-            setError(data.error || "Nieprawidłowy adres email");
-            break;
-          default:
-            setError(data.error || "Wystąpił błąd, spróbuj ponownie");
-        }
+      // Validate email
+      if (!validateEmail(email)) {
         return;
       }
 
-      // Show success message
-      setSuccess(true);
-      setEmail("");
-    } catch (err) {
-      console.error("Forgot password error:", err);
-      setError("Wystąpił błąd połączenia, spróbuj ponownie");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [email, validateEmail]);
+      setIsLoading(true);
+
+      try {
+        const response = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email.trim() }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          // Handle specific error codes
+          switch (response.status) {
+            case 429:
+              setError("Zbyt wiele prób. Spróbuj ponownie za chwilę");
+              break;
+            case 400:
+              setError(data.error || "Nieprawidłowy adres email");
+              break;
+            default:
+              setError(data.error || "Wystąpił błąd, spróbuj ponownie");
+          }
+          return;
+        }
+
+        // Show success message
+        setSuccess(true);
+        setEmail("");
+      } catch (err) {
+        console.error("Forgot password error:", err);
+        setError("Wystąpił błąd połączenia, spróbuj ponownie");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email, validateEmail]
+  );
 
   // Handle email blur
   const handleEmailBlur = useCallback(() => {
@@ -101,9 +104,7 @@ export default function ForgotPasswordForm() {
             <p className="text-sm text-muted-foreground">
               Sprawdź swoją skrzynkę email. Jeśli nie widzisz wiadomości, sprawdź folder spam.
             </p>
-            <p className="text-sm text-muted-foreground">
-              Link będzie ważny przez 60 minut.
-            </p>
+            <p className="text-sm text-muted-foreground">Link będzie ważny przez 60 minut.</p>
           </div>
         ) : (
           <form id="forgot-password-form" onSubmit={handleSubmit} className="space-y-4">
@@ -137,35 +138,23 @@ export default function ForgotPasswordForm() {
                 disabled={isLoading}
                 aria-invalid={!!validationError}
                 autoComplete="email"
-                autoFocus
               />
-              {validationError && (
-                <p className="text-sm text-destructive">{validationError}</p>
-              )}
+              {validationError && <p className="text-sm text-destructive">{validationError}</p>}
             </div>
           </form>
         )}
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
         {!success && (
-          <Button
-            type="submit"
-            form="forgot-password-form"
-            disabled={isLoading || !email.trim()}
-            className="w-full"
-          >
+          <Button type="submit" form="forgot-password-form" disabled={isLoading || !email.trim()} className="w-full">
             {isLoading ? "Wysyłanie..." : "Wyślij link resetujący"}
           </Button>
         )}
 
-        <a 
-          href="/login" 
-          className="text-sm text-primary hover:underline text-center"
-        >
+        <a href="/login" className="text-sm text-primary hover:underline text-center">
           Wróć do logowania
         </a>
       </CardFooter>
     </Card>
   );
 }
-

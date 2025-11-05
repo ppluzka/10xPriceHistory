@@ -10,9 +10,7 @@ vi.mock("@/components/settings", () => ({
   FrequencySettingsForm: ({ initialPreferences, onSubmit }: any) => (
     <div data-testid="frequency-form">
       <p>Frequency: {initialPreferences.defaultFrequency}</p>
-      <button onClick={() => onSubmit({ defaultFrequency: "24h" })}>
-        Update Frequency
-      </button>
+      <button onClick={() => onSubmit({ defaultFrequency: "24h" })}>Update Frequency</button>
     </div>
   ),
   PasswordChangeForm: ({ onSubmit }: any) => (
@@ -93,9 +91,7 @@ describe("SettingsView", () => {
     });
 
     it("should have proper container structure", () => {
-      const { container } = render(
-        <SettingsView initialPreferences={defaultPreferences} />
-      );
+      const { container } = render(<SettingsView initialPreferences={defaultPreferences} />);
 
       const mainContainer = container.querySelector(".container");
       expect(mainContainer).toBeInTheDocument();
@@ -139,9 +135,7 @@ describe("SettingsView", () => {
         isLoading: true,
       });
 
-      const { container } = render(
-        <SettingsView initialPreferences={null} />
-      );
+      const { container } = render(<SettingsView initialPreferences={null} />);
 
       // Check for card structures
       const cards = container.querySelectorAll(".rounded-xl.border");
@@ -228,9 +222,7 @@ describe("SettingsView", () => {
         isLoading: false,
       });
 
-      const { container } = render(
-        <SettingsView initialPreferences={null} />
-      );
+      const { container } = render(<SettingsView initialPreferences={null} />);
 
       const errorElement = container.querySelector(".text-destructive");
       expect(errorElement).toBeInTheDocument();
@@ -310,14 +302,10 @@ describe("SettingsView", () => {
         preferences: null,
         isLoading: true,
       });
-      
-      const { rerender, container } = render(
-        <SettingsView initialPreferences={null} />
-      );
 
-      expect(
-        container.querySelectorAll(".animate-pulse").length
-      ).toBeGreaterThan(0);
+      const { rerender, container } = render(<SettingsView initialPreferences={null} />);
+
+      expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
 
       // Then loaded
       mockUseSettings.mockReturnValue({
@@ -340,9 +328,7 @@ describe("SettingsView", () => {
         isLoading: false,
       });
 
-      const { rerender } = render(
-        <SettingsView initialPreferences={null} />
-      );
+      const { rerender } = render(<SettingsView initialPreferences={null} />);
 
       expect(screen.getByText("Error")).toBeInTheDocument();
 
@@ -417,9 +403,7 @@ describe("SettingsView", () => {
 
   describe("Accessibility", () => {
     it("should have proper semantic structure", () => {
-      const { container } = render(
-        <SettingsView initialPreferences={defaultPreferences} />
-      );
+      const { container } = render(<SettingsView initialPreferences={defaultPreferences} />);
 
       const mainContainer = container.querySelector(".container");
       expect(mainContainer).toBeInTheDocument();
@@ -432,9 +416,7 @@ describe("SettingsView", () => {
     });
 
     it("should have proper spacing between sections", () => {
-      const { container } = render(
-        <SettingsView initialPreferences={defaultPreferences} />
-      );
+      const { container } = render(<SettingsView initialPreferences={defaultPreferences} />);
 
       const spaceContainer = container.querySelector(".space-y-6");
       expect(spaceContainer).toBeInTheDocument();
@@ -455,15 +437,9 @@ describe("SettingsView", () => {
       expect(deleteSection).toBeInTheDocument();
 
       // All should have action buttons
-      expect(
-        screen.getByRole("button", { name: /update frequency/i })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /change password/i })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /delete account/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /update frequency/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /delete account/i })).toBeInTheDocument();
     });
 
     it("should pass correct props to each component", () => {
@@ -481,22 +457,17 @@ describe("SettingsView", () => {
 
   describe("Responsive design", () => {
     it("should have responsive padding classes", () => {
-      const { container } = render(
-        <SettingsView initialPreferences={defaultPreferences} />
-      );
+      const { container } = render(<SettingsView initialPreferences={defaultPreferences} />);
 
       const mainContainer = container.querySelector(".container");
       expect(mainContainer).toHaveClass("px-4", "sm:px-6", "lg:px-8");
     });
 
     it("should constrain content width", () => {
-      const { container } = render(
-        <SettingsView initialPreferences={defaultPreferences} />
-      );
+      const { container } = render(<SettingsView initialPreferences={defaultPreferences} />);
 
       const contentContainer = container.querySelector(".max-w-2xl");
       expect(contentContainer).toBeInTheDocument();
     });
   });
 });
-

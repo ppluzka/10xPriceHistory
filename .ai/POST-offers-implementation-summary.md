@@ -47,55 +47,67 @@ Implementation of POST /api/offers endpoint for adding new Otomoto.pl offer subs
 ## 🚀 Key Features Implemented
 
 ### 1. URL Validation
+
 - **Zod Schema**: URL must be valid and contain "otomoto.pl"
 - **Domain Whitelist**: Only otomoto.pl allowed (SSRF protection)
 
 ### 2. Rate Limiting
+
 - ✅ **5 Active Subscriptions**: Checked in service layer
 - ✅ **10 Additions per 24h**: Enforced by database trigger `enforce_offer_addition_limit`
 
 ### 3. Duplicate Handling (Key Feature!)
+
 Three scenarios properly handled:
 
 a) **User already has active subscription** → 409 Conflict
+
 ```json
 { "error": "Conflict", "details": "Offer already subscribed" }
 ```
 
 b) **User previously deleted subscription** → Reactivate (UPDATE deleted_at = NULL)
+
 ```json
 { "id": 123, "message": "Offer subscription reactivated" }
 ```
 
 c) **Offer exists, assigned to other users** → Create new subscription
+
 - User gets their own `user_offer` entry
 - **Important**: User only sees price history from subscription date forward
 - RLS policies filter based on `user_offer.created_at`
+
 ```json
 { "id": 123, "message": "Offer added" }
 ```
 
 ### 4. Web Scraping with Cheerio
+
 - **Fetch with timeout**: 10-second abort controller
 - **User-Agent spoofing**: Mimics Chrome browser
 - **Multiple fallback selectors** for each data point:
 
 **Title extraction** (3 fallbacks):
+
 1. `h1[data-testid="ad-title"]` (current Otomoto structure)
 2. `h1.offer-title` (legacy selector)
 3. `meta[property="og:title"]` (OpenGraph fallback)
 
 **Image extraction** (3 fallbacks):
+
 1. `meta[property="og:image"]` (preferred, always available)
 2. `img[data-testid="photo-viewer-image"]` (photo viewer)
 3. `.offer-photos img` (gallery)
 
 **Price extraction** (3 fallbacks):
+
 1. `h3[data-testid="ad-price"]` (current structure)
 2. `.offer-price__number` (legacy)
 3. `span[class*="price"]` (generic)
 
 **City extraction** (4 fallbacks):
+
 1. `a[data-testid="ad-location"]` (preferred)
 2. `.seller-card__links a` (seller info)
 3. `p:contains("Lokalizacja")` (label-based)
@@ -103,24 +115,27 @@ c) **Offer exists, assigned to other users** → Create new subscription
 5. Default: "Nieznana"
 
 ### 5. Data Validation
+
 - Price must be > 0 and < 10,000,000
 - Currency detection: PLN (default), EUR (€), USD ($)
 - Title is required (throws error if missing)
 - City cleanup: removes extra text after comma
 
 ### 6. Error Handling
-| Code | Scenario | Response |
-|------|----------|----------|
-| 400 | Invalid JSON body | `{ error: "Bad Request", details: "Invalid JSON in request body" }` |
-| 400 | Invalid URL format | Zod validation errors |
-| 400 | Extraction failed | `{ error: "Bad Request", details: "Data extraction failed: ..." }` |
-| 400 | Fetch timeout | `{ error: "Bad Request", details: "Failed to fetch page: request timeout (10s)" }` |
-| 409 | Already subscribed | `{ error: "Conflict", details: "Offer already subscribed" }` |
-| 429 | Rate limit (5 active) | `{ error: "Too Many Requests", details: "Rate limit exceeded: maximum 5 active subscriptions allowed" }` |
-| 429 | Rate limit (10/24h) | `{ error: "Too Many Requests", details: "Rate limit exceeded: maximum 10 offer additions per 24 hours" }` |
-| 500 | Database error | `{ error: "Internal Server Error" }` (logged to console) |
+
+| Code | Scenario              | Response                                                                                                  |
+| ---- | --------------------- | --------------------------------------------------------------------------------------------------------- |
+| 400  | Invalid JSON body     | `{ error: "Bad Request", details: "Invalid JSON in request body" }`                                       |
+| 400  | Invalid URL format    | Zod validation errors                                                                                     |
+| 400  | Extraction failed     | `{ error: "Bad Request", details: "Data extraction failed: ..." }`                                        |
+| 400  | Fetch timeout         | `{ error: "Bad Request", details: "Failed to fetch page: request timeout (10s)" }`                        |
+| 409  | Already subscribed    | `{ error: "Conflict", details: "Offer already subscribed" }`                                              |
+| 429  | Rate limit (5 active) | `{ error: "Too Many Requests", details: "Rate limit exceeded: maximum 5 active subscriptions allowed" }`  |
+| 429  | Rate limit (10/24h)   | `{ error: "Too Many Requests", details: "Rate limit exceeded: maximum 10 offer additions per 24 hours" }` |
+| 500  | Database error        | `{ error: "Internal Server Error" }` (logged to console)                                                  |
 
 ### 7. Transaction Safety
+
 - If `user_offer` insert fails → cleanup `offers` table
 - If `price_history` insert fails → log error but don't fail (can be added later)
 
@@ -132,13 +147,13 @@ c) **Offer exists, assigned to other users** → Create new subscription
 3. POST handler → Zod validation (URL format + otomoto.pl domain)
 4. OfferService.add() → Check active subscriptions limit (5)
 5. OfferService.add() → Check if offer exists in DB
-   
+
    IF offer exists:
      6a. Check user_offer for this user
      6b. IF active subscription → 409 Conflict
      6c. IF deleted subscription → Reactivate (UPDATE deleted_at = NULL) → 201
      6d. IF no subscription → INSERT user_offer → 201
-   
+
    IF offer doesn't exist:
      7. extractOfferData(url) → Fetch HTML + Parse with cheerio
      8. INSERT offers (title, image_url, price, city, selector, status, frequency)
@@ -215,5 +230,3 @@ The POST /api/offers endpoint is **fully implemented, tested, and documented**. 
 - ✅ **Key feature**: Proper handling of offers assigned to multiple users
 
 **Status**: ✅ READY FOR NEXT ENDPOINT
-
-

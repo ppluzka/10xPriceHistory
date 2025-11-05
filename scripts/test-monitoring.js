@@ -77,7 +77,7 @@ try {
   let data;
   try {
     data = JSON.parse(responseText);
-  } catch (parseError) {
+  } catch {
     // If not JSON, it's probably HTML (error page)
     console.error("❌ Response is not JSON (likely an error page):");
     console.error("─".repeat(60));

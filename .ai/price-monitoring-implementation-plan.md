@@ -76,6 +76,7 @@ Mechanizm automatycznego monitorowania cen to system cyklicznego sprawdzania akt
 ### 3.1 ScrapingService (`src/lib/services/scraping.service.ts`)
 
 **Odpowiedzialności:**
+
 - Pobieranie HTML z URL oferty z rotacją User-Agent
 - Parsowanie HTML przy użyciu Cheerio.js
 - Ekstrakcja ceny za pomocą zapisanego selektora CSS/XPath
@@ -83,6 +84,7 @@ Mechanizm automatycznego monitorowania cen to system cyklicznego sprawdzania akt
 - Obsługa HTTP errors (404, 410, timeout, etc.)
 
 **Interfejs publiczny:**
+
 ```typescript
 interface ScrapingService {
   fetchOfferPage(url: string): Promise<string>; // Returns HTML
@@ -100,12 +102,14 @@ interface ExtractedPrice {
 ### 3.2 AIExtractionService (`src/lib/services/ai-extraction.service.ts`)
 
 **Odpowiedzialności:**
+
 - Integracja z OpenRouter.ai (wykorzystanie istniejącej implementacji)
 - Ekstrakcja ceny z HTML gdy selector zawodzi
 - Walidacja confidence score (≥0.8)
 - Optymalizacja kosztów poprzez inteligentny fallback
 
 **Interfejs publiczny:**
+
 ```typescript
 interface AIExtractionService {
   extractOfferData(html: string, url: string): Promise<LLMExtractionResponse>;
@@ -118,6 +122,7 @@ interface AIExtractionService {
 ### 3.3 PriceHistoryService (`src/lib/services/price-history.service.ts`)
 
 **Odpowiedzialności:**
+
 - Zapisywanie cen do tabeli `price_history`
 - Walidacja poprawności ceny (zakres, typ)
 - Aktualizacja `offers.last_checked`
@@ -125,6 +130,7 @@ interface AIExtractionService {
 - Obliczanie statystyk (min, max, avg)
 
 **Interfejs publiczny:**
+
 ```typescript
 interface PriceHistoryService {
   savePriceEntry(offerId: string, price: ExtractedPrice): Promise<void>;
@@ -144,6 +150,7 @@ interface PriceStats {
 ### 3.4 ErrorHandlerService (`src/lib/services/error-handler.service.ts`)
 
 **Odpowiedzialności:**
+
 - Implementacja mechanizmu retry z rosnącym interwałem
 - Zarządzanie statusami ofert (active → error/removed)
 - Logowanie błędów do `error_log`
@@ -151,13 +158,10 @@ interface PriceStats {
 - Decyzje o dalszym przetwarzaniu oferty
 
 **Interfejs publiczny:**
+
 ```typescript
 interface ErrorHandlerService {
-  handleScrapingError(
-    offerId: string,
-    error: Error,
-    attempt: number
-  ): Promise<RetryDecision>;
+  handleScrapingError(offerId: string, error: Error, attempt: number): Promise<RetryDecision>;
   updateOfferStatus(offerId: string, status: OfferStatus): Promise<void>;
   logError(offerId: string, error: Error, attempt: number): Promise<void>;
   shouldRetry(attempt: number): boolean;
@@ -171,15 +175,16 @@ interface RetryDecision {
 }
 
 enum OfferStatus {
-  ACTIVE = 'active',
-  ERROR = 'error',
-  REMOVED = 'removed'
+  ACTIVE = "active",
+  ERROR = "error",
+  REMOVED = "removed",
 }
 ```
 
 ### 3.5 MonitoringService (`src/lib/services/monitoring.service.ts`)
 
 **Odpowiedzialności:**
+
 - Tracking success rate dla ostatnich 24h
 - Obliczanie error rate
 - Wysyłanie alertów gdy error rate >15%
@@ -187,6 +192,7 @@ enum OfferStatus {
 - Rate limiting dla alertów (max 1 alert/6h)
 
 **Interfejs publiczny:**
+
 ```typescript
 interface MonitoringService {
   trackCheckResult(offerId: string, success: boolean): Promise<void>;
@@ -207,6 +213,7 @@ interface SystemHealth {
 ### 3.6 ValidationService (`src/lib/services/validation.service.ts`)
 
 **Odpowiedzialności:**
+
 - Walidacja zakresu ceny (>0 && <10,000,000)
 - Walidacja typu danych (number)
 - Walidacja currency (PLN, EUR, USD, GBP)
@@ -214,6 +221,7 @@ interface SystemHealth {
 - Wykrywanie podejrzanych wartości
 
 **Interfejs publiczny:**
+
 ```typescript
 interface ValidationService {
   validatePrice(price: number): ValidationResult;
@@ -235,7 +243,7 @@ interface ValidationResult {
 ```
 1. pg_cron trigger → Uruchomienie check_offer_prices()
    ↓
-2. Pobranie ofert: SELECT * FROM offers 
+2. Pobranie ofert: SELECT * FROM offers
    WHERE status = 'active' AND deleted_at IS NULL
    ↓
 3. Dla każdej oferty:
@@ -405,25 +413,25 @@ SELECT cron.schedule(
 // Endpoint wywoływany przez pg_cron
 export const POST = async ({ request, locals }: APIContext) => {
   // Verify cron secret
-  const authHeader = request.headers.get('Authorization');
+  const authHeader = request.headers.get("Authorization");
   const cronSecret = import.meta.env.CRON_SECRET;
-  
+
   if (authHeader !== `Bearer ${cronSecret}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
     });
   }
 
   // Get active offers
   const { data: offers, error } = await locals.supabase
-    .from('offers')
-    .select('*')
-    .eq('status', 'active')
-    .is('deleted_at', null);
+    .from("offers")
+    .select("*")
+    .eq("status", "active")
+    .is("deleted_at", null);
 
   if (error || !offers) {
-    return new Response(JSON.stringify({ error: 'Failed to fetch offers' }), {
-      status: 500
+    return new Response(JSON.stringify({ error: "Failed to fetch offers" }), {
+      status: 500,
     });
   }
 
@@ -431,10 +439,8 @@ export const POST = async ({ request, locals }: APIContext) => {
   const batchSize = 10;
   for (let i = 0; i < offers.length; i += batchSize) {
     const batch = offers.slice(i, i + batchSize);
-    await Promise.all(
-      batch.map(offer => processOffer(offer, locals.supabase))
-    );
-    
+    await Promise.all(batch.map((offer) => processOffer(offer, locals.supabase)));
+
     // Delay between batches
     await delay(5000); // 5s between batches
   }
@@ -443,12 +449,15 @@ export const POST = async ({ request, locals }: APIContext) => {
   const monitoringService = new MonitoringService(locals.supabase);
   await monitoringService.checkAndSendAlert();
 
-  return new Response(JSON.stringify({ 
-    success: true, 
-    processed: offers.length 
-  }), {
-    status: 200
-  });
+  return new Response(
+    JSON.stringify({
+      success: true,
+      processed: offers.length,
+    }),
+    {
+      status: 200,
+    }
+  );
 };
 ```
 
@@ -460,16 +469,15 @@ Częstotliwość sprawdzania jest zarządzana na poziomie użytkownika poprzez `
 // W przyszłości: per-offer frequency
 // Filtrowanie ofert na podstawie częstotliwości
 function shouldCheckOffer(offer: Offer, frequency: Frequency): boolean {
-  const hoursSinceLastCheck = 
-    (Date.now() - new Date(offer.last_checked).getTime()) / (1000 * 60 * 60);
-  
+  const hoursSinceLastCheck = (Date.now() - new Date(offer.last_checked).getTime()) / (1000 * 60 * 60);
+
   const frequencyHours = {
-    '6h': 6,
-    '12h': 12,
-    '24h': 24,
-    '48h': 48
+    "6h": 6,
+    "12h": 12,
+    "24h": 24,
+    "48h": 48,
   };
-  
+
   return hoursSinceLastCheck >= frequencyHours[frequency];
 }
 ```
@@ -482,11 +490,11 @@ function shouldCheckOffer(offer: Offer, frequency: Frequency): boolean {
 // src/lib/services/scraping.service.ts
 
 const USER_AGENTS = [
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 ];
 
 const SCRAPING_CONFIG = {
@@ -494,7 +502,7 @@ const SCRAPING_CONFIG = {
   minDelay: 2000, // 2s
   maxDelay: 5000, // 5s
   maxRetries: 3,
-  retryDelays: [60000, 300000, 900000] // 1min, 5min, 15min
+  retryDelays: [60000, 300000, 900000], // 1min, 5min, 15min
 };
 
 export class ScrapingService {
@@ -503,36 +511,30 @@ export class ScrapingService {
   }
 
   private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private getRandomDelay(): number {
-    return Math.floor(
-      Math.random() * (SCRAPING_CONFIG.maxDelay - SCRAPING_CONFIG.minDelay) +
-      SCRAPING_CONFIG.minDelay
-    );
+    return Math.floor(Math.random() * (SCRAPING_CONFIG.maxDelay - SCRAPING_CONFIG.minDelay) + SCRAPING_CONFIG.minDelay);
   }
 
   async fetchOfferPage(url: string): Promise<string> {
     const userAgent = await this.getRandomUserAgent();
-    
+
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        SCRAPING_CONFIG.timeout
-      );
+      const timeoutId = setTimeout(() => controller.abort(), SCRAPING_CONFIG.timeout);
 
       const response = await fetch(url, {
         headers: {
-          'User-Agent': userAgent,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1'
+          "User-Agent": userAgent,
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+          "Accept-Encoding": "gzip, deflate, br",
+          Connection: "keep-alive",
+          "Upgrade-Insecure-Requests": "1",
         },
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -546,17 +548,14 @@ export class ScrapingService {
 
       return await response.text();
     } catch (error) {
-      if (error.name === 'AbortError') {
-        throw new Error('Request timeout');
+      if (error.name === "AbortError") {
+        throw new Error("Request timeout");
       }
       throw error;
     }
   }
 
-  async extractPriceWithSelector(
-    html: string,
-    selector: string
-  ): Promise<ExtractedPrice | null> {
+  async extractPriceWithSelector(html: string, selector: string): Promise<ExtractedPrice | null> {
     const $ = cheerio.load(html);
     const element = $(selector);
 
@@ -566,12 +565,12 @@ export class ScrapingService {
 
     const rawValue = element.text().trim();
     const priceMatch = rawValue.match(/[\d\s]+/);
-    
+
     if (!priceMatch) {
       return null;
     }
 
-    const priceString = priceMatch[0].replace(/\s/g, '');
+    const priceString = priceMatch[0].replace(/\s/g, "");
     const price = parseFloat(priceString);
 
     if (isNaN(price)) {
@@ -580,12 +579,12 @@ export class ScrapingService {
 
     // Extract currency
     const currencyMatch = rawValue.match(/PLN|EUR|USD|GBP/);
-    const currency = currencyMatch ? currencyMatch[0] : 'PLN';
+    const currency = currencyMatch ? currencyMatch[0] : "PLN";
 
     return {
       price,
       currency,
-      rawValue
+      rawValue,
     };
   }
 
@@ -604,9 +603,7 @@ export class AIExtractionService {
   private openRouterService: OpenRouterService;
 
   constructor() {
-    this.openRouterService = new OpenRouterService(
-      import.meta.env.OPENROUTER_API_KEY
-    );
+    this.openRouterService = new OpenRouterService(import.meta.env.OPENROUTER_API_KEY);
   }
 
   async extractPriceOnly(html: string, url: string): Promise<AIExtractedPrice> {
@@ -627,30 +624,30 @@ ${html.substring(0, 50000)}`;
 
     const response = await this.openRouterService.sendChat({
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
-      model: 'openai/gpt-4o-mini', // Fast and cheap
+      model: "openai/gpt-4o-mini", // Fast and cheap
       response_format: {
-        type: 'json_schema',
+        type: "json_schema",
         json_schema: {
-          name: 'price_extraction',
+          name: "price_extraction",
           strict: true,
           schema: {
-            type: 'object',
+            type: "object",
             properties: {
-              price: { type: 'number' },
-              currency: { type: 'string', enum: ['PLN', 'EUR', 'USD', 'GBP'] },
-              confidence: { type: 'number', minimum: 0, maximum: 1 },
-              selector: { type: 'string' }
+              price: { type: "number" },
+              currency: { type: "string", enum: ["PLN", "EUR", "USD", "GBP"] },
+              confidence: { type: "number", minimum: 0, maximum: 1 },
+              selector: { type: "string" },
             },
-            required: ['price', 'currency', 'confidence', 'selector'],
-            additionalProperties: false
-          }
-        }
+            required: ["price", "currency", "confidence", "selector"],
+            additionalProperties: false,
+          },
+        },
       },
       temperature: 0.1, // Low temperature for consistent extraction
-      max_tokens: 200
+      max_tokens: 200,
     });
 
     return JSON.parse(response.data) as AIExtractedPrice;
@@ -674,15 +671,8 @@ interface AIExtractedPrice {
 Gdy AI pomyślnie ekstrahuje cenę i zwraca nowy selector, system powinien zaktualizować go w bazie:
 
 ```typescript
-async function updateOfferSelector(
-  offerId: string,
-  newSelector: string,
-  supabase: SupabaseClient
-): Promise<void> {
-  await supabase
-    .from('offers')
-    .update({ selector: newSelector })
-    .eq('id', offerId);
+async function updateOfferSelector(offerId: string, newSelector: string, supabase: SupabaseClient): Promise<void> {
+  await supabase.from("offers").update({ selector: newSelector }).eq("id", offerId);
 }
 ```
 
@@ -695,11 +685,11 @@ async function updateOfferSelector(
 
 export class ErrorHandlerService {
   private supabase: SupabaseClient;
-  
+
   private readonly RETRY_DELAYS = {
-    1: 60000,    // 1 minute
-    2: 300000,   // 5 minutes
-    3: 900000    // 15 minutes
+    1: 60000, // 1 minute
+    2: 300000, // 5 minutes
+    3: 900000, // 15 minutes
   };
 
   private readonly MAX_ATTEMPTS = 3;
@@ -716,11 +706,7 @@ export class ErrorHandlerService {
     return this.RETRY_DELAYS[attempt as keyof typeof this.RETRY_DELAYS] || 0;
   }
 
-  async handleScrapingError(
-    offerId: string,
-    error: Error,
-    attempt: number
-  ): Promise<RetryDecision> {
+  async handleScrapingError(offerId: string, error: Error, attempt: number): Promise<RetryDecision> {
     // Log the error
     await this.logError(offerId, error, attempt);
 
@@ -728,32 +714,26 @@ export class ErrorHandlerService {
     if (this.shouldRetry(attempt)) {
       const nextAttempt = attempt + 1;
       const delayMs = this.getRetryDelay(nextAttempt);
-      
+
       return {
         shouldRetry: true,
         delayMs,
-        nextAttempt
+        nextAttempt,
       };
     }
 
     // Max attempts reached - mark as error
-    await this.updateOfferStatus(offerId, 'error');
-    
+    await this.updateOfferStatus(offerId, "error");
+
     return {
       shouldRetry: false,
       delayMs: 0,
-      nextAttempt: 0
+      nextAttempt: 0,
     };
   }
 
-  async updateOfferStatus(
-    offerId: string,
-    status: 'active' | 'error' | 'removed'
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .from('offers')
-      .update({ status })
-      .eq('id', offerId);
+  async updateOfferStatus(offerId: string, status: "active" | "error" | "removed"): Promise<void> {
+    const { error } = await this.supabase.from("offers").update({ status }).eq("id", offerId);
 
     if (error) {
       console.error(`Failed to update offer status: ${error.message}`);
@@ -761,20 +741,14 @@ export class ErrorHandlerService {
     }
   }
 
-  async logError(
-    offerId: string,
-    error: Error,
-    attempt: number
-  ): Promise<void> {
-    const { error: insertError } = await this.supabase
-      .from('error_log')
-      .insert({
-        offer_id: offerId,
-        error_message: error.message,
-        error_stack: error.stack,
-        attempt_number: attempt,
-        timestamp: new Date().toISOString()
-      });
+  async logError(offerId: string, error: Error, attempt: number): Promise<void> {
+    const { error: insertError } = await this.supabase.from("error_log").insert({
+      offer_id: offerId,
+      error_message: error.message,
+      error_stack: error.stack,
+      attempt_number: attempt,
+      timestamp: new Date().toISOString(),
+    });
 
     if (insertError) {
       console.error(`Failed to log error: ${insertError.message}`);
@@ -787,11 +761,7 @@ export class ErrorHandlerService {
 
 ```typescript
 // Main processing function with retry logic
-async function processOffer(
-  offer: Offer,
-  supabase: SupabaseClient,
-  attempt: number = 1
-): Promise<void> {
+async function processOffer(offer: Offer, supabase: SupabaseClient, attempt: number = 1): Promise<void> {
   const scrapingService = new ScrapingService();
   const aiExtractionService = new AIExtractionService();
   const validationService = new ValidationService();
@@ -804,26 +774,20 @@ async function processOffer(
     const html = await scrapingService.fetchOfferPage(offer.url);
 
     // Step 2: Try selector-based extraction
-    let extractedPrice = await scrapingService.extractPriceWithSelector(
-      html,
-      offer.selector
-    );
+    let extractedPrice = await scrapingService.extractPriceWithSelector(html, offer.selector);
 
     // Step 3: Fallback to AI if selector failed
     if (!extractedPrice) {
-      const aiExtraction = await aiExtractionService.extractPriceOnly(
-        html,
-        offer.url
-      );
+      const aiExtraction = await aiExtractionService.extractPriceOnly(html, offer.url);
 
       if (!aiExtractionService.validateConfidence(aiExtraction)) {
-        throw new Error('Low confidence AI extraction');
+        throw new Error("Low confidence AI extraction");
       }
 
       extractedPrice = {
         price: aiExtraction.price,
         currency: aiExtraction.currency,
-        rawValue: `${aiExtraction.price} ${aiExtraction.currency}`
+        rawValue: `${aiExtraction.price} ${aiExtraction.currency}`,
       };
 
       // Update selector for future use
@@ -833,14 +797,11 @@ async function processOffer(
     // Step 4: Validate extracted price
     const validation = validationService.validateExtractedData(extractedPrice);
     if (!validation.isValid) {
-      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
     }
 
     // Step 5: Check for anomalies
-    const isAnomaly = await priceHistoryService.detectPriceAnomaly(
-      offer.id,
-      extractedPrice.price
-    );
+    const isAnomaly = await priceHistoryService.detectPriceAnomaly(offer.id, extractedPrice.price);
     if (isAnomaly) {
       console.warn(`Price anomaly detected for offer ${offer.id}`);
       // Log but continue processing
@@ -852,26 +813,21 @@ async function processOffer(
 
     // Step 7: Track success
     await monitoringService.trackCheckResult(offer.id, true);
-
   } catch (error) {
     // Check if offer was removed (404/410)
-    if (error.message.includes('HTTP 404') || error.message.includes('HTTP 410')) {
-      await errorHandlerService.updateOfferStatus(offer.id, 'removed');
+    if (error.message.includes("HTTP 404") || error.message.includes("HTTP 410")) {
+      await errorHandlerService.updateOfferStatus(offer.id, "removed");
       await monitoringService.trackCheckResult(offer.id, false);
       return;
     }
 
     // Handle other errors with retry logic
-    const retryDecision = await errorHandlerService.handleScrapingError(
-      offer.id,
-      error,
-      attempt
-    );
+    const retryDecision = await errorHandlerService.handleScrapingError(offer.id, error, attempt);
 
     if (retryDecision.shouldRetry) {
       // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, retryDecision.delayMs));
-      
+      await new Promise((resolve) => setTimeout(resolve, retryDecision.delayMs));
+
       // Retry
       await processOffer(offer, supabase, retryDecision.nextAttempt);
     } else {
@@ -941,7 +897,7 @@ FROM offers
 WHERE status = 'active'
   AND deleted_at IS NULL
   AND (
-    last_checked IS NULL 
+    last_checked IS NULL
     OR last_checked < NOW() - INTERVAL '1 hour' * frequency_hours
   );
 ```
@@ -953,20 +909,20 @@ WHERE status = 'active'
 function getStatusBadge(status: OfferStatus) {
   const badges = {
     active: {
-      label: 'Aktywna',
-      color: 'green',
-      icon: '✓'
+      label: "Aktywna",
+      color: "green",
+      icon: "✓",
     },
     error: {
-      label: 'Błąd sprawdzania',
-      color: 'red',
-      icon: '⚠'
+      label: "Błąd sprawdzania",
+      color: "red",
+      icon: "⚠",
     },
     removed: {
-      label: 'Oferta usunięta',
-      color: 'gray',
-      icon: '✕'
-    }
+      label: "Oferta usunięta",
+      color: "gray",
+      icon: "✕",
+    },
   };
 
   return badges[status];
@@ -987,27 +943,25 @@ class RateLimiter {
   async checkRateLimit(domain: string): Promise<boolean> {
     const now = Date.now();
     const requests = this.requestCounts.get(domain) || [];
-    
+
     // Remove requests older than 1 hour
-    const recentRequests = requests.filter(time => now - time < 3600000);
-    
+    const recentRequests = requests.filter((time) => now - time < 3600000);
+
     // Check limits
-    const requestsLastMinute = recentRequests.filter(
-      time => now - time < 60000
-    ).length;
-    
+    const requestsLastMinute = recentRequests.filter((time) => now - time < 60000).length;
+
     if (requestsLastMinute >= this.maxRequestsPerMinute) {
       return false;
     }
-    
+
     if (recentRequests.length >= this.maxRequestsPerHour) {
       return false;
     }
-    
+
     // Update counts
     recentRequests.push(now);
     this.requestCounts.set(domain, recentRequests);
-    
+
     return true;
   }
 }
@@ -1051,14 +1005,14 @@ class RateLimiter {
 async function checkRobotsTxt(url: string): Promise<boolean> {
   const urlObj = new URL(url);
   const robotsUrl = `${urlObj.protocol}//${urlObj.host}/robots.txt`;
-  
+
   try {
     const response = await fetch(robotsUrl);
     const robotsTxt = await response.text();
-    
+
     // Parse and check if our path is allowed
     // Implementation details...
-    
+
     return true; // Allowed
   } catch (error) {
     // If robots.txt doesn't exist, assume allowed
@@ -1072,20 +1026,19 @@ async function checkRobotsTxt(url: string): Promise<boolean> {
 ```typescript
 // Verify cron secret
 export const POST = async ({ request, locals }: APIContext) => {
-  const authHeader = request.headers.get('Authorization');
+  const authHeader = request.headers.get("Authorization");
   const cronSecret = import.meta.env.CRON_SECRET;
-  
+
   if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   // Additional security: Check IP whitelist if needed
-  const clientIp = request.headers.get('x-forwarded-for') || 
-                   request.headers.get('x-real-ip');
-  
+  const clientIp = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip");
+
   // Process...
 };
 ```
@@ -1131,13 +1084,13 @@ export class MonitoringService {
   }
 
   async trackCheckResult(offerId: string, success: boolean): Promise<void> {
-    await this.supabase.from('system_logs').insert({
+    await this.supabase.from("system_logs").insert({
       offer_id: offerId,
-      event_type: success ? 'price_check_success' : 'price_check_failed',
-      message: success ? 'Price successfully checked' : 'Price check failed',
+      event_type: success ? "price_check_success" : "price_check_failed",
+      message: success ? "Price successfully checked" : "Price check failed",
       metadata: {
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 
@@ -1146,47 +1099,43 @@ export class MonitoringService {
     startTime.setHours(startTime.getHours() - periodHours);
 
     const { data: logs, error } = await this.supabase
-      .from('system_logs')
-      .select('event_type')
-      .gte('created_at', startTime.toISOString())
-      .in('event_type', ['price_check_success', 'price_check_failed']);
+      .from("system_logs")
+      .select("event_type")
+      .gte("created_at", startTime.toISOString())
+      .in("event_type", ["price_check_success", "price_check_failed"]);
 
     if (error || !logs || logs.length === 0) {
       return 100; // No data = assume healthy
     }
 
-    const successCount = logs.filter(
-      log => log.event_type === 'price_check_success'
-    ).length;
-    
+    const successCount = logs.filter((log) => log.event_type === "price_check_success").length;
+
     const totalCount = logs.length;
-    
+
     return (successCount / totalCount) * 100;
   }
 
   async getSystemHealth(): Promise<SystemHealth> {
     const successRate = await this.calculateSuccessRate(24);
-    
+
     const { data: logs } = await this.supabase
-      .from('system_logs')
-      .select('event_type')
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      .from("system_logs")
+      .select("event_type")
+      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
     const totalChecks = logs?.length || 0;
-    const errorCount = logs?.filter(
-      log => log.event_type === 'price_check_failed'
-    ).length || 0;
+    const errorCount = logs?.filter((log) => log.event_type === "price_check_failed").length || 0;
 
     const { count: activeOffers } = await this.supabase
-      .from('offers')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active');
+      .from("offers")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active");
 
     const { data: lastAlert } = await this.supabase
-      .from('system_logs')
-      .select('created_at')
-      .eq('event_type', 'alert_sent')
-      .order('created_at', { ascending: false })
+      .from("system_logs")
+      .select("created_at")
+      .eq("event_type", "alert_sent")
+      .order("created_at", { ascending: false })
       .limit(1)
       .single();
 
@@ -1195,7 +1144,7 @@ export class MonitoringService {
       totalChecks,
       errorCount,
       activeOffers: activeOffers || 0,
-      lastAlertSent: lastAlert ? new Date(lastAlert.created_at) : null
+      lastAlertSent: lastAlert ? new Date(lastAlert.created_at) : null,
     };
   }
 
@@ -1210,9 +1159,8 @@ export class MonitoringService {
 
     // Check cooldown period
     if (health.lastAlertSent) {
-      const hoursSinceLastAlert = 
-        (Date.now() - health.lastAlertSent.getTime()) / (1000 * 60 * 60);
-      
+      const hoursSinceLastAlert = (Date.now() - health.lastAlertSent.getTime()) / (1000 * 60 * 60);
+
       if (hoursSinceLastAlert < this.ALERT_COOLDOWN_HOURS) {
         return; // Still in cooldown
       }
@@ -1222,25 +1170,25 @@ export class MonitoringService {
     await this.sendAlert(health);
 
     // Log alert sent
-    await this.supabase.from('system_logs').insert({
-      event_type: 'alert_sent',
+    await this.supabase.from("system_logs").insert({
+      event_type: "alert_sent",
       message: `High error rate detected: ${errorRate.toFixed(2)}%`,
       metadata: {
         health,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 
   private async sendAlert(health: SystemHealth): Promise<void> {
     const alertMessage = {
-      title: '🚨 High Error Rate Alert',
+      title: "🚨 High Error Rate Alert",
       timestamp: new Date().toISOString(),
       successRate: `${health.successRate.toFixed(2)}%`,
       errorRate: `${(100 - health.successRate).toFixed(2)}%`,
       totalChecks: health.totalChecks,
       errorCount: health.errorCount,
-      activeOffers: health.activeOffers
+      activeOffers: health.activeOffers,
     };
 
     // Option 1: Email via Supabase Edge Function
@@ -1255,20 +1203,20 @@ export class MonitoringService {
 
   private async sendWebhookAlert(message: any): Promise<void> {
     const webhookUrl = import.meta.env.ALERT_WEBHOOK_URL;
-    
+
     if (!webhookUrl) {
-      console.warn('No webhook URL configured for alerts');
+      console.warn("No webhook URL configured for alerts");
       return;
     }
 
     try {
       await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message),
       });
     } catch (error) {
-      console.error('Failed to send webhook alert:', error);
+      console.error("Failed to send webhook alert:", error);
     }
   }
 }
@@ -1307,13 +1255,13 @@ export class ValidationService {
   private readonly MIN_PRICE = 0;
   private readonly MAX_PRICE = 10000000;
   private readonly MIN_CONFIDENCE = 0.8;
-  private readonly VALID_CURRENCIES = ['PLN', 'EUR', 'USD', 'GBP'];
+  private readonly VALID_CURRENCIES = ["PLN", "EUR", "USD", "GBP"];
 
   validatePrice(price: number): ValidationResult {
     const errors: string[] = [];
 
-    if (typeof price !== 'number' || isNaN(price)) {
-      errors.push('Price must be a valid number');
+    if (typeof price !== "number" || isNaN(price)) {
+      errors.push("Price must be a valid number");
     }
 
     if (price <= this.MIN_PRICE) {
@@ -1326,7 +1274,7 @@ export class ValidationService {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -1354,12 +1302,12 @@ export class ValidationService {
 
     // Validate raw value exists
     if (!data.rawValue || data.rawValue.trim().length === 0) {
-      errors.push('Raw value is empty');
+      errors.push("Raw value is empty");
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }
@@ -1378,16 +1326,13 @@ export class PriceHistoryService {
     this.supabase = supabase;
   }
 
-  async detectPriceAnomaly(
-    offerId: string,
-    newPrice: number
-  ): Promise<boolean> {
+  async detectPriceAnomaly(offerId: string, newPrice: number): Promise<boolean> {
     // Get last price from history
     const { data: lastEntry, error } = await this.supabase
-      .from('price_history')
-      .select('price')
-      .eq('offer_id', offerId)
-      .order('checked_at', { ascending: false })
+      .from("price_history")
+      .select("price")
+      .eq("offer_id", offerId)
+      .order("checked_at", { ascending: false })
       .limit(1)
       .single();
 
@@ -1400,15 +1345,15 @@ export class PriceHistoryService {
 
     if (percentChange > this.ANOMALY_THRESHOLD) {
       // Log anomaly
-      await this.supabase.from('system_logs').insert({
+      await this.supabase.from("system_logs").insert({
         offer_id: offerId,
-        event_type: 'price_anomaly_detected',
+        event_type: "price_anomaly_detected",
         message: `Price changed by ${(percentChange * 100).toFixed(2)}%`,
         metadata: {
           old_price: lastPrice,
           new_price: newPrice,
-          percent_change: percentChange
-        }
+          percent_change: percentChange,
+        },
       });
 
       return true;
@@ -1417,18 +1362,13 @@ export class PriceHistoryService {
     return false;
   }
 
-  async savePriceEntry(
-    offerId: string,
-    extractedPrice: ExtractedPrice
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .from('price_history')
-      .insert({
-        offer_id: offerId,
-        price: extractedPrice.price,
-        currency: extractedPrice.currency,
-        checked_at: new Date().toISOString()
-      });
+  async savePriceEntry(offerId: string, extractedPrice: ExtractedPrice): Promise<void> {
+    const { error } = await this.supabase.from("price_history").insert({
+      offer_id: offerId,
+      price: extractedPrice.price,
+      currency: extractedPrice.currency,
+      checked_at: new Date().toISOString(),
+    });
 
     if (error) {
       throw new Error(`Failed to save price entry: ${error.message}`);
@@ -1437,9 +1377,9 @@ export class PriceHistoryService {
 
   async updateLastChecked(offerId: string): Promise<void> {
     const { error } = await this.supabase
-      .from('offers')
+      .from("offers")
       .update({ last_checked: new Date().toISOString() })
-      .eq('id', offerId);
+      .eq("id", offerId);
 
     if (error) {
       throw new Error(`Failed to update last_checked: ${error.message}`);
@@ -1447,16 +1387,13 @@ export class PriceHistoryService {
   }
 
   async getPriceStats(offerId: string): Promise<PriceStats> {
-    const { data, error } = await this.supabase
-      .from('price_history')
-      .select('price')
-      .eq('offer_id', offerId);
+    const { data, error } = await this.supabase.from("price_history").select("price").eq("offer_id", offerId);
 
     if (error || !data || data.length === 0) {
       return { min: 0, max: 0, avg: 0, count: 0 };
     }
 
-    const prices = data.map(entry => entry.price);
+    const prices = data.map((entry) => entry.price);
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     const avg = prices.reduce((sum, price) => sum + price, 0) / prices.length;
@@ -1471,15 +1408,15 @@ export class PriceHistoryService {
 
 Track następujące metryki dla kontroli jakości:
 
-1. **Success Rate**: (successful_checks / total_checks) * 100
+1. **Success Rate**: (successful_checks / total_checks) \* 100
    - Target: ≥90%
    - Alert gdy <85%
 
-2. **AI Fallback Rate**: (ai_extractions / total_checks) * 100
+2. **AI Fallback Rate**: (ai_extractions / total_checks) \* 100
    - Target: <20%
    - Wysoki rate = potrzeba aktualizacji selektorów
 
-3. **Anomaly Rate**: (anomalies_detected / successful_checks) * 100
+3. **Anomaly Rate**: (anomalies_detected / successful_checks) \* 100
    - Target: <5%
    - Wysoki rate = problem z validation lub scraping
 
@@ -1493,26 +1430,18 @@ Track następujące metryki dla kontroli jakości:
 
 ```typescript
 // Process offers in batches to avoid overwhelming system
-async function processBatch(
-  offers: Offer[],
-  batchSize: number,
-  supabase: SupabaseClient
-): Promise<void> {
+async function processBatch(offers: Offer[], batchSize: number, supabase: SupabaseClient): Promise<void> {
   for (let i = 0; i < offers.length; i += batchSize) {
     const batch = offers.slice(i, i + batchSize);
-    
+
     // Process batch in parallel
-    const results = await Promise.allSettled(
-      batch.map(offer => processOffer(offer, supabase))
-    );
-    
+    const results = await Promise.allSettled(batch.map((offer) => processOffer(offer, supabase)));
+
     // Log batch results
-    const successCount = results.filter(
-      r => r.status === 'fulfilled'
-    ).length;
-    
+    const successCount = results.filter((r) => r.status === "fulfilled").length;
+
     console.log(`Batch ${i / batchSize + 1}: ${successCount}/${batch.length} successful`);
-    
+
     // Delay between batches to avoid rate limiting
     if (i + batchSize < offers.length) {
       await delay(5000); // 5s between batches
@@ -1532,23 +1461,23 @@ class ResponseCache {
   set(url: string, html: string): void {
     this.cache.set(url, {
       html,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   get(url: string): string | null {
     const cached = this.cache.get(url);
-    
+
     if (!cached) {
       return null;
     }
-    
+
     // Check if expired
     if (Date.now() - cached.timestamp > this.TTL) {
       this.cache.delete(url);
       return null;
     }
-    
+
     return cached.html;
   }
 
@@ -1561,30 +1490,32 @@ class ResponseCache {
 ### 12.3 Database Optimization
 
 1. **Indexes**
+
 ```sql
 -- Ensure indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_offers_status_deleted 
-ON offers(status, deleted_at) 
+CREATE INDEX IF NOT EXISTS idx_offers_status_deleted
+ON offers(status, deleted_at)
 WHERE status = 'active' AND deleted_at IS NULL;
 
-CREATE INDEX IF NOT EXISTS idx_offers_last_checked 
+CREATE INDEX IF NOT EXISTS idx_offers_last_checked
 ON offers(last_checked);
 
-CREATE INDEX IF NOT EXISTS idx_price_history_offer_checked 
+CREATE INDEX IF NOT EXISTS idx_price_history_offer_checked
 ON price_history(offer_id, checked_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_system_logs_created 
+CREATE INDEX IF NOT EXISTS idx_system_logs_created
 ON system_logs(created_at DESC);
 ```
 
 2. **Query Optimization**
+
 ```typescript
 // Use select specific columns instead of *
 const { data: offers } = await supabase
-  .from('offers')
-  .select('id, url, selector, last_checked, frequency')
-  .eq('status', 'active')
-  .is('deleted_at', null);
+  .from("offers")
+  .select("id, url, selector, last_checked, frequency")
+  .eq("status", "active")
+  .is("deleted_at", null);
 ```
 
 ### 12.4 Cost Optimization for AI
@@ -1613,6 +1544,7 @@ const { data: offers } = await supabase
 ### Faza 1: Foundation Layer (Tydzień 1)
 
 #### 1.1 Setup Environment Variables
+
 ```bash
 # .env
 CRON_SECRET=your-secure-cron-secret
@@ -1621,6 +1553,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 ```
 
 #### 1.2 Create Database Tables & Functions
+
 - [ ] Create/verify `system_logs` table
 - [ ] Create/verify `error_log` table
 - [ ] Add indexes for performance
@@ -1628,12 +1561,14 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Setup pg_cron schedules
 
 **SQL Migration:**
+
 ```sql
 -- migrations/001_monitoring_tables.sql
 -- (Include table creation SQL from section 10.1)
 ```
 
 #### 1.3 Define Core Types
+
 - [ ] Add new types to `src/types.ts`:
   - `ExtractedPrice`
   - `RetryDecision`
@@ -1642,11 +1577,13 @@ OPENROUTER_API_KEY=your-openrouter-key
   - `AIExtractedPrice`
 
 **Files to create/modify:**
+
 - `src/types.ts` (add new types)
 
 ### Faza 2: Core Services (Tydzień 2)
 
 #### 2.1 Implement ScrapingService
+
 - [ ] Create `src/lib/services/scraping.service.ts`
 - [ ] Implement `fetchOfferPage()` with User-Agent rotation
 - [ ] Implement `extractPriceWithSelector()` with Cheerio
@@ -1655,6 +1592,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Handle HTTP errors gracefully
 
 #### 2.2 Implement ValidationService
+
 - [ ] Create `src/lib/services/validation.service.ts`
 - [ ] Implement price range validation (0, 10M)
 - [ ] Implement currency validation
@@ -1662,6 +1600,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Add comprehensive error messages
 
 #### 2.3 Implement PriceHistoryService
+
 - [ ] Create `src/lib/services/price-history.service.ts`
 - [ ] Implement `savePriceEntry()`
 - [ ] Implement `updateLastChecked()`
@@ -1669,6 +1608,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Implement `getPriceStats()`
 
 **Files to create:**
+
 - `src/lib/services/scraping.service.ts`
 - `src/lib/services/validation.service.ts`
 - `src/lib/services/price-history.service.ts`
@@ -1676,6 +1616,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 ### Faza 3: Error Handling & Retry (Tydzień 3)
 
 #### 3.1 Implement ErrorHandlerService
+
 - [ ] Create `src/lib/services/error-handler.service.ts`
 - [ ] Implement retry logic with delays (1min, 5min, 15min)
 - [ ] Implement status management (active, error, removed)
@@ -1683,6 +1624,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Handle 404/410 specifically (removed status)
 
 #### 3.2 Implement Main Processing Logic
+
 - [ ] Create `src/lib/services/offer-processor.service.ts`
 - [ ] Implement `processOffer()` with full workflow
 - [ ] Integrate all services (scraping, validation, AI, etc.)
@@ -1690,12 +1632,14 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Handle all error cases
 
 **Files to create:**
+
 - `src/lib/services/error-handler.service.ts`
 - `src/lib/services/offer-processor.service.ts`
 
 ### Faza 4: AI Integration (Tydzień 3-4)
 
 #### 4.1 Extend AIExtractionService
+
 - [ ] Modify existing `src/lib/services/ai-extraction.service.ts`
 - [ ] Add `extractPriceOnly()` method
 - [ ] Implement confidence validation (≥0.8)
@@ -1703,17 +1647,20 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Add selector update logic
 
 #### 4.2 Test AI Fallback
+
 - [ ] Test with various HTML structures
 - [ ] Verify confidence scores
 - [ ] Test selector persistence
 - [ ] Measure cost per AI extraction
 
 **Files to modify:**
+
 - `src/lib/services/ai-extraction.service.ts`
 
 ### Faza 5: Monitoring & Alerting (Tydzień 4)
 
 #### 5.1 Implement MonitoringService
+
 - [ ] Create `src/lib/services/monitoring.service.ts`
 - [ ] Implement `trackCheckResult()`
 - [ ] Implement `calculateSuccessRate()`
@@ -1721,17 +1668,20 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Implement `checkAndSendAlert()`
 
 #### 5.2 Setup Alert Channels
+
 - [ ] Configure webhook URL (Slack/Discord)
 - [ ] Test alert delivery
 - [ ] Verify cooldown period (6h)
 - [ ] Test threshold trigger (>15% errors)
 
 **Files to create:**
+
 - `src/lib/services/monitoring.service.ts`
 
 ### Faza 6: CRON Endpoint (Tydzień 4-5)
 
 #### 6.1 Create CRON API Endpoint
+
 - [ ] Create `src/pages/api/cron/check-prices.ts`
 - [ ] Implement authentication (CRON_SECRET)
 - [ ] Implement offer fetching (active status)
@@ -1740,15 +1690,18 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Integrate MonitoringService for health check
 
 #### 6.2 Setup pg_cron
+
 - [ ] Run migration to create SQL function
 - [ ] Schedule cron jobs (6h, 12h, 24h, 48h)
 - [ ] Test manual trigger
 - [ ] Verify job execution in pg_cron logs
 
 **Files to create:**
+
 - `src/pages/api/cron/check-prices.ts`
 
 **SQL to run:**
+
 ```sql
 -- Setup from section 5.1
 ```
@@ -1756,6 +1709,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 ### Faza 7: Testing & Validation (Tydzień 5)
 
 #### 7.1 Unit Tests
+
 - [ ] Test ScrapingService (mocked HTTP)
 - [ ] Test ValidationService (various inputs)
 - [ ] Test PriceHistoryService (DB mocked)
@@ -1763,6 +1717,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Test MonitoringService (success rate calculation)
 
 #### 7.2 Integration Tests
+
 - [ ] Test full `processOffer()` flow
 - [ ] Test retry mechanism end-to-end
 - [ ] Test AI fallback integration
@@ -1770,12 +1725,14 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Test anomaly detection
 
 #### 7.3 E2E Tests (Playwright)
+
 - [ ] Test cron endpoint authentication
 - [ ] Test offer processing (real or staged Otomoto URLs)
 - [ ] Test error scenarios (invalid HTML, timeouts)
 - [ ] Test alert triggering
 
 **Files to create:**
+
 - `src/lib/services/__tests__/scraping.service.test.ts`
 - `src/lib/services/__tests__/validation.service.test.ts`
 - `src/lib/services/__tests__/price-history.service.test.ts`
@@ -1786,6 +1743,7 @@ OPENROUTER_API_KEY=your-openrouter-key
 ### Faza 8: UI Integration (Tydzień 5-6)
 
 #### 8.1 Update Dashboard to Show Status
+
 - [ ] Modify dashboard API to include status
 - [ ] Add status badges to offer list
 - [ ] Show last_checked timestamp
@@ -1793,12 +1751,14 @@ OPENROUTER_API_KEY=your-openrouter-key
 - [ ] Handle removed status (gray out, show message)
 
 #### 8.2 Add Manual Recheck Feature
+
 - [ ] Add API endpoint `POST /api/offers/:id/recheck`
 - [ ] Trigger immediate price check for single offer
 - [ ] Update UI to show loading state
 - [ ] Show success/error message
 
 **Files to modify/create:**
+
 - `src/pages/api/dashboard.ts` (add status to response)
 - `src/components/dashboard/OfferList.tsx` (add status badges)
 - `src/pages/api/offers/[id]/recheck.ts` (new endpoint)
@@ -1806,17 +1766,20 @@ OPENROUTER_API_KEY=your-openrouter-key
 ### Faza 9: Performance Optimization (Tydzień 6)
 
 #### 9.1 Database Optimization
+
 - [ ] Add missing indexes (see section 12.3)
 - [ ] Optimize queries (select specific columns)
 - [ ] Add query explain analysis
 - [ ] Setup connection pooling if needed
 
 #### 9.2 Caching Implementation
+
 - [ ] Implement response cache for retry attempts
 - [ ] Cache selector updates
 - [ ] Add cache invalidation logic
 
 #### 9.3 Load Testing
+
 - [ ] Test with 100 offers
 - [ ] Test with 500 offers
 - [ ] Measure average processing time
@@ -1825,42 +1788,49 @@ OPENROUTER_API_KEY=your-openrouter-key
 ### Faza 10: Deployment & Monitoring (Tydzień 7)
 
 #### 10.1 Staging Deployment
+
 - [ ] Deploy to staging environment
 - [ ] Run full test suite
 - [ ] Monitor first cron execution
 - [ ] Verify alert delivery
 
 #### 10.2 Production Deployment
+
 - [ ] Deploy to production
 - [ ] Enable cron schedules
 - [ ] Monitor first 24h closely
 - [ ] Verify success rate ≥90%
 
 #### 10.3 Documentation
+
 - [ ] Document all services and their APIs
 - [ ] Document error codes and handling
 - [ ] Document monitoring metrics
 - [ ] Create runbook for common issues
 
 **Files to create:**
+
 - `.ai/monitoring-runbook.md` (operational guide)
 - `.ai/troubleshooting.md` (common issues)
 
 ### Faza 11: Post-Launch Optimization (Tydzień 8+)
 
 #### 11.1 Monitor KPIs
+
 - [ ] Track success rate daily
 - [ ] Monitor AI costs
 - [ ] Analyze failure patterns
 - [ ] Collect user feedback
 
 #### 11.2 Iterative Improvements
+
 - [ ] Update selectors for common patterns
 - [ ] Optimize AI prompts based on performance
 - [ ] Adjust retry delays if needed
 - [ ] Implement additional caching
 
 #### 11.3 Future Enhancements
+
 - [ ] Per-offer frequency (not global)
 - [ ] User notifications for price drops
 - [ ] Historical price trends and predictions
@@ -1938,4 +1908,3 @@ Ten plan wdrożenia dostarcza kompleksowy roadmap dla implementacji mechanizmu a
 5. **Skalowalność** - batch processing i caching dla przyszłego wzrostu
 
 Realizując ten plan krok po kroku według przedstawionych faz, zespół dostarczy solidny, niezawodny system monitorowania cen, który osiągnie KPI 90% skuteczności i zapewni wartość dla użytkowników końcowych.
-

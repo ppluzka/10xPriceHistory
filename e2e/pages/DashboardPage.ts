@@ -1,8 +1,8 @@
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
-import { DashboardStatsComponent } from './components/DashboardStatsComponent';
-import { OfferFormComponent } from './components/OfferFormComponent';
-import { OfferGridComponent } from './components/OfferGridComponent';
+import { Page, Locator } from "@playwright/test";
+import { BasePage } from "./BasePage";
+import { DashboardStatsComponent } from "./components/DashboardStatsComponent";
+import { OfferFormComponent } from "./components/OfferFormComponent";
+import { OfferGridComponent } from "./components/OfferGridComponent";
 
 /**
  * Page Object Model for Dashboard page
@@ -12,7 +12,7 @@ export class DashboardPage extends BasePage {
   readonly header: Locator;
   readonly logoutButton: Locator;
   readonly settingsLink: Locator;
-  
+
   // Component-based POM
   readonly stats: DashboardStatsComponent;
   readonly offerForm: OfferFormComponent;
@@ -20,10 +20,10 @@ export class DashboardPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.header = page.locator('header');
+    this.header = page.locator("header");
     this.logoutButton = page.locator('button:has-text("Wyloguj")');
     this.settingsLink = page.locator('a[href="/settings"]');
-    
+
     // Initialize component POMs
     this.stats = new DashboardStatsComponent(page);
     this.offerForm = new OfferFormComponent(page);
@@ -34,7 +34,7 @@ export class DashboardPage extends BasePage {
    * Navigate to dashboard page
    */
   async navigate() {
-    await this.goto('/dashboard');
+    await this.goto("/dashboard");
     await this.waitForPageLoad();
   }
 
@@ -64,7 +64,7 @@ export class DashboardPage extends BasePage {
    */
   async waitForDashboardLoaded() {
     await this.stats.waitForLoaded();
-    await this.offerForm.container.waitFor({ state: 'visible', timeout: 5000 });
+    await this.offerForm.container.waitFor({ state: "visible", timeout: 5000 });
   }
 
   // ====================================
@@ -106,11 +106,11 @@ export class DashboardPage extends BasePage {
    */
   async addOfferAndWait(url: string) {
     const initialCount = await this.offerGrid.getOffersCount();
-    
+
     await this.offerForm.submitOffer(url);
     await this.offerForm.waitForSuccess();
     await this.offerGrid.waitForLoaded();
-    
+
     if (initialCount === 0) {
       // Wait for grid to appear (from empty state)
       await this.offerGrid.waitForOffersCount(1);
@@ -118,7 +118,7 @@ export class DashboardPage extends BasePage {
       // Wait for new offer to appear
       await this.offerGrid.waitForNewOffer(initialCount);
     }
-    
+
     // Wait for stats to update
     await this.stats.waitForActiveOffersCount(initialCount + 1);
   }
@@ -130,21 +130,20 @@ export class DashboardPage extends BasePage {
     // Check stats updated
     const hasStats = await this.stats.hasActiveOffersCard();
     const activeCount = await this.stats.getActiveOffersCount();
-    
+
     // Check grid has offers
     const hasOffers = await this.offerGrid.hasOffers();
     const offersCount = await this.offerGrid.getOffersCount();
-    
+
     // Check counts match
     const countsMatch = activeCount === offersCount;
-    
+
     // Optionally check for specific title
     let titleMatch = true;
     if (expectedTitle) {
       titleMatch = await this.offerGrid.hasOfferWithTitle(expectedTitle);
     }
-    
+
     return hasStats && hasOffers && countsMatch && titleMatch;
   }
 }
-

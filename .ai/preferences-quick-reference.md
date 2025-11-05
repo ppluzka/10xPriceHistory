@@ -3,9 +3,11 @@
 ## Endpoints
 
 ### GET /api/preferences
+
 Get user's default price check frequency
 
 ### PUT /api/preferences
+
 Update user's default price check frequency
 
 ---
@@ -13,12 +15,15 @@ Update user's default price check frequency
 ## GET /preferences
 
 ### Purpose
+
 Retrieve user's default frequency preference for new offer subscriptions. Auto-creates default preferences if user has none.
 
 ### Authentication
+
 - **Required**: Yes (JWT Bearer token)
 
 ### Request
+
 ```bash
 curl -X GET 'http://localhost:4321/api/preferences' \
   -H 'Authorization: Bearer <token>'
@@ -27,13 +32,15 @@ curl -X GET 'http://localhost:4321/api/preferences' \
 ### Response (200 OK)
 
 **Structure:**
+
 ```typescript
 {
-  defaultFrequency: '6h' | '12h' | '24h' | '48h';
+  defaultFrequency: "6h" | "12h" | "24h" | "48h";
 }
 ```
 
 **Example:**
+
 ```json
 {
   "defaultFrequency": "24h"
@@ -43,17 +50,20 @@ curl -X GET 'http://localhost:4321/api/preferences' \
 ### Behavior
 
 **First-Time User:**
+
 - User has no preferences yet
 - GET automatically creates default: `"24h"`
 - Returns newly created default
 
 **Existing User:**
+
 - Returns current preference
 - No modification
 
 ### Error Responses
 
 **500 Internal Server Error:**
+
 ```json
 {
   "error": "Internal Server Error"
@@ -65,21 +75,25 @@ curl -X GET 'http://localhost:4321/api/preferences' \
 ## PUT /preferences
 
 ### Purpose
+
 Update user's default frequency preference. Creates preferences if user has none (upsert behavior).
 
 ### Authentication
+
 - **Required**: Yes (JWT Bearer token)
 
 ### Request
 
 **Structure:**
+
 ```typescript
 {
-  defaultFrequency: '6h' | '12h' | '24h' | '48h';
+  defaultFrequency: "6h" | "12h" | "24h" | "48h";
 }
 ```
 
 **Example:**
+
 ```bash
 curl -X PUT 'http://localhost:4321/api/preferences' \
   -H 'Authorization: Bearer <token>' \
@@ -89,16 +103,17 @@ curl -X PUT 'http://localhost:4321/api/preferences' \
 
 ### Valid Frequency Values
 
-| Value | Description |
-|-------|-------------|
-| `"6h"` | Check every 6 hours |
-| `"12h"` | Check every 12 hours |
+| Value   | Description                    |
+| ------- | ------------------------------ |
+| `"6h"`  | Check every 6 hours            |
+| `"12h"` | Check every 12 hours           |
 | `"24h"` | Check every 24 hours (default) |
-| `"48h"` | Check every 48 hours |
+| `"48h"` | Check every 48 hours           |
 
 ### Response (200 OK)
 
 **Structure:**
+
 ```typescript
 {
   message: string;
@@ -106,6 +121,7 @@ curl -X PUT 'http://localhost:4321/api/preferences' \
 ```
 
 **Example:**
+
 ```json
 {
   "message": "Preferences updated"
@@ -115,6 +131,7 @@ curl -X PUT 'http://localhost:4321/api/preferences' \
 ### Error Responses
 
 **400 Bad Request (Invalid JSON):**
+
 ```json
 {
   "error": "Bad Request",
@@ -123,20 +140,20 @@ curl -X PUT 'http://localhost:4321/api/preferences' \
 ```
 
 **400 Bad Request (Invalid Frequency):**
+
 ```json
 {
   "error": "Bad Request",
   "details": {
     "defaultFrequency": {
-      "_errors": [
-        "Invalid enum value. Expected '6h' | '12h' | '24h' | '48h', received '1h'"
-      ]
+      "_errors": ["Invalid enum value. Expected '6h' | '12h' | '24h' | '48h', received '1h'"]
     }
   }
 }
 ```
 
 **Examples of invalid values:**
+
 - `"1h"` → Invalid (not in enum)
 - `"daily"` → Invalid (must use exact values)
 - `24` → Invalid (must be string)
@@ -144,6 +161,7 @@ curl -X PUT 'http://localhost:4321/api/preferences' \
 - Missing field → Invalid (required)
 
 **500 Internal Server Error:**
+
 ```json
 {
   "error": "Internal Server Error"
@@ -159,14 +177,14 @@ curl -X PUT 'http://localhost:4321/api/preferences' \
 ```typescript
 function UserSettings() {
   const [frequency, setFrequency] = useState('24h');
-  
+
   // Load current preference
   useEffect(() => {
     fetch('/api/preferences')
       .then(r => r.json())
       .then(data => setFrequency(data.defaultFrequency));
   }, []);
-  
+
   // Update preference
   async function handleSave(newFrequency: string) {
     const response = await fetch('/api/preferences', {
@@ -174,13 +192,13 @@ function UserSettings() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ defaultFrequency: newFrequency })
     });
-    
+
     if (response.ok) {
       setFrequency(newFrequency);
       showNotification('Preferences saved!');
     }
   }
-  
+
   return (
     <div>
       <label>Default check frequency:</label>
@@ -201,12 +219,12 @@ function UserSettings() {
 async function setupUserPreferences(userId: string) {
   // Show preference selection during onboarding
   const selectedFrequency = await showOnboardingDialog();
-  
+
   // Update preferences
-  await fetch('/api/preferences', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ defaultFrequency: selectedFrequency })
+  await fetch("/api/preferences", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ defaultFrequency: selectedFrequency }),
   });
 }
 ```
@@ -216,17 +234,16 @@ async function setupUserPreferences(userId: string) {
 ```typescript
 async function addOffer(url: string) {
   // Get user's default frequency
-  const { defaultFrequency } = await fetch('/api/preferences')
-    .then(r => r.json());
-  
+  const { defaultFrequency } = await fetch("/api/preferences").then((r) => r.json());
+
   // Add offer with user's preferred frequency
-  await fetch('/api/offers', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
+  await fetch("/api/offers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
       url,
-      frequency: defaultFrequency  // Use user's preference
-    })
+      frequency: defaultFrequency, // Use user's preference
+    }),
   });
 }
 ```
@@ -236,14 +253,14 @@ async function addOffer(url: string) {
 ```typescript
 // Allow user to change frequency for all future offers
 async function updateDefaultFrequency(newFreq: string) {
-  const response = await fetch('/api/preferences', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ defaultFrequency: newFreq })
+  const response = await fetch("/api/preferences", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ defaultFrequency: newFreq }),
   });
-  
+
   if (response.ok) {
-    alert('All new offers will be checked ' + newFreq);
+    alert("All new offers will be checked " + newFreq);
   }
 }
 ```
@@ -253,15 +270,19 @@ async function updateDefaultFrequency(newFreq: string) {
 ## Frequency Behavior
 
 ### What It Controls
+
 The `defaultFrequency` preference controls:
+
 - **New offers**: Frequency assigned when user subscribes
 - **Future offers**: Only applies to offers added after preference is set
 
 ### What It Does NOT Control
+
 - **Existing offers**: Already have their own frequency setting
 - **Individual offers**: Can be overridden per offer (if feature implemented)
 
 ### Example Flow
+
 ```typescript
 // User has defaultFrequency: "24h"
 GET /api/preferences → { "defaultFrequency": "24h" }
@@ -283,6 +304,7 @@ POST /api/offers { url: "..." }
 ## Auto-Creation Behavior
 
 ### First GET Request
+
 ```typescript
 // User has never accessed preferences
 GET /api/preferences
@@ -296,6 +318,7 @@ GET /api/preferences
 ```
 
 ### First PUT Request
+
 ```typescript
 // User has never accessed preferences
 // Direct PUT without GET first
@@ -330,21 +353,27 @@ PUT /api/preferences { "defaultFrequency": "12h" }
 ## Common Questions
 
 ### Q: What's the default value?
+
 **A**: `"24h"` (once every 24 hours)
 
 ### Q: Can I skip GET and just PUT?
+
 **A**: Yes! PUT has upsert behavior and works even if preferences don't exist.
 
 ### Q: What if I never call GET or PUT?
+
 **A**: No preferences are created. When adding offers, system will use database default (24h).
 
 ### Q: Does changing preference update existing offers?
+
 **A**: No. Only affects new offers added after the change.
 
 ### Q: Can I have different frequencies per offer?
+
 **A**: Not directly via this API. This sets the DEFAULT for new offers. Individual offer frequency is stored in the `offers` table.
 
 ### Q: What happens if two requests create preferences simultaneously?
+
 **A**: Database primary key constraint prevents duplicates. One will succeed, one might fail (rare edge case).
 
 ---
@@ -366,11 +395,13 @@ CREATE TABLE user_preferences (
 ## Testing Checklist
 
 **GET /preferences:**
+
 - [x] User has preferences → returns existing
 - [x] User has no preferences → creates and returns default (24h)
 - [x] Database error → 500
 
 **PUT /preferences:**
+
 - [x] Valid frequency (6h, 12h, 24h, 48h) → 200
 - [x] Invalid frequency → 400 with validation error
 - [x] Invalid JSON → 400
@@ -397,4 +428,3 @@ CREATE TABLE user_preferences (
 - ✅ **Default**: "24h" for new users
 - ✅ **Scope**: Affects only new offer subscriptions
 - ✅ **Simple**: Single resource, two operations
-

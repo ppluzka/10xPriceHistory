@@ -1,23 +1,28 @@
 # DELETE /offers/{id} - Quick Reference
 
 ## Endpoint
+
 ```
 DELETE /api/offers/{id}
 ```
 
 ## Purpose
+
 Unsubscribe from an offer (soft-delete). Removes offer from user's tracking list but preserves data for potential reactivation.
 
 ## Authentication
+
 - **Required**: Yes (JWT Bearer token in Authorization header)
 - **User must be subscribed** to the offer to delete it
 
 ## Path Parameters
-| Parameter | Type | Required | Validation | Description |
-|-----------|------|----------|------------|-------------|
-| id | integer | Yes | Must be positive integer | ID of the offer to unsubscribe from |
+
+| Parameter | Type    | Required | Validation               | Description                         |
+| --------- | ------- | -------- | ------------------------ | ----------------------------------- |
+| id        | integer | Yes      | Must be positive integer | ID of the offer to unsubscribe from |
 
 ## Request Example
+
 ```bash
 curl -X DELETE 'http://localhost:4321/api/offers/123' \
   -H 'Authorization: Bearer <token>'
@@ -26,6 +31,7 @@ curl -X DELETE 'http://localhost:4321/api/offers/123' \
 ## Response (204 No Content)
 
 ### Success - No Response Body
+
 ```bash
 HTTP/1.1 204 No Content
 # Empty response body
@@ -36,6 +42,7 @@ The 204 status code indicates successful deletion. According to REST conventions
 ## Error Responses
 
 ### 400 Bad Request
+
 **Cause**: Invalid offer ID parameter (not a positive integer)
 
 ```json
@@ -46,12 +53,14 @@ The 204 status code indicates successful deletion. According to REST conventions
 ```
 
 **Examples of invalid IDs:**
+
 - `/api/offers/0` → 400
 - `/api/offers/-5` → 400
 - `/api/offers/abc` → 400
 - `/api/offers/1.5` → 400
 
 ### 404 Not Found
+
 **Cause**: Offer doesn't exist OR user is not subscribed OR already unsubscribed
 
 ```json
@@ -62,12 +71,14 @@ The 204 status code indicates successful deletion. According to REST conventions
 ```
 
 **Scenarios:**
+
 - Offer ID doesn't exist in database
 - User never subscribed to this offer
 - User already unsubscribed (soft-deleted)
 - Another user subscribed, but not current user
 
 ### 401 Unauthorized
+
 **Cause**: Missing or invalid JWT token (handled by middleware)
 
 ```json
@@ -77,6 +88,7 @@ The 204 status code indicates successful deletion. According to REST conventions
 ```
 
 ### 500 Internal Server Error
+
 **Cause**: Unexpected server error (database error, etc.)
 
 ```json
@@ -88,6 +100,7 @@ The 204 status code indicates successful deletion. According to REST conventions
 ## Soft-Delete Pattern
 
 ### What is Soft-Delete?
+
 Instead of permanently removing the subscription, we set a `deleted_at` timestamp:
 
 ```sql
@@ -101,18 +114,22 @@ uuid    | 123      | 2025-10-01 | 2025-10-31
 ```
 
 ### Benefits:
+
 1. **Data Preservation**: Price history remains accessible
 2. **Audit Trail**: Track when user unsubscribed
 3. **Reactivation**: User can re-subscribe to same offer
 4. **Analytics**: Analyze subscription patterns
 
 ### What Gets Hidden:
+
 After soft-delete, the offer is hidden from:
+
 - `GET /offers` - List endpoint
-- `GET /offers/{id}` - Detail endpoint  
+- `GET /offers/{id}` - Detail endpoint
 - `GET /offers/{id}/history` - History endpoint
 
 ### What Remains:
+
 - Offer data in `offers` table
 - Price history in `price_history` table
 - Subscription record in `user_offer` table (with `deleted_at` timestamp)
@@ -142,6 +159,7 @@ POST /api/offers
 ```
 
 When reactivating:
+
 - Sets `deleted_at = NULL`
 - Keeps original `created_at` timestamp
 - Resumes price tracking from current time
@@ -149,6 +167,7 @@ When reactivating:
 ## Idempotency
 
 DELETE is **NOT strictly idempotent**:
+
 - First call: `204 No Content` (success)
 - Second call: `404 Not Found` (already deleted)
 
@@ -157,53 +176,59 @@ However, the **end result is idempotent**: after one or more DELETE calls, the s
 ## Use Cases
 
 ### 1. User Unsubscribes from Offer
+
 Frontend "unfollow" or "remove" button:
+
 ```typescript
 async function unsubscribe(offerId: number) {
   const response = await fetch(`/api/offers/${offerId}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` }
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
   });
-  
+
   if (response.status === 204) {
     // Successfully unsubscribed, redirect to offers list
-    router.push('/offers');
+    router.push("/offers");
   } else if (response.status === 404) {
     // Already unsubscribed, show message
-    alert('This offer is already removed');
+    alert("This offer is already removed");
   }
 }
 ```
 
 ### 2. Cleanup Inactive Offers
+
 Backend batch job removes stale offers:
+
 ```typescript
 // Find offers with status 'removed' or 'error'
 const staleOffers = await getStaleOffers();
 
 for (const offer of staleOffers) {
-  await fetch(`/api/offers/${offer.id}`, { method: 'DELETE' });
+  await fetch(`/api/offers/${offer.id}`, { method: "DELETE" });
 }
 ```
 
 ### 3. Testing Subscription Lifecycle
+
 E2E test verifies full flow:
+
 ```typescript
-test('subscription lifecycle', async () => {
+test("subscription lifecycle", async () => {
   // Add offer
-  const { id } = await POST('/api/offers', { url });
-  
+  const { id } = await POST("/api/offers", { url });
+
   // Verify visible
-  const list = await GET('/api/offers');
-  expect(list.data.some(o => o.id === id)).toBe(true);
-  
+  const list = await GET("/api/offers");
+  expect(list.data.some((o) => o.id === id)).toBe(true);
+
   // Delete offer
   await DELETE(`/api/offers/${id}`);
-  
+
   // Verify hidden
-  const listAfter = await GET('/api/offers');
-  expect(listAfter.data.some(o => o.id === id)).toBe(false);
-  
+  const listAfter = await GET("/api/offers");
+  expect(listAfter.data.some((o) => o.id === id)).toBe(false);
+
   // Verify 404 on detail
   const detail = await GET(`/api/offers/${id}`);
   expect(detail.status).toBe(404);
@@ -213,7 +238,9 @@ test('subscription lifecycle', async () => {
 ## Impact on Other Endpoints
 
 ### GET /offers (list)
+
 Soft-deleted offers are excluded:
+
 ```typescript
 // Before DELETE
 GET /api/offers
@@ -225,14 +252,18 @@ GET /api/offers
 ```
 
 ### GET /offers/{id} (detail)
+
 Returns 404 after deletion:
+
 ```typescript
 GET /api/offers/123
 → 404 Not Found
 ```
 
 ### POST /offers (add)
+
 Reactivates if same URL:
+
 ```typescript
 // After DELETE /api/offers/123
 POST /api/offers { "url": "https://otomoto.pl/..." }
@@ -241,7 +272,9 @@ POST /api/offers { "url": "https://otomoto.pl/..." }
 ```
 
 ### GET /offers/{id}/history
+
 Returns 404 after deletion:
+
 ```typescript
 GET /api/offers/123/history
 → 404 Not Found (or Unauthorized)
@@ -280,21 +313,27 @@ GET /api/offers/123/history
 ## Common Questions
 
 ### Q: Can user access deleted offer's price history?
+
 **A**: No. After soft-delete, `GET /offers/{id}/history` returns 404.
 
 ### Q: Can user re-subscribe to deleted offer?
+
 **A**: Yes. POST the same URL again to reactivate (sets `deleted_at = NULL`).
 
 ### Q: What if I call DELETE twice?
+
 **A**: First call returns 204, second returns 404. Safe to retry.
 
 ### Q: Does DELETE affect other users?
+
 **A**: No. Each user has their own subscription. Deleting yours doesn't affect others.
 
 ### Q: Is the offer data permanently deleted?
+
 **A**: No. Only the subscription is soft-deleted. Offer and price history remain in database.
 
 ### Q: Can admin permanently delete (hard delete)?
+
 **A**: Not implemented yet. Would require separate admin endpoint.
 
 ## Testing Checklist
@@ -316,35 +355,34 @@ GET /api/offers/123/history
 async function deleteOffer(offerId: number) {
   try {
     const response = await fetch(`/api/offers/${offerId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     if (response.status === 204) {
       // Success - offer deleted
-      showNotification('Offer removed successfully');
+      showNotification("Offer removed successfully");
       return true;
     }
-    
+
     if (response.status === 404) {
       // Already deleted or not found
-      showNotification('Offer not found');
+      showNotification("Offer not found");
       return false;
     }
-    
+
     if (response.status === 400) {
       // Invalid ID
       const error = await response.json();
       showNotification(`Error: ${error.details}`);
       return false;
     }
-    
+
     // Other errors
     throw new Error(`Unexpected status: ${response.status}`);
-    
   } catch (error) {
-    console.error('Failed to delete offer:', error);
-    showNotification('Failed to delete offer. Please try again.');
+    console.error("Failed to delete offer:", error);
+    showNotification("Failed to delete offer. Please try again.");
     return false;
   }
 }
@@ -359,4 +397,3 @@ async function deleteOffer(offerId: number) {
 - ✅ **Reactivation**: POST same URL
 - ✅ **Impact**: Hidden from all endpoints
 - ✅ **Security**: User can only delete own subscriptions
-

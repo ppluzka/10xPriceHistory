@@ -23,7 +23,7 @@ const PUBLIC_PATHS = [
 
 /**
  * Middleware for handling authentication and session management
- * 
+ *
  * Flow:
  * 1. Create Supabase client with request context (cookies + headers)
  * 2. Get user session from Supabase Auth
@@ -57,7 +57,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // User is authenticated - set user data in locals
     context.locals.user = {
       id: user.id,
-      email: user.email!,
+      email: user.email ?? "",
       emailVerified: user.email_confirmed_at !== null,
     };
     context.locals.current_user_id = user.id;
@@ -68,14 +68,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     // Protected routes: redirect to login with returnUrl
     const protectedRoutes = ["/dashboard", "/settings", "/offer"];
-    const isProtectedRoute = protectedRoutes.some((route) =>
-      context.url.pathname.startsWith(route)
-    );
+    const isProtectedRoute = protectedRoutes.some((route) => context.url.pathname.startsWith(route));
 
     if (isProtectedRoute) {
-      const returnUrl = encodeURIComponent(
-        context.url.pathname + context.url.search
-      );
+      const returnUrl = encodeURIComponent(context.url.pathname + context.url.search);
       return context.redirect(`/login?returnUrl=${returnUrl}`);
     }
   }

@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +22,7 @@ interface DeleteAccountSectionProps {
 
 const CONFIRMATION_TEXT = "USUŃ";
 
-export default function DeleteAccountSection({
-  onDelete,
-}: DeleteAccountSectionProps) {
+export default function DeleteAccountSection({ onDelete }: DeleteAccountSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmationInput, setConfirmationInput] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -50,9 +41,7 @@ export default function DeleteAccountSection({
       // Nie trzeba zamykać modala ani resetować stanu,
       // bo użytkownik zostanie przekierowany na stronę główną
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Nie udało się usunąć konta"
-      );
+      toast.error(error instanceof Error ? error.message : "Nie udało się usunąć konta");
       setIsDeleting(false);
     }
   };
@@ -69,15 +58,12 @@ export default function DeleteAccountSection({
     <Card className="border-destructive">
       <CardHeader>
         <CardTitle className="text-destructive">Niebezpieczna strefa</CardTitle>
-        <CardDescription>
-          Akcje w tej sekcji są nieodwracalne
-        </CardDescription>
+        <CardDescription>Akcje w tej sekcji są nieodwracalne</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground">
-          Usunięcie konta spowoduje trwałe usunięcie wszystkich Twoich danych,
-          w tym wszystkich śledzonych ofert i historii cen. Ta akcja jest
-          nieodwracalna.
+          Usunięcie konta spowoduje trwałe usunięcie wszystkich Twoich danych, w tym wszystkich śledzonych ofert i
+          historii cen. Ta akcja jest nieodwracalna.
         </p>
       </CardContent>
       <CardFooter>
@@ -87,19 +73,15 @@ export default function DeleteAccountSection({
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>
-                Czy na pewno chcesz usunąć konto?
-              </AlertDialogTitle>
+              <AlertDialogTitle>Czy na pewno chcesz usunąć konto?</AlertDialogTitle>
               <AlertDialogDescription>
-                Ta akcja jest nieodwracalna. Wszystkie Twoje dane, oferty i
-                historia cen zostaną trwale usunięte.
+                Ta akcja jest nieodwracalna. Wszystkie Twoje dane, oferty i historia cen zostaną trwale usunięte.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <div className="py-4">
               <Label htmlFor="delete-confirmation" className="mb-2 block">
-                Wpisz <span className="font-bold">{CONFIRMATION_TEXT}</span>{" "}
-                aby potwierdzić:
+                Wpisz <span className="font-bold">{CONFIRMATION_TEXT}</span> aby potwierdzić:
               </Label>
               <Input
                 id="delete-confirmation"
@@ -114,9 +96,7 @@ export default function DeleteAccountSection({
             </div>
 
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>
-                Anuluj
-              </AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting}>Anuluj</AlertDialogCancel>
               <AlertDialogAction
                 onClick={(e) => {
                   e.preventDefault();
@@ -134,4 +114,3 @@ export default function DeleteAccountSection({
     </Card>
   );
 }
-

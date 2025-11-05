@@ -11,12 +11,14 @@ Zaimplementowano kompletny widok ustawień zgodnie z planem implementacji. Widok
 ## Zaimplementowane komponenty
 
 ### 1. Strona Astro (`src/pages/settings.astro`)
+
 - ✅ Server-side pobieranie preferencji użytkownika
 - ✅ Obsługa błędów ładowania danych
 - ✅ Przekazywanie początkowych danych do komponentu React
 - ✅ Wykorzystanie Layout z tytułem "Ustawienia - 10x Price History"
 
 ### 2. Główny komponent (`src/components/views/SettingsView.tsx`)
+
 - ✅ Integracja z custom hookiem `useSettings`
 - ✅ Stan ładowania ze skeleton loaderami dla wszystkich sekcji
 - ✅ Obsługa błędów z możliwością odświeżenia strony
@@ -26,6 +28,7 @@ Zaimplementowano kompletny widok ustawień zgodnie z planem implementacji. Widok
 - ✅ Maksymalna szerokość 2xl dla optymalnej czytelności
 
 ### 3. Custom Hook (`src/components/settings/useSettings.ts`)
+
 - ✅ Centralizacja logiki biznesowej
 - ✅ Zarządzanie stanem preferencji, ładowania i błędów
 - ✅ Funkcja `fetchPreferences()` - pobieranie preferencji
@@ -35,6 +38,7 @@ Zaimplementowano kompletny widok ustawień zgodnie z planem implementacji. Widok
 - ✅ Obsługa błędów dla wszystkich operacji API
 
 ### 4. Formularz częstotliwości (`src/components/settings/FrequencySettingsForm.tsx`)
+
 - ✅ Wykorzystanie react-hook-form z zodResolver
 - ✅ Komponent Select z 4 opcjami (6h, 12h, 24h, 48h)
 - ✅ Walidacja schema z zod
@@ -45,6 +49,7 @@ Zaimplementowano kompletny widok ustawień zgodnie z planem implementacji. Widok
 - ✅ Komponent Label dla lepszej dostępności
 
 ### 5. Formularz zmiany hasła (`src/components/settings/PasswordChangeForm.tsx`)
+
 - ✅ Wykorzystanie react-hook-form z zodResolver
 - ✅ Trzy pola typu password z autocomplete
 - ✅ Walidacja zod:
@@ -58,6 +63,7 @@ Zaimplementowano kompletny widok ustawień zgodnie z planem implementacji. Widok
 - ✅ Komponenty Label dla lepszej dostępności
 
 ### 6. Sekcja usuwania konta (`src/components/settings/DeleteAccountSection.tsx`)
+
 - ✅ Card z czerwonym obramowaniem (border-destructive)
 - ✅ Nagłówek "Niebezpieczna strefa" w kolorze destructive
 - ✅ Ostrzeżenie o nieodwracalności
@@ -97,10 +103,12 @@ export interface DeleteAccountViewModel {
 ## Zainstalowane zależności
 
 ### NPM packages:
+
 - ✅ `react-hook-form` - zarządzanie formularzami
 - ✅ `@hookform/resolvers` - integracja z zod
 
 ### Shadcn UI components:
+
 - ✅ `select` - dropdown dla częstotliwości
 - ✅ `input` - pola tekstowe i hasła
 - ✅ `alert-dialog` - modal potwierdzenia usunięcia
@@ -135,12 +143,14 @@ src/
 ## Integracja z API
 
 ### Zaimplementowane endpointy:
+
 - ✅ `GET /api/preferences` - pobieranie preferencji (już istnieje)
 - ✅ `PUT /api/preferences` - aktualizacja preferencji (już istnieje)
 - ⏳ `PUT /api/account/password` - zmiana hasła (placeholder, wymaga implementacji backend)
 - ⏳ `DELETE /api/account` - usunięcie konta (placeholder, wymaga implementacji backend)
 
 ### Obsługa odpowiedzi:
+
 - ✅ Sukces: Toast z potwierdzeniem
 - ✅ Błąd: Toast z komunikatem błędu
 - ✅ Loading states z disabled buttons
@@ -166,16 +176,19 @@ src/
 ## Walidacja
 
 ### FrequencySettingsForm:
+
 - ✅ Enum z 4 opcjami ("6h" | "12h" | "24h" | "48h")
 - ✅ Przycisk nieaktywny jeśli wartość nie została zmieniona
 
 ### PasswordChangeForm:
+
 - ✅ Aktualne hasło: wymagane
 - ✅ Nowe hasło: minimum 8 znaków
 - ✅ Potwierdzenie: musi być identyczne z nowym hasłem
 - ✅ Walidacja w czasie rzeczywistym z zod
 
 ### DeleteAccountSection:
+
 - ✅ Input musi dokładnie zawierać "USUŃ"
 - ✅ Przycisk nieaktywny dopóki tekst się nie zgadza
 
@@ -208,6 +221,7 @@ src/
 ## Testy manualne (do wykonania)
 
 ### Funkcjonalne:
+
 - [ ] Zmiana częstotliwości i weryfikacja toast
 - [ ] Walidacja formularza hasła (puste pola, zbyt krótkie hasło, niezgodne potwierdzenie)
 - [ ] Modal usuwania konta (nieprawidłowy tekst, anulowanie, usunięcie)
@@ -215,11 +229,13 @@ src/
 - [ ] Error state gdy API nie odpowiada
 
 ### Responsywność:
+
 - [ ] Mobile (320px-767px)
 - [ ] Tablet (768px-1023px)
 - [ ] Desktop (1024px+)
 
 ### Dostępność:
+
 - [ ] Nawigacja klawiaturą (Tab, Enter, Escape)
 - [ ] Screen reader compatibility
 - [ ] Focus indicators
@@ -234,6 +250,7 @@ src/
 ## Następne kroki
 
 ### Backend (wymagane):
+
 1. Implementacja `PUT /api/account/password`
    - Walidacja aktualnego hasła
    - Hash nowego hasła
@@ -245,6 +262,7 @@ src/
    - Usunięcie użytkownika z Supabase Auth
 
 ### Opcjonalne ulepszenia:
+
 1. Password strength indicator
 2. Export danych przed usunięciem
 3. Email confirmation dla usunięcia konta
@@ -254,6 +272,7 @@ src/
 ## Pliki zmodyfikowane/utworzone
 
 ### Utworzone:
+
 - `src/pages/settings.astro`
 - `src/components/views/SettingsView.tsx`
 - `src/components/settings/useSettings.ts`
@@ -268,12 +287,14 @@ src/
 - `src/components/ui/label.tsx`
 
 ### Zmodyfikowane:
+
 - `src/types.ts` - dodano 3 nowe interfejsy ViewModel
 - `package.json` - dodano react-hook-form i @hookform/resolvers
 
 ## Zgodność z planem
 
 ✅ Wszystkie punkty z planu implementacji zostały zrealizowane:
+
 1. ✅ Utworzenie pliku strony
 2. ✅ Struktura komponentów
 3. ✅ Definicja typów
@@ -288,12 +309,14 @@ src/
 ## Nawigacja
 
 ### Dashboard → Settings
+
 - Dodano nagłówek z przyciskiem "Ustawienia" w prawym górnym rogu Dashboard
 - Ikona Settings (lucide-react)
 - Tekst "Ustawienia" ukryty na mobile, widoczny od breakpoint `sm:`
 - Wariant: `outline`, rozmiar: `sm`
 
 ### Settings → Dashboard
+
 - Dodano przycisk "Powrót" z ikoną ArrowLeft na górze strony Settings
 - Tekst "Powrót" ukryty na mobile, widoczny od breakpoint `sm:`
 - Wariant: `ghost`, rozmiar: `sm`
@@ -302,4 +325,3 @@ src/
 ## Podsumowanie
 
 Implementacja widoku Ustawienia została zakończona zgodnie z planem. Wszystkie komponenty są w pełni funkcjonalne, responsywne i dostępne. Dodano nawigację między Dashboard i Settings dla lepszego UX. Kod jest czysty, dobrze zorganizowany i zgodny z konwencjami projektu. Widok jest gotowy do użycia z istniejącym API dla preferencji i oczekuje na implementację endpointów dla zmiany hasła i usunięcia konta.
-

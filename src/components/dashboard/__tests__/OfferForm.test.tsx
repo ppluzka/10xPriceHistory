@@ -24,15 +24,9 @@ describe("OfferForm", () => {
       render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       expect(screen.getByText("Dodaj nową ofertę")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Wklej adres URL z otomoto.pl, aby rozpocząć śledzenie/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText("https://www.otomoto.pl/...")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /dodaj ofertę/i })
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Wklej adres URL z otomoto.pl, aby rozpocząć śledzenie/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("https://www.otomoto.pl/...")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /dodaj ofertę/i })).toBeInTheDocument();
     });
 
     it("should render input with correct attributes", () => {
@@ -85,7 +79,7 @@ describe("OfferForm", () => {
         const errorMessage = screen.queryByText("Wprowadź adres URL.");
         expect(errorMessage).toBeInTheDocument();
       });
-      
+
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -99,9 +93,7 @@ describe("OfferForm", () => {
       const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
-      expect(
-        screen.getByText("URL musi być z otomoto.pl")
-      ).toBeInTheDocument();
+      expect(screen.getByText("URL musi być z otomoto.pl")).toBeInTheDocument();
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -115,9 +107,7 @@ describe("OfferForm", () => {
       const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
 
-      expect(
-        screen.getByText("URL musi być z otomoto.pl")
-      ).toBeInTheDocument();
+      expect(screen.getByText("URL musi być z otomoto.pl")).toBeInTheDocument();
     });
 
     it("should accept valid otomoto.pl URL with www", async () => {
@@ -175,10 +165,7 @@ describe("OfferForm", () => {
       render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
-      await user.type(
-        input,
-        "https://www.otomoto.pl/oferta/test?utm_source=facebook&ref=share"
-      );
+      await user.type(input, "https://www.otomoto.pl/oferta/test?utm_source=facebook&ref=share");
 
       const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
@@ -255,9 +242,7 @@ describe("OfferForm", () => {
 
       render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
-      const input = screen.getByPlaceholderText(
-        "https://www.otomoto.pl/..."
-      ) as HTMLInputElement;
+      const input = screen.getByPlaceholderText("https://www.otomoto.pl/...") as HTMLInputElement;
       await user.type(input, "https://www.otomoto.pl/oferta/test");
 
       const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
@@ -398,9 +383,7 @@ describe("OfferForm", () => {
       await user.click(submitButton);
 
       // Check loading state
-      expect(
-        screen.getByRole("button", { name: /dodawanie/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /dodawanie/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /dodawanie/i })).toBeDisabled();
     });
 
@@ -468,9 +451,7 @@ describe("OfferForm", () => {
 
       await waitFor(() => {
         expect(input).not.toBeDisabled();
-        expect(
-          screen.getByRole("button", { name: /dodaj ofertę/i })
-        ).not.toBeDisabled();
+        expect(screen.getByRole("button", { name: /dodaj ofertę/i })).not.toBeDisabled();
       });
     });
   });
@@ -489,7 +470,7 @@ describe("OfferForm", () => {
       await user.clear(input);
       await user.type(input, "ftp://otomoto.pl/test");
       await user.click(submitButton);
-      
+
       await waitFor(() => {
         const errorMessage = screen.queryByText("Wprowadź adres URL.");
         expect(errorMessage).toBeInTheDocument();
@@ -497,11 +478,9 @@ describe("OfferForm", () => {
 
       // Start typing - error should clear (via handleInputChange)
       await user.type(input, "a");
-      
+
       await waitFor(() => {
-        expect(
-          screen.queryByText("Wprowadź adres URL.")
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText("Wprowadź adres URL.")).not.toBeInTheDocument();
       });
     });
 
@@ -636,8 +615,7 @@ describe("OfferForm", () => {
         json: async () => ({ id: 1, message: "Success" }),
       });
 
-      const longUrl =
-        "https://www.otomoto.pl/oferta/" + "a".repeat(500) + "?param=value";
+      const longUrl = "https://www.otomoto.pl/oferta/" + "a".repeat(500) + "?param=value";
 
       render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
@@ -662,10 +640,7 @@ describe("OfferForm", () => {
       render(<OfferForm onOfferAdded={mockOnOfferAdded} activeCount={0} offerLimit={100} />);
 
       const input = screen.getByPlaceholderText("https://www.otomoto.pl/...");
-      await user.type(
-        input,
-        "https://www.otomoto.pl/oferta/bmw-x5-2024-śląskie-górny"
-      );
+      await user.type(input, "https://www.otomoto.pl/oferta/bmw-x5-2024-śląskie-górny");
 
       const submitButton = screen.getByRole("button", { name: /dodaj ofertę/i });
       await user.click(submitButton);
@@ -853,9 +828,7 @@ describe("OfferForm", () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(
-          screen.getByText("Server temporarily unavailable")
-        ).toBeInTheDocument();
+        expect(screen.getByText("Server temporarily unavailable")).toBeInTheDocument();
       });
 
       // Second attempt succeeds
@@ -873,4 +846,3 @@ describe("OfferForm", () => {
     });
   });
 });
-

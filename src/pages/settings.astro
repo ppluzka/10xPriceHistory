@@ -8,7 +8,10 @@ export const prerender = false;
 
 // Get user from middleware (added by auth middleware)
 // Middleware ensures user is always present on protected routes
-const user = Astro.locals.user!;
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect("/login");
+}
 
 // Fetch initial preferences data server-side
 let initialPreferences: PreferencesDto | null = null;

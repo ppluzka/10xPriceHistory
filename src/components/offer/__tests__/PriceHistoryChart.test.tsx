@@ -5,20 +5,14 @@ import type { PriceHistoryChartViewModel } from "@/types";
 
 // Mock Recharts components to avoid rendering complexity in tests
 vi.mock("recharts", () => ({
-  ResponsiveContainer: ({ children }: any) => (
-    <div data-testid="responsive-container">{children}</div>
-  ),
+  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
   LineChart: ({ children, data }: any) => (
     <div data-testid="line-chart" data-points={data.length}>
       {children}
     </div>
   ),
-  Line: ({ dataKey }: any) => (
-    <div data-testid="line" data-key={dataKey} />
-  ),
-  XAxis: ({ dataKey }: any) => (
-    <div data-testid="x-axis" data-key={dataKey} />
-  ),
+  Line: ({ dataKey }: any) => <div data-testid="line" data-key={dataKey} />,
+  XAxis: ({ dataKey }: any) => <div data-testid="x-axis" data-key={dataKey} />,
   YAxis: ({ domain, tickFormatter }: any) => (
     <div
       data-testid="y-axis"
@@ -28,11 +22,7 @@ vi.mock("recharts", () => ({
   ),
   CartesianGrid: () => <div data-testid="cartesian-grid" />,
   Tooltip: ({ content, cursor }: any) => (
-    <div
-      data-testid="tooltip"
-      data-has-content={!!content}
-      data-has-cursor={!!cursor}
-    />
+    <div data-testid="tooltip" data-has-content={!!content} data-has-cursor={!!cursor} />
   ),
 }));
 
@@ -76,9 +66,7 @@ describe("PriceHistoryChart", () => {
       render(<PriceHistoryChart data={mockChartData} />);
 
       expect(screen.getByText("Wykres historii cen")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Zmiana ceny w czasie/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Zmiana ceny w czasie/)).toBeInTheDocument();
     });
 
     it("should pass correct number of data points to chart", () => {
@@ -144,13 +132,9 @@ describe("PriceHistoryChart", () => {
     it("should show empty state message when no data", () => {
       render(<PriceHistoryChart data={[]} />);
 
+      expect(screen.getByText("Za mało danych do wygenerowania wykresu")).toBeInTheDocument();
       expect(
-        screen.getByText("Za mało danych do wygenerowania wykresu")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          /Wykres zostanie wyświetlony po zebraniu co najmniej 2 punktów danych/
-        )
+        screen.getByText(/Wykres zostanie wyświetlony po zebraniu co najmniej 2 punktów danych/)
       ).toBeInTheDocument();
     });
 
@@ -158,9 +142,7 @@ describe("PriceHistoryChart", () => {
       const singlePoint = [mockChartData[0]];
       render(<PriceHistoryChart data={singlePoint} />);
 
-      expect(
-        screen.getByText("Za mało danych do wygenerowania wykresu")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Za mało danych do wygenerowania wykresu")).toBeInTheDocument();
     });
 
     it("should not render chart components in empty state", () => {
@@ -253,27 +235,21 @@ describe("PriceHistoryChart", () => {
 
   describe("Layout and Styling", () => {
     it("should render as Card component", () => {
-      const { container } = render(
-        <PriceHistoryChart data={mockChartData} />
-      );
+      const { container } = render(<PriceHistoryChart data={mockChartData} />);
 
       const card = container.querySelector('[class*="rounded"]');
       expect(card).toBeTruthy();
     });
 
     it("should have fixed height container for chart", () => {
-      const { container } = render(
-        <PriceHistoryChart data={mockChartData} />
-      );
+      const { container } = render(<PriceHistoryChart data={mockChartData} />);
 
       const chartContainer = container.querySelector(".h-\\[400px\\]");
       expect(chartContainer).toBeInTheDocument();
     });
 
     it("should use full width for responsive container", () => {
-      const { container } = render(
-        <PriceHistoryChart data={mockChartData} />
-      );
+      const { container } = render(<PriceHistoryChart data={mockChartData} />);
 
       const chartContainer = container.querySelector(".w-full");
       expect(chartContainer).toBeInTheDocument();
@@ -331,15 +307,11 @@ describe("PriceHistoryChart", () => {
       render(<PriceHistoryChart data={mockChartData} />);
 
       expect(screen.getByText("Wykres historii cen")).toBeInTheDocument();
-      expect(
-        screen.getByText(/najedź na punkt, aby zobaczyć szczegóły/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/najedź na punkt, aby zobaczyć szczegóły/)).toBeInTheDocument();
     });
 
     it("should render CardContent wrapper", () => {
-      const { container } = render(
-        <PriceHistoryChart data={mockChartData} />
-      );
+      const { container } = render(<PriceHistoryChart data={mockChartData} />);
 
       // Card structure should be present
       const card = container.firstChild;
@@ -358,24 +330,17 @@ describe("PriceHistoryChart", () => {
     it("should provide helpful description", () => {
       render(<PriceHistoryChart data={mockChartData} />);
 
-      const description = screen.getByText(
-        /Zmiana ceny w czasie \(najedź na punkt, aby zobaczyć szczegóły\)/
-      );
+      const description = screen.getByText(/Zmiana ceny w czasie \(najedź na punkt, aby zobaczyć szczegóły\)/);
       expect(description).toBeInTheDocument();
     });
 
     it("should have informative empty state message", () => {
       render(<PriceHistoryChart data={[]} />);
 
+      expect(screen.getByText("Za mało danych do wygenerowania wykresu")).toBeInTheDocument();
       expect(
-        screen.getByText("Za mało danych do wygenerowania wykresu")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          "Wykres zostanie wyświetlony po zebraniu co najmniej 2 punktów danych"
-        )
+        screen.getByText("Wykres zostanie wyświetlony po zebraniu co najmniej 2 punktów danych")
       ).toBeInTheDocument();
     });
   });
 });
-

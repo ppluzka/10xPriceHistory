@@ -97,7 +97,7 @@ describe("OfferStats", () => {
     });
 
     it("should apply correct color class for falling trend", () => {
-      const { container } = render(<OfferStats stats={mockStats} />);
+      render(<OfferStats stats={mockStats} />);
 
       const trendValue = screen.getByText("Spadkowy");
       expect(trendValue).toHaveClass("text-green-600");
@@ -105,7 +105,7 @@ describe("OfferStats", () => {
 
     it("should apply correct color class for rising trend", () => {
       const statsWithRisingTrend = { ...mockStats, trend: "wzrostowy" as const };
-      const { container } = render(<OfferStats stats={statsWithRisingTrend} />);
+      render(<OfferStats stats={statsWithRisingTrend} />);
 
       const trendValue = screen.getByText("Wzrostowy");
       expect(trendValue).toHaveClass("text-destructive");
@@ -113,7 +113,7 @@ describe("OfferStats", () => {
 
     it("should apply correct color class for stable trend", () => {
       const statsWithStableTrend = { ...mockStats, trend: "stabilny" as const };
-      const { container } = render(<OfferStats stats={statsWithStableTrend} />);
+      render(<OfferStats stats={statsWithStableTrend} />);
 
       const trendValue = screen.getByText("Stabilny");
       expect(trendValue).toHaveClass("text-muted-foreground");
@@ -237,7 +237,7 @@ describe("OfferStats", () => {
     });
 
     it("should render icon and label together", () => {
-      const { container } = render(<OfferStats stats={mockStats} />);
+      render(<OfferStats stats={mockStats} />);
 
       const labelWithIcon = screen.getByText("Cena minimalna").closest(".flex");
       const icon = labelWithIcon?.querySelector(".text-base");
@@ -304,4 +304,3 @@ describe("OfferStats", () => {
     });
   });
 });
-

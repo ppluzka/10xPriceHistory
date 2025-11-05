@@ -41,6 +41,7 @@ create table user_preferences (
 ### Tabele utworzone:
 
 #### 1. `system_logs`
+
 **Cel:** Ogólny logging systemowy
 
 ```sql
@@ -54,12 +55,14 @@ CREATE TABLE system_logs (
 ```
 
 **Zastosowanie:**
+
 - Logowanie operacji autentykacji
 - Logowanie błędów scrapingu
 - Audit trail dla krytycznych operacji
 - Retention: 90 dni
 
 #### 2. `registration_attempts`
+
 **Cel:** Rate limiting dla rejestracji
 
 ```sql
@@ -75,11 +78,13 @@ CREATE TABLE registration_attempts (
 ```
 
 **Zastosowanie:**
+
 - Limitowanie do 3 rejestracji/24h per IP
 - Security monitoring
 - Indeksy: `(ip_address, attempted_at DESC)`, `(email, attempted_at DESC)`
 
 #### 3. `login_attempts`
+
 **Cel:** Rate limiting i security dla logowania
 
 ```sql
@@ -95,11 +100,13 @@ CREATE TABLE login_attempts (
 ```
 
 **Zastosowanie:**
+
 - Limitowanie do 5 prób/15min per IP
 - Wykrywanie brute force attacks
 - Indeksy: `(ip_address, attempted_at DESC)`, `(email, attempted_at DESC)`
 
 #### 4. `password_change_log`
+
 **Cel:** Audit trail zmian hasła
 
 ```sql
@@ -113,11 +120,13 @@ CREATE TABLE password_change_log (
 ```
 
 **Zastosowanie:**
+
 - Security audit
 - Wykrywanie nieautoryzowanych zmian
 - Retention: 90 dni
 
 #### 5. `email_verification_resends`
+
 **Cel:** Rate limiting dla wysyłania emaili weryfikacyjnych
 
 ```sql
@@ -129,6 +138,7 @@ CREATE TABLE email_verification_resends (
 ```
 
 **Zastosowanie:**
+
 - Limitowanie do 1 wysłania/minutę per email
 - Zapobieganie spamowi
 - Retention: 7 dni (krótsza niż inne logi)
@@ -136,51 +146,54 @@ CREATE TABLE email_verification_resends (
 ### Funkcje utworzone:
 
 #### Rate Limiting Functions:
+
 ```sql
 check_registration_rate_limit(ip INET) RETURNS BOOLEAN
-check_login_rate_limit(ip INET) RETURNS BOOLEAN  
+check_login_rate_limit(ip INET) RETURNS BOOLEAN
 check_email_resend_cooldown(email TEXT) RETURNS BOOLEAN
 ```
 
 **Użycie w API:**
+
 ```typescript
 // Przykład w /api/auth/register
-const isLimited = await supabase.rpc('check_registration_rate_limit', { 
-  ip: clientIp 
+const isLimited = await supabase.rpc("check_registration_rate_limit", {
+  ip: clientIp,
 });
 
 if (isLimited) {
-  return new Response(
-    JSON.stringify({ error: 'Rate limit exceeded' }), 
-    { status: 429 }
-  );
+  return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429 });
 }
 ```
 
 #### Logging Functions:
+
 ```sql
 log_registration_attempt(ip, email, user_id, success, error_code)
 log_login_attempt(ip, email, user_id, success, error_code)
 ```
 
 **Użycie w API:**
+
 ```typescript
 // Po próbie logowania
-await supabase.rpc('log_login_attempt', {
+await supabase.rpc("log_login_attempt", {
   p_ip_address: clientIp,
   p_email: email,
   p_user_id: userId || null,
   p_success: success,
-  p_error_code: errorCode || null
+  p_error_code: errorCode || null,
 });
 ```
 
 #### Cleanup Function:
+
 ```sql
 cleanup_auth_logs() RETURNS void
 ```
 
 **Użycie:**
+
 - Usuwa logi starsze niż 90 dni (email resends: 7 dni)
 - Powinien być uruchamiany codziennie (cron job)
 - Opcjonalnie: `pg_cron` extension (zakomentowane w migracji)
@@ -196,6 +209,7 @@ cleanup_auth_logs() RETURNS void
 **Cel:** Bezpieczne usunięcie (anonimizacja) konta użytkownika
 
 **Co robi:**
+
 1. **Soft-delete** wszystkich subskrypcji użytkownika (`user_offer.deleted_at = NOW()`)
 2. **Anonimizacja** emaila: `deleted_{timestamp}@deleted.com`
 3. **Usunięcie hasła**: `encrypted_password = NULL`
@@ -203,28 +217,24 @@ cleanup_auth_logs() RETURNS void
 5. **Logowanie** operacji w `system_logs`
 
 **Security:**
+
 - `SECURITY DEFINER` - pozwala modyfikować `auth.users`
 - `auth.uid()` - użytkownik może usunąć tylko swoje konto
 - Nie można usunąć cudzego konta!
 
 **Użycie w API:**
+
 ```typescript
 // /api/auth/delete-account endpoint
-const { error } = await supabase.rpc('delete_user_account');
+const { error } = await supabase.rpc("delete_user_account");
 
 if (error) {
-  return new Response(
-    JSON.stringify({ error: error.message }), 
-    { status: 500 }
-  );
+  return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 }
 
 // Success - logout user and redirect
 await supabase.auth.signOut();
-return new Response(
-  JSON.stringify({ message: 'Account deleted' }), 
-  { status: 200 }
-);
+return new Response(JSON.stringify({ message: "Account deleted" }), { status: 200 });
 ```
 
 ### Funkcja pomocnicza: `can_delete_account()`
@@ -232,6 +242,7 @@ return new Response(
 **Cel:** Pre-check przed usunięciem konta
 
 **Zwraca:**
+
 ```json
 {
   "can_delete": true,
@@ -245,9 +256,10 @@ return new Response(
 ```
 
 **Użycie w UI:**
+
 ```typescript
 // Przed pokazaniem modal z potwierdzeniem
-const { data } = await supabase.rpc('can_delete_account');
+const { data } = await supabase.rpc("can_delete_account");
 
 // Pokaż warnings w modal
 setWarnings(data.warnings);
@@ -304,8 +316,8 @@ psql -h localhost -p 54322 -U postgres -d postgres < supabase/migrations/2025110
 
 ```sql
 -- Powinny istnieć wszystkie 5 tabel
-SELECT table_name 
-FROM information_schema.tables 
+SELECT table_name
+FROM information_schema.tables
 WHERE table_name IN (
   'system_logs',
   'registration_attempts',
@@ -319,8 +331,8 @@ WHERE table_name IN (
 
 ```sql
 -- Powinny istnieć wszystkie funkcje
-SELECT routine_name 
-FROM information_schema.routines 
+SELECT routine_name
+FROM information_schema.routines
 WHERE routine_name IN (
   'check_registration_rate_limit',
   'check_login_rate_limit',
@@ -342,10 +354,10 @@ SELECT check_registration_rate_limit('192.168.1.1'::INET);
 
 -- Dodaj 3 próby
 SELECT log_registration_attempt(
-  '192.168.1.1'::INET, 
-  'test@example.com', 
-  NULL, 
-  TRUE, 
+  '192.168.1.1'::INET,
+  'test@example.com',
+  NULL,
+  TRUE,
   NULL
 );
 -- Powtórz 3 razy
@@ -369,8 +381,8 @@ SELECT can_delete_account();
 -- (Ostrzeżenie: to faktycznie usunie konto!)
 
 -- 4. Zweryfikuj czy email został zanonimizowany:
-SELECT email, encrypted_password 
-FROM auth.users 
+SELECT email, encrypted_password
+FROM auth.users
 WHERE email LIKE 'deleted_%@deleted.com';
 ```
 
@@ -380,12 +392,12 @@ WHERE email LIKE 'deleted_%@deleted.com';
 
 ### Utworzone obiekty:
 
-| Typ | Liczba | Nazwy |
-|-----|--------|-------|
-| Tabele | 5 | system_logs, registration_attempts, login_attempts, password_change_log, email_verification_resends |
-| Indeksy | 8 | idx_system_logs_*, idx_registration_attempts_*, etc. |
-| Funkcje | 8 | check_*, log_*, cleanup_*, delete_*, can_delete_* |
-| Permissions | 6 | GRANT EXECUTE dla authenticated role |
+| Typ         | Liczba | Nazwy                                                                                               |
+| ----------- | ------ | --------------------------------------------------------------------------------------------------- |
+| Tabele      | 5      | system_logs, registration_attempts, login_attempts, password_change_log, email_verification_resends |
+| Indeksy     | 8      | idx*system_logs*_, idx*registration_attempts*_, etc.                                                |
+| Funkcje     | 8      | check*\*, log*\_, cleanup\_\_, delete*\*, can_delete*\*                                             |
+| Permissions | 6      | GRANT EXECUTE dla authenticated role                                                                |
 
 ### Rozmiar na dysku (oszacowanie):
 
@@ -546,4 +558,3 @@ SELECT cron.schedule(
 
 **Status:** ✅ Migracje gotowe do zastosowania  
 **Następny krok:** Zastosuj migracje w Supabase CLI lub Dashboard
-

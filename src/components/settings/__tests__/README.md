@@ -54,13 +54,16 @@
 ### Mocki i setup
 
 #### `/src/test/setup-pointer-events.ts`
+
 Obsługa Pointer Events dla komponentów Radix UI:
+
 - `hasPointerCapture()`
 - `setPointerCapture()`
 - `releasePointerCapture()`
 - `scrollIntoView()`
 
 #### Globalne mocki (w testach)
+
 - `sonner` - toast notifications
 - `fetch` API - dla wywołań sieciowych
 - `window.location` - dla przekierowań
@@ -68,6 +71,7 @@ Obsługa Pointer Events dla komponentów Radix UI:
 ## ✅ Najlepsze praktyki zastosowane
 
 ### 1. **Vitest Guidelines**
+
 - ✅ Użycie `vi.fn()` dla mocków funkcji
 - ✅ Użycie `vi.mock()` dla modułów
 - ✅ Wykorzystanie `renderHook()` dla testowania custom hooks
@@ -75,18 +79,21 @@ Obsługa Pointer Events dla komponentów Radix UI:
 - ✅ Wykorzystanie `user-event` dla realistycznych interakcji
 
 ### 2. **Testing Library Best Practices**
+
 - ✅ Queries based on accessibility (getByRole, getByLabelText)
 - ✅ Testing user behavior, not implementation
 - ✅ Proper async handling with waitFor
 - ✅ Cleanup after each test
 
 ### 3. **Test Structure**
+
 - ✅ Arrange-Act-Assert pattern
 - ✅ Descriptive test names
 - ✅ Grouped tests with `describe` blocks
 - ✅ Comprehensive edge cases
 
 ### 4. **Coverage Areas**
+
 - ✅ Happy paths
 - ✅ Error scenarios
 - ✅ Loading states
@@ -98,6 +105,7 @@ Obsługa Pointer Events dla komponentów Radix UI:
 ## 🎯 Pokryte scenariusze
 
 ### Frequency Settings
+
 - [x] Zmiana częstotliwości sprawdzania
 - [x] Walidacja wartości (6h, 12h, 24h, 48h)
 - [x] Disabled button when unchanged
@@ -105,6 +113,7 @@ Obsługa Pointer Events dla komponentów Radix UI:
 - [x] Success/error toast notifications
 
 ### Password Change
+
 - [x] Walidacja długości hasła (min 8 znaków)
 - [x] Walidacja dopasowania haseł
 - [x] Wymagane pole obecnego hasła
@@ -114,6 +123,7 @@ Obsługa Pointer Events dla komponentów Radix UI:
 - [x] Obsługa spacji w hasłach
 
 ### Account Deletion
+
 - [x] Wymaganie potwierdzenia tekstem "USUŃ"
 - [x] Case-sensitive validation
 - [x] Modal dialog flow
@@ -124,6 +134,7 @@ Obsługa Pointer Events dla komponentów Radix UI:
 - [x] Prevent double deletion
 
 ### Integration
+
 - [x] Współpraca wszystkich komponentów
 - [x] Stan loading ze skeletonami
 - [x] Transitions między stanami
@@ -149,17 +160,21 @@ npm run test -- --coverage
 ## 📝 Uwagi techniczne
 
 ### Ostrzeżenia w testach
+
 Ostrzeżenia `act(...)` w logach są oczekiwane i nie wpływają na poprawność testów. Wynikają z asynchronicznych aktualizacji stanu React w hooках testowanych.
 
 ### Timeouts worker pool
+
 Komunikaty o `Timeout terminating forks worker` to znany problem z Vitest i nie wpływają na wyniki testów. Wszystkie testy przechodzą pomyślnie.
 
 ### Radix UI w testach
+
 Kompon komponenty Radix UI (Select, AlertDialog) wymagają specjalnych mocków dla Pointer Events i scrollIntoView, które są dostarczone w `setup-pointer-events.ts`.
 
 ## 🔍 Przykłady testów
 
 ### Test walidacji formularza
+
 ```typescript
 it("should show error when passwords do not match", async () => {
   const user = userEvent.setup();
@@ -178,6 +193,7 @@ it("should show error when passwords do not match", async () => {
 ```
 
 ### Test hooka
+
 ```typescript
 it("should successfully update frequency", async () => {
   mockFetch.mockResolvedValueOnce({
@@ -206,4 +222,3 @@ Implementacja testów jednostkowych dla strony ustawień demonstruje:
 5. **Dokumentację** - testy służą jako żywa dokumentacja funkcjonalności
 
 **102 przechodzące testy** zapewniają solidną podstawę do dalszego rozwoju aplikacji.
-

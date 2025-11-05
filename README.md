@@ -6,45 +6,50 @@ A web application for tracking and visualizing price history of car listings on 
 
 ## Table of Contents
 
-1. [Tech Stack](#tech-stack)  
-2. [Getting Started Locally](#getting-started-locally)  
-3. [Available Scripts](#available-scripts)  
-4. [Project Scope (MVP)](#project-scope-mvp)  
-5. [Project Status](#project-status)  
-6. [License](#license)  
+1. [Tech Stack](#tech-stack)
+2. [Getting Started Locally](#getting-started-locally)
+3. [Available Scripts](#available-scripts)
+4. [Project Scope (MVP)](#project-scope-mvp)
+5. [Project Status](#project-status)
+6. [License](#license)
 
 ---
 
 ## Tech Stack
 
-**Frontend**  
-- Astro 5 with SSR  
-- React 19 for interactive components  
-- TypeScript 5  
-- Tailwind CSS 4  
-- shadcn/ui component library  
-- Recharts or Chart.js for data visualization  
+**Frontend**
 
-**Backend**  
-- Supabase (PostgreSQL + BaaS)  
-  - Supabase Authentication  
-  - Supabase SDK  
+- Astro 5 with SSR
+- React 19 for interactive components
+- TypeScript 5
+- Tailwind CSS 4
+- shadcn/ui component library
+- Recharts or Chart.js for data visualization
+
+**Backend**
+
+- Supabase (PostgreSQL + BaaS)
+  - Supabase Authentication
+  - Supabase SDK
   - Row-Level Security (RLS)
 
-**AI & Scraping**  
-- OpenRouter.ai (GPT-4o-mini, Claude Haiku) for AI-powered data extraction  
-- Cheerio.js for HTML parsing  
-- User-Agent rotation and 2–5s request delays  
+**AI & Scraping**
 
-**Testing**  
-- Vitest for unit and integration tests  
-- Testing Library (React) for component testing  
-- Playwright for E2E testing  
-- MSW (Mock Service Worker) for API mocking  
+- OpenRouter.ai (GPT-4o-mini, Claude Haiku) for AI-powered data extraction
+- Cheerio.js for HTML parsing
+- User-Agent rotation and 2–5s request delays
 
-**Infrastructure**  
-- VPS hosting  
-- CI/CD via GitHub Actions  
+**Testing**
+
+- Vitest for unit and integration tests
+- Testing Library (React) for component testing
+- Playwright for E2E testing
+- MSW (Mock Service Worker) for API mocking
+
+**Infrastructure**
+
+- VPS hosting
+- CI/CD via GitHub Actions
 - Scheduled jobs with `pg_cron` in Supabase
 
 ---
@@ -53,8 +58,8 @@ A web application for tracking and visualizing price history of car listings on 
 
 ### Prerequisites
 
-- Node.js 22.14.0 (managed via .nvmrc)  
-- Git  
+- Node.js 22.14.0 (managed via .nvmrc)
+- Git
 
 ### Setup
 
@@ -132,14 +137,14 @@ All commands are run from the project root:
 
 This repository implements the core MVP features:
 
-- Support for tracking only Otomoto.pl listings  
-- User authentication (email/password) via Supabase Auth  
-- Add, view, and soft-delete up to **5** active offers (free tier)  
-- Automatic price monitoring on a global schedule (default: 24 h)  
-- AI-powered price extraction on first offer addition with fallback selectors  
-- Storage of price history for **30 days**  
-- Responsive line charts showing price trends and tooltips  
-- Grid-based dashboard with price change badges (green for drops, red for increases)  
+- Support for tracking only Otomoto.pl listings
+- User authentication (email/password) via Supabase Auth
+- Add, view, and soft-delete up to **5** active offers (free tier)
+- Automatic price monitoring on a global schedule (default: 24 h)
+- AI-powered price extraction on first offer addition with fallback selectors
+- Storage of price history for **30 days**
+- Responsive line charts showing price trends and tooltips
+- Grid-based dashboard with price change badges (green for drops, red for increases)
 
 ---
 
@@ -151,10 +156,10 @@ Returns a paginated list of active offer subscriptions for the user.
 
 **Query Parameters:**
 
-| Parameter | Type   | Required | Default      | Description                                      |
-|-----------|--------|----------|--------------|--------------------------------------------------|
-| `page`    | number | No       | `1`          | Page number (must be ≥1)                        |
-| `size`    | number | No       | `10`         | Items per page (must be ≥1 and ≤100)            |
+| Parameter | Type   | Required | Default      | Description                                        |
+| --------- | ------ | -------- | ------------ | -------------------------------------------------- |
+| `page`    | number | No       | `1`          | Page number (must be ≥1)                           |
+| `size`    | number | No       | `10`         | Items per page (must be ≥1 and ≤100)               |
 | `sort`    | string | No       | `created_at` | Sort column: `created_at`, `last_checked`, `title` |
 
 **Response (200 OK):**
@@ -170,7 +175,7 @@ Returns a paginated list of active offer subscriptions for the user.
       "city": "Warszawa",
       "status": "active",
       "lastChecked": "2025-10-14T12:00:00Z",
-      "currentPrice": 45000.00,
+      "currentPrice": 45000.0,
       "currency": "PLN",
       "percentChangeFromFirst": -5.2,
       "percentChangeFromPrevious": 1.1

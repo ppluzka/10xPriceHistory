@@ -7,6 +7,7 @@
 **Lokalizacja:** `src/components/navigation/Header.tsx`
 
 **Funkcjonalność:**
+
 - ✅ Logo PriceHistory (link do /dashboard)
 - ✅ Nawigacja: Dashboard, Ustawienia
 - ✅ Email użytkownika (ukryty na mobile)
@@ -14,6 +15,7 @@
 - ✅ Responsywny design (mobile-friendly)
 
 **Props:**
+
 ```typescript
 interface HeaderProps {
   user: {
@@ -24,6 +26,7 @@ interface HeaderProps {
 ```
 
 **Funkcje:**
+
 - `handleLogout()` - wywołuje `/api/auth/logout` i przekierowuje na `/`
 - Loading state podczas wylogowywania
 - Error handling w konsoli
@@ -33,7 +36,9 @@ interface HeaderProps {
 ### 2. Aktualizacje stron
 
 #### `/dashboard.astro`
+
 **Zmiany:**
+
 - ✅ Import `Header` komponentu
 - ✅ Użycie `Astro.locals.user` zamiast `current_user_id`
 - ✅ Safety check: redirect do `/login` jeśli brak user
@@ -41,7 +46,9 @@ interface HeaderProps {
 - ✅ Przekazanie user data do Header
 
 #### `/settings.astro`
+
 **Zmiany:**
+
 - ✅ Identyczne jak dashboard
 - ✅ Header z nawigacją
 - ✅ Spójny UX na obu stronach
@@ -58,6 +65,7 @@ interface HeaderProps {
 ```
 
 **Mobile view:**
+
 ```
 ┌──────────────────────────────────┐
 │  PriceHistory       [Wyloguj]    │
@@ -75,6 +83,7 @@ interface HeaderProps {
 3. Kliknij "Wyloguj" w prawym górnym rogu
 
 **Oczekiwany wynik:**
+
 - ✅ Przycisk pokazuje "Wylogowywanie..."
 - ✅ Redirect na `/`
 - ✅ Cookies usunięte
@@ -90,6 +99,7 @@ interface HeaderProps {
 6. Z powrotem na `/dashboard`
 
 **Oczekiwany wynik:**
+
 - ✅ Nawigacja działa płynnie
 - ✅ Header widoczny na obu stronach
 - ✅ Aktualny email wyświetlany
@@ -101,6 +111,7 @@ interface HeaderProps {
 3. Kliknij "PriceHistory" (logo)
 
 **Oczekiwany wynik:**
+
 - ✅ Redirect do `/dashboard`
 
 ### Test 4: Responsywność
@@ -110,6 +121,7 @@ interface HeaderProps {
 3. Sprawdź header
 
 **Oczekiwany wynik:**
+
 - ✅ Nawigacja ukryta na mobile (można dodać hamburger menu później)
 - ✅ Email ukryty na mobile
 - ✅ Logo i przycisk Wyloguj widoczne
@@ -133,6 +145,7 @@ src/
 ## 🎨 Styling
 
 Header używa Tailwind CSS classes:
+
 - Border bottom dla separacji
 - Container mx-auto dla wyśrodkowania
 - Flex layout dla responsive design
@@ -141,6 +154,7 @@ Header używa Tailwind CSS classes:
 - Shadcn/ui Button component
 
 **Kolory:**
+
 - Background: `bg-white dark:bg-gray-950`
 - Border: `border-gray-200 dark:border-gray-800`
 - Text: `text-gray-900 dark:text-gray-50`
@@ -173,22 +187,20 @@ User on landing page (logged out)
 ## 💡 Możliwe rozszerzenia (później)
 
 ### 1. Hamburger menu na mobile
+
 ```tsx
 const [menuOpen, setMenuOpen] = useState(false);
 
 // Toggle menu
-<button onClick={() => setMenuOpen(!menuOpen)}>
-  {/* Hamburger icon */}
-</button>
+<button onClick={() => setMenuOpen(!menuOpen)}>{/* Hamburger icon */}</button>;
 
-{menuOpen && (
-  <div className="mobile-menu">
-    {/* Navigation links */}
-  </div>
-)}
+{
+  menuOpen && <div className="mobile-menu">{/* Navigation links */}</div>;
+}
 ```
 
 ### 2. User avatar
+
 ```tsx
 <div className="flex items-center gap-2">
   <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
@@ -199,6 +211,7 @@ const [menuOpen, setMenuOpen] = useState(false);
 ```
 
 ### 3. Dropdown menu
+
 ```tsx
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 
@@ -210,24 +223,22 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
     <DropdownMenuSeparator />
     <DropdownMenuItem onClick={handleLogout}>Wyloguj</DropdownMenuItem>
   </DropdownMenuContent>
-</DropdownMenu>
+</DropdownMenu>;
 ```
 
 ### 4. Active link highlighting
+
 ```tsx
 const isActive = (path: string) => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     return window.location.pathname === path;
   }
   return false;
 };
 
-<a
-  href="/dashboard"
-  className={`${isActive('/dashboard') ? 'text-primary font-semibold' : 'text-gray-700'}`}
->
+<a href="/dashboard" className={`${isActive("/dashboard") ? "text-primary font-semibold" : "text-gray-700"}`}>
   Dashboard
-</a>
+</a>;
 ```
 
 ---
@@ -250,6 +261,7 @@ const isActive = (path: string) => {
 ## 🎉 Gotowe do użycia!
 
 Header jest już zintegrowany i działający. Użytkownicy mogą:
+
 - ✅ Widzieć swój email
 - ✅ Nawigować między Dashboard i Ustawienia
 - ✅ Wylogować się jednym kliknięciem
@@ -257,4 +269,3 @@ Header jest już zintegrowany i działający. Użytkownicy mogą:
 
 **Data implementacji:** 2025-01-03  
 **Status:** Complete ✅
-

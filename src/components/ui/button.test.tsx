@@ -1,70 +1,73 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@/test/test-utils';
-import userEvent from '@testing-library/user-event';
-import { Button } from './button';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@/test/test-utils";
+import userEvent from "@testing-library/user-event";
+import { Button } from "./button";
 
-describe('Button Component', () => {
-  it('renders button with text', () => {
+describe("Button Component", () => {
+  it("renders button with text", () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /click me/i })).toBeInTheDocument();
   });
 
-  it('applies variant styles correctly', () => {
+  it("applies variant styles correctly", () => {
     const { rerender } = render(<Button variant="default">Default</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-primary');
+    expect(screen.getByRole("button")).toHaveClass("bg-primary");
 
     rerender(<Button variant="destructive">Destructive</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-destructive');
+    expect(screen.getByRole("button")).toHaveClass("bg-destructive");
 
     rerender(<Button variant="outline">Outline</Button>);
-    expect(screen.getByRole('button')).toHaveClass('border');
+    expect(screen.getByRole("button")).toHaveClass("border");
   });
 
-  it('applies size styles correctly', () => {
+  it("applies size styles correctly", () => {
     const { rerender } = render(<Button size="default">Default</Button>);
-    expect(screen.getByRole('button')).toHaveClass('h-9');
+    expect(screen.getByRole("button")).toHaveClass("h-9");
 
     rerender(<Button size="sm">Small</Button>);
-    expect(screen.getByRole('button')).toHaveClass('h-8');
+    expect(screen.getByRole("button")).toHaveClass("h-8");
 
     rerender(<Button size="lg">Large</Button>);
-    expect(screen.getByRole('button')).toHaveClass('h-10');
+    expect(screen.getByRole("button")).toHaveClass("h-10");
   });
 
-  it('handles click events', async () => {
+  it("handles click events", async () => {
     const handleClick = vi.fn();
     const user = userEvent.setup();
 
     render(<Button onClick={handleClick}>Click me</Button>);
-    
-    await user.click(screen.getByRole('button'));
-    
+
+    await user.click(screen.getByRole("button"));
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it('can be disabled', async () => {
+  it("can be disabled", async () => {
     const handleClick = vi.fn();
     const user = userEvent.setup();
 
-    render(<Button disabled onClick={handleClick}>Disabled</Button>);
-    
-    const button = screen.getByRole('button');
+    render(
+      <Button disabled onClick={handleClick}>
+        Disabled
+      </Button>
+    );
+
+    const button = screen.getByRole("button");
     expect(button).toBeDisabled();
-    
+
     await user.click(button);
-    
+
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it('renders as child component when asChild is true', () => {
+  it("renders as child component when asChild is true", () => {
     render(
       <Button asChild>
         <a href="/test">Link Button</a>
       </Button>
     );
-    
-    expect(screen.getByRole('link')).toBeInTheDocument();
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/test');
+
+    expect(screen.getByRole("link")).toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/test");
   });
 });
-

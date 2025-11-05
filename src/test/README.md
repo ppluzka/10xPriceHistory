@@ -84,7 +84,7 @@ describe('DataFetching', () => {
     );
 
     render(<DataComponent />);
-    
+
     expect(await screen.findByText('test data')).toBeInTheDocument();
   });
 });
@@ -99,7 +99,7 @@ import { render, screen } from '@/test/test-utils';
 describe('AsyncComponent', () => {
   it('handles async operations', async () => {
     render(<AsyncComponent />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Loaded')).toBeInTheDocument();
     });
@@ -123,15 +123,16 @@ describe('AsyncComponent', () => {
 4. **Use `describe` blocks** to group related tests
 
 5. **Follow Arrange-Act-Assert pattern:**
+
    ```typescript
    it('does something', async () => {
      // Arrange - setup test data and render
      const user = userEvent.setup();
      render(<Component />);
-     
+
      // Act - perform the action
      await user.click(screen.getByRole('button'));
-     
+
      // Assert - verify the result
      expect(screen.getByText('Result')).toBeInTheDocument();
    });
@@ -148,6 +149,7 @@ describe('AsyncComponent', () => {
 The test configuration is in `vitest.config.ts` at the project root.
 
 Key settings:
+
 - **Environment:** jsdom (DOM simulation)
 - **Globals:** true (no need to import `describe`, `it`, `expect`)
 - **Setup files:** `src/test/setup.ts`
@@ -156,33 +158,39 @@ Key settings:
 ## Debugging Tests
 
 ### In VS Code
+
 1. Install the Vitest extension
 2. Click on the test runner icon in the sidebar
 3. Set breakpoints and run tests in debug mode
 
 ### Using UI Mode
+
 ```bash
 npm run test:ui
 ```
 
 ### Using Browser DevTools
+
 ```bash
 npm run test:watch
 ```
+
 Then press `b` to open tests in browser.
 
 ## Common Issues
 
 ### Tests fail with "not wrapped in act(...)"
+
 - Use `await` with all user events
 - Use `waitFor` for async state updates
 
 ### Mocks not working
+
 - Ensure mocks are defined at the top level of the file
 - Use `vi.mock()` before imports
 - Clear mocks between tests with `vi.clearAllMocks()`
 
 ### Cannot find module with @ alias
+
 - Check `vitest.config.ts` has correct path alias configuration
 - Ensure `tsconfig.json` also has the alias defined
-

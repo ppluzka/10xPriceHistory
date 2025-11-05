@@ -26,9 +26,7 @@ describe("DeleteAccountSection", () => {
       render(<DeleteAccountSection onDelete={mockOnDelete} />);
 
       // Check for warning text content
-      expect(
-        screen.getByText(/usunięcie konta spowoduje trwałe usunięcie/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/usunięcie konta spowoduje trwałe usunięcie/i)).toBeInTheDocument();
     });
 
     it("should render delete button", () => {
@@ -41,9 +39,7 @@ describe("DeleteAccountSection", () => {
     it("should not show dialog initially", () => {
       render(<DeleteAccountSection onDelete={mockOnDelete} />);
 
-      expect(
-        screen.queryByText(/czy na pewno chcesz usunąć konto/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/czy na pewno chcesz usunąć konto/i)).not.toBeInTheDocument();
     });
   });
 
@@ -58,7 +54,7 @@ describe("DeleteAccountSection", () => {
 
       const dialogText = await screen.findByText(/czy na pewno chcesz usunąć konto/i);
       expect(dialogText).toBeInTheDocument();
-      
+
       // Check that dialog description appears (there are two similar texts, one in card and one in dialog)
       const actionTexts = screen.getAllByText(/ta akcja jest nieodwracalna/i);
       expect(actionTexts.length).toBeGreaterThan(0);
@@ -85,12 +81,8 @@ describe("DeleteAccountSection", () => {
       const deleteButton = screen.getByRole("button", { name: /usuń konto/i });
       await user.click(deleteButton);
 
-      expect(
-        await screen.findByRole("button", { name: /anuluj/i })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /usuń konto/i })
-      ).toBeInTheDocument();
+      expect(await screen.findByRole("button", { name: /anuluj/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /usuń konto/i })).toBeInTheDocument();
     });
 
     it("should close dialog when cancel is clicked", async () => {
@@ -102,18 +94,14 @@ describe("DeleteAccountSection", () => {
       const deleteButton = screen.getByRole("button", { name: /usuń konto/i });
       await user.click(deleteButton);
 
-      expect(
-        await screen.findByText(/czy na pewno chcesz usunąć konto/i)
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/czy na pewno chcesz usunąć konto/i)).toBeInTheDocument();
 
       // Click cancel
       const cancelButton = screen.getByRole("button", { name: /anuluj/i });
       await user.click(cancelButton);
 
       await waitFor(() => {
-        expect(
-          screen.queryByText(/czy na pewno chcesz usunąć konto/i)
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText(/czy na pewno chcesz usunąć konto/i)).not.toBeInTheDocument();
       });
     });
 
@@ -151,9 +139,9 @@ describe("DeleteAccountSection", () => {
       const deleteButton = screen.getByRole("button", { name: /usuń konto/i });
       await user.click(deleteButton);
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       expect(confirmButton).toBeDisabled();
     });
@@ -169,9 +157,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "wrong text");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       expect(confirmButton).toBeDisabled();
     });
@@ -187,9 +175,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       expect(confirmButton).toBeEnabled();
     });
@@ -205,9 +193,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "usuń"); // lowercase
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       expect(confirmButton).toBeDisabled();
     });
@@ -229,9 +217,9 @@ describe("DeleteAccountSection", () => {
       await user.type(confirmationInput, "USUŃ");
 
       // Click confirm
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
       await user.click(confirmButton!);
 
       await waitFor(() => {
@@ -253,9 +241,9 @@ describe("DeleteAccountSection", () => {
       await user.type(confirmationInput, "wrong");
 
       // Try to click confirm (button should be disabled)
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       // Button is disabled, so clicking won't work
       expect(confirmButton).toBeDisabled();
@@ -276,9 +264,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
       await user.click(confirmButton!);
 
       await waitFor(() => {
@@ -299,9 +287,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
       await user.click(confirmButton!);
 
       await waitFor(() => {
@@ -326,16 +314,14 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
       await user.click(confirmButton!);
 
       // Check loading state
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /usuwanie\.\.\./i })
-        ).toBeDisabled();
+        expect(screen.getByRole("button", { name: /usuwanie\.\.\./i })).toBeDisabled();
       });
 
       const cancelButton = screen.getByRole("button", { name: /anuluj/i });
@@ -400,17 +386,13 @@ describe("DeleteAccountSection", () => {
       // Open and close multiple times
       for (let i = 0; i < 3; i++) {
         await user.click(deleteButton);
-        expect(
-          await screen.findByText(/czy na pewno chcesz usunąć konto/i)
-        ).toBeInTheDocument();
+        expect(await screen.findByText(/czy na pewno chcesz usunąć konto/i)).toBeInTheDocument();
 
         const cancelButton = screen.getByRole("button", { name: /anuluj/i });
         await user.click(cancelButton);
 
         await waitFor(() => {
-          expect(
-            screen.queryByText(/czy na pewno chcesz usunąć konto/i)
-          ).not.toBeInTheDocument();
+          expect(screen.queryByText(/czy na pewno chcesz usunąć konto/i)).not.toBeInTheDocument();
         });
       }
 
@@ -426,13 +408,13 @@ describe("DeleteAccountSection", () => {
       await user.click(deleteButton);
 
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
-      
+
       // Type partial text
       await user.type(confirmationInput, "USU");
-      
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       expect(confirmButton).toBeDisabled();
 
@@ -452,9 +434,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ extra");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       expect(confirmButton).toBeDisabled();
     });
@@ -471,9 +453,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
       await user.click(confirmButton!);
 
       await waitFor(() => {
@@ -481,9 +463,7 @@ describe("DeleteAccountSection", () => {
       });
 
       // Dialog should still be visible after error
-      expect(
-        screen.getByText(/czy na pewno chcesz usunąć konto/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/czy na pewno chcesz usunąć konto/i)).toBeInTheDocument();
     });
 
     it("should prevent double deletion on rapid clicks", async () => {
@@ -498,9 +478,9 @@ describe("DeleteAccountSection", () => {
       const confirmationInput = await screen.findByLabelText(/wpisz/i);
       await user.type(confirmationInput, "USUŃ");
 
-      const confirmButton = (
-        await screen.findAllByRole("button", { name: /usuń konto/i })
-      ).find((btn) => btn.closest('[role="alertdialog"]'));
+      const confirmButton = (await screen.findAllByRole("button", { name: /usuń konto/i })).find((btn) =>
+        btn.closest('[role="alertdialog"]')
+      );
 
       // Try to click multiple times
       await user.click(confirmButton!);
@@ -514,4 +494,3 @@ describe("DeleteAccountSection", () => {
     });
   });
 });
-

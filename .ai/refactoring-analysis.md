@@ -9,16 +9,19 @@ Analiza kodu `offer.service.ts` (1230 linii) wykazała możliwości refaktoryzac
 ### 1. Nieużywany kod
 
 #### 1.1. Zmienna `metaTags` (linie 617-625)
+
 - **Status**: Wyekstraktowana, ale nigdy nie używana
 - **Lokalizacja**: `extractWithLLM()` linia 617
 - **Akcja**: Usunąć - nie jest używana w `compactHtml` ani nigdzie indziej
 
 #### 1.2. Zmienna `locationHtmlSnippets` (linie 783-809)
+
 - **Status**: Zbierana w pętli, ale nigdy nie używana
 - **Lokalizacja**: `extractWithLLM()` linia 783
 - **Akcja**: Usunąć - nie jest dodawana do promptu dla LLM
 
 #### 1.3. Zmienna `fullHtml` (linia 812)
+
 - **Status**: Wyekstraktowana, ale nigdy nie używana
 - **Lokalizacja**: `extractWithLLM()` linia 812
 - **Akcja**: Usunąć - nie jest używana w `compactHtml`
@@ -26,6 +29,7 @@ Analiza kodu `offer.service.ts` (1230 linii) wykazała możliwości refaktoryzac
 ### 2. Duplikacja kodu
 
 #### 2.1. Ekstrakcja lokalizacji
+
 - **Problem**: Podobna logika ekstrakcji lokalizacji w `extractWithLLM()` (linie 627-655) i `extractWithCheerio()` (linie 1066-1093)
 - **Różnice**: LLM używa bardziej zaawansowanych selektorów, Cheerio używa prostszych
 - **Akcja**: Wyodrębnić wspólną metodę `extractLocationFromHtml($: CheerioAPI): string`
@@ -33,6 +37,7 @@ Analiza kodu `offer.service.ts` (1230 linii) wykazała możliwości refaktoryzac
 ### 3. Zbyt długie metody
 
 #### 3.1. `extractWithLLM()` - ~400 linii
+
 - **Problem**: Metoda wykonuje wiele różnych zadań:
   - Ekstrakcja metadanych (title, meta tags)
   - Ekstrakcja lokalizacji (wieloetapowa, ~180 linii)
@@ -42,6 +47,7 @@ Analiza kodu `offer.service.ts` (1230 linii) wykazała możliwości refaktoryzac
   - Logowanie użycia API
 
 **Możliwe wyodrębnienia:**
+
 1. `extractLocationContext($: CheerioAPI, url: string): string` - ekstrakcja kontekstu lokalizacji (linie 627-809)
 2. `buildLLMExtractionPrompt(url: string, title: string, mainContent: string): { messages, responseFormat }` - budowanie promptu (linie 815-871)
 3. `validateLLMResponse(extractedData: LLMExtractionResponse): void` - walidacja odpowiedzi (linie 963-978)
@@ -52,8 +58,9 @@ Analiza kodu `offer.service.ts` (1230 linii) wykazała możliwości refaktoryzac
 ### Zmiana 1: Usunięcie nieużywanego kodu
 
 **Usunąć:**
+
 - `metaTags` (linie 617-625)
-- `locationHtmlSnippets` (linie 783-809) 
+- `locationHtmlSnippets` (linie 783-809)
 - `fullHtml` (linia 812)
 
 **Oszczędność**: ~35 linii
@@ -61,6 +68,7 @@ Analiza kodu `offer.service.ts` (1230 linii) wykazała możliwości refaktoryzac
 ### Zmiana 2: Wyodrębnienie ekstrakcji lokalizacji
 
 **Nowa metoda:**
+
 ```typescript
 private extractLocationFromHtml($: CheerioAPI): string {
   // Standardowe selektory (używane w obu metodach)
@@ -81,6 +89,7 @@ private extractLocationFromHtml($: CheerioAPI): string {
 ```
 
 **Korzyści:**
+
 - Eliminacja duplikacji
 - Łatwiejsze utrzymanie
 - Spójność między metodami
@@ -88,6 +97,7 @@ private extractLocationFromHtml($: CheerioAPI): string {
 ### Zmiana 3: Wyodrębnienie ekstrakcji kontekstu lokalizacji dla LLM
 
 **Nowa metoda:**
+
 ```typescript
 private extractLocationContextForLLM($: CheerioAPI): {
   locationInfo: string;
@@ -99,6 +109,7 @@ private extractLocationContextForLLM($: CheerioAPI): {
 ```
 
 **Korzyści:**
+
 - Redukcja długości `extractWithLLM()` o ~180 linii
 - Lepsze testowanie
 - Czytelniejszy kod
@@ -106,10 +117,11 @@ private extractLocationContextForLLM($: CheerioAPI): {
 ### Zmiana 4: Wyodrębnienie budowania promptu
 
 **Nowa metoda:**
+
 ```typescript
 private buildLLMExtractionPrompt(
-  url: string, 
-  title: string, 
+  url: string,
+  title: string,
   mainContent: string
 ): {
   messages: Array<{ role: string; content: string }>;
@@ -120,6 +132,7 @@ private buildLLMExtractionPrompt(
 ```
 
 **Korzyści:**
+
 - Separacja odpowiedzialności
 - Łatwiejsze testowanie promptów
 - Możliwość reużycia
@@ -127,12 +140,13 @@ private buildLLMExtractionPrompt(
 ### Zmiana 5: Wyodrębnienie walidacji odpowiedzi LLM
 
 **Nowa metoda:**
+
 ```typescript
 private validateLLMResponse(extractedData: LLMExtractionResponse): void {
   if (!extractedData.title) {
     throw new Error("LLM failed to extract title");
   }
-  
+
   if (extractedData.price <= 0 || extractedData.price > 10000000) {
     throw new Error(`Invalid price value extracted by LLM: ${extractedData.price}`);
   }
@@ -140,18 +154,19 @@ private validateLLMResponse(extractedData: LLMExtractionResponse): void {
 ```
 
 **Korzyści:**
+
 - Separacja logiki walidacji
 - Łatwiejsze rozszerzenie reguł walidacji
 
 ## 📊 Metryki przed/po refaktoryzacji
 
-| Metryka | Przed | Po | Zmiana |
-|---------|-------|----|---------|
-| Długość `extractWithLLM()` | ~400 linii | ~150 linii | -62% |
-| Duplikacja kodu | ~80 linii | 0 linii | -100% |
-| Nieużywany kod | ~35 linii | 0 linii | -100% |
-| Liczba metod | 11 | 16 | +5 |
-| Średnia długość metody | ~112 linii | ~75 linii | -33% |
+| Metryka                    | Przed      | Po         | Zmiana |
+| -------------------------- | ---------- | ---------- | ------ |
+| Długość `extractWithLLM()` | ~400 linii | ~150 linii | -62%   |
+| Duplikacja kodu            | ~80 linii  | 0 linii    | -100%  |
+| Nieużywany kod             | ~35 linii  | 0 linii    | -100%  |
+| Liczba metod               | 11         | 16         | +5     |
+| Średnia długość metody     | ~112 linii | ~75 linii  | -33%   |
 
 ## ✅ Korzyści
 
@@ -175,4 +190,3 @@ private validateLLMResponse(extractedData: LLMExtractionResponse): void {
 3. **Średni**: Wyodrębnienie kontekstu lokalizacji (zmiana 3) - czytelność
 4. **Średni**: Wyodrębnienie budowania promptu (zmiana 4) - separacja odpowiedzialności
 5. **Niski**: Wyodrębnienie walidacji (zmiana 5) - nice to have
-

@@ -22,6 +22,7 @@ BasePage (base functionality)
 Handles interactions with the dashboard statistics section.
 
 **Key Methods:**
+
 - `getActiveOffersCount()` - Returns the count of active offers
 - `getAverageChange()` - Returns average price change percentage
 - `getLargestDrop()` - Returns largest price drop
@@ -29,6 +30,7 @@ Handles interactions with the dashboard statistics section.
 - `waitForActiveOffersCount(expectedCount)` - Waits for specific count
 
 **Usage Example:**
+
 ```typescript
 const stats = dashboardPage.stats;
 const activeCount = await stats.getActiveOffersCount();
@@ -40,6 +42,7 @@ await stats.waitForActiveOffersCount(5);
 Handles interactions with the offer addition form.
 
 **Key Methods:**
+
 - `fillUrl(url)` - Fills the URL input
 - `clickSubmit()` - Clicks submit button
 - `submitOffer(url)` - Complete submission flow
@@ -48,9 +51,10 @@ Handles interactions with the offer addition form.
 - `waitForSuccess()` - Waits for successful submission
 
 **Usage Example:**
+
 ```typescript
 const form = dashboardPage.offerForm;
-await form.submitOffer('https://www.otomoto.pl/...');
+await form.submitOffer("https://www.otomoto.pl/...");
 await form.waitForSuccess();
 ```
 
@@ -59,6 +63,7 @@ await form.waitForSuccess();
 Handles interactions with the offers list/grid.
 
 **Key Methods:**
+
 - `isLoading()` - Checks if skeleton is visible
 - `waitForLoaded()` - Waits for loading to complete
 - `isEmpty()` - Checks if empty state is shown
@@ -70,6 +75,7 @@ Handles interactions with the offers list/grid.
 - `getAllOfferTitles()` - Gets all offer titles
 
 **Usage Example:**
+
 ```typescript
 const grid = dashboardPage.offerGrid;
 await grid.waitForLoaded();
@@ -82,6 +88,7 @@ const firstCard = grid.getOfferCard(0);
 Represents a single offer card in the grid.
 
 **Key Methods:**
+
 - `getOfferId()` - Returns offer ID
 - `click()` - Clicks card to navigate to details
 - `getTitle()` - Returns offer title
@@ -94,6 +101,7 @@ Represents a single offer card in the grid.
 - `clickDelete()` - Clicks delete button
 
 **Usage Example:**
+
 ```typescript
 const card = dashboardPage.offerGrid.getOfferCard(0);
 const title = await card.getTitle();
@@ -106,13 +114,13 @@ await card.click(); // Navigate to details
 ### Basic Usage
 
 ```typescript
-import { DashboardPage } from './pages/DashboardPage';
+import { DashboardPage } from "./pages/DashboardPage";
 
 const dashboardPage = new DashboardPage(page);
 await dashboardPage.navigate();
 
 // Use components directly
-await dashboardPage.offerForm.submitOffer('https://www.otomoto.pl/...');
+await dashboardPage.offerForm.submitOffer("https://www.otomoto.pl/...");
 await dashboardPage.offerGrid.waitForLoaded();
 const count = await dashboardPage.stats.getActiveOffersCount();
 ```
@@ -123,10 +131,10 @@ The `DashboardPage` provides high-level workflow methods:
 
 ```typescript
 // Complete add offer workflow
-await dashboardPage.addOfferAndWait('https://www.otomoto.pl/...');
+await dashboardPage.addOfferAndWait("https://www.otomoto.pl/...");
 
 // Verify offer was added correctly
-const isValid = await dashboardPage.verifyOfferAdded('Expected Title');
+const isValid = await dashboardPage.verifyOfferAdded("Expected Title");
 expect(isValid).toBe(true);
 ```
 
@@ -137,7 +145,7 @@ Components can be used independently or composed:
 ```typescript
 // Independent usage
 const form = new OfferFormComponent(page);
-await form.submitOffer('https://www.otomoto.pl/...');
+await form.submitOffer("https://www.otomoto.pl/...");
 
 // Composed usage
 const grid = dashboardPage.offerGrid;
@@ -154,7 +162,7 @@ for (const card of cards) {
 ### Test Structure
 
 ```typescript
-test.describe('Feature', () => {
+test.describe("Feature", () => {
   let dashboardPage: DashboardPage;
 
   test.beforeEach(async ({ page }) => {
@@ -162,12 +170,12 @@ test.describe('Feature', () => {
     await dashboardPage.navigate();
   });
 
-  test('should perform action', async () => {
+  test("should perform action", async () => {
     // Arrange
     const initialCount = await dashboardPage.offerGrid.getOffersCount();
 
     // Act
-    await dashboardPage.offerForm.submitOffer('https://...');
+    await dashboardPage.offerForm.submitOffer("https://...");
 
     // Assert
     await dashboardPage.offerGrid.waitForNewOffer(initialCount);
@@ -211,6 +219,7 @@ await form.waitForSuccess();
 All components use `data-testid` attributes for reliable element selection:
 
 ### Form
+
 - `offer-form` - Form container
 - `offer-url-input` - URL input field
 - `offer-submit-button` - Submit button
@@ -218,12 +227,14 @@ All components use `data-testid` attributes for reliable element selection:
 - `offer-submit-error` - Submission error message
 
 ### Grid
+
 - `offers-loading` - Loading skeleton
 - `offers-empty-state` - Empty state
 - `offers-section` - Grid section container
 - `offers-grid` - Grid container
 
 ### Card
+
 - `offer-card` - Card container (+ `data-offer-id` attribute)
 - `offer-card-link` - Card link
 - `offer-card-image` - Offer image
@@ -236,6 +247,7 @@ All components use `data-testid` attributes for reliable element selection:
 - `offer-card-delete-button` - Delete button
 
 ### Stats
+
 - `dashboard-stats` - Stats container
 - `stat-card-aktywne-oferty` - Active offers card (generated from Polish label "Aktywne oferty")
 - `stat-value-aktywne-oferty` - Active offers value
@@ -245,4 +257,3 @@ All components use `data-testid` attributes for reliable element selection:
 - `stat-value-największy-spadek` - Largest drop value
 - `stat-card-największy-wzrost` - Largest rise card (generated from Polish label "Największy wzrost")
 - `stat-value-największy-wzrost` - Largest rise value
-

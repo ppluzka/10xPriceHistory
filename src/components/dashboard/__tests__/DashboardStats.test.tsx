@@ -14,9 +14,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(
-        screen.getByRole("heading", { name: /panel główny/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /panel główny/i })).toBeInTheDocument();
     });
 
     it("should render description text", () => {
@@ -27,9 +25,7 @@ describe("DashboardStats", () => {
       render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
-      expect(
-        screen.getByText(/śledź obserwowane oferty i zmiany cen/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/śledź obserwowane oferty i zmiany cen/i)).toBeInTheDocument();
     });
 
     it("should render all four stat cards", () => {
@@ -37,9 +33,7 @@ describe("DashboardStats", () => {
       const summary = createMockDashboardSummary();
 
       // Act
-      const { container } = render(
-        <DashboardStats summary={summary} offerLimit={100} />
-      );
+      const { container } = render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
       const statCards = container.querySelectorAll(".rounded-lg.border.bg-card");
@@ -374,9 +368,7 @@ describe("DashboardStats", () => {
       const summary = createMockDashboardSummary();
 
       // Act
-      const { container } = render(
-        <DashboardStats summary={summary} offerLimit={100} />
-      );
+      const { container } = render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
       const grid = container.querySelector(".grid");
@@ -469,9 +461,7 @@ describe("DashboardStats", () => {
       const summary = createMockDashboardSummary();
 
       // Act
-      const { container } = render(
-        <DashboardStats summary={summary} offerLimit={100} />
-      );
+      const { container } = render(<DashboardStats summary={summary} offerLimit={100} />);
 
       // Assert
       const cards = container.querySelectorAll(".rounded-lg.border.bg-card");
@@ -562,4 +552,3 @@ describe("DashboardStats", () => {
     });
   });
 });
-

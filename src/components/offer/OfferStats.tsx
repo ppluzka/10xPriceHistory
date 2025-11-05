@@ -6,7 +6,7 @@ interface OfferStatsProps {
 }
 
 export default function OfferStats({ stats }: OfferStatsProps) {
-  const { minPrice, maxPrice, avgPrice, checkCount, trend, observationDurationDays, currency } = stats;
+  const { minPrice, maxPrice, checkCount, trend, observationDurationDays, currency } = stats;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pl-PL").format(price);

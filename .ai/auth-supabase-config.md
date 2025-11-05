@@ -24,11 +24,13 @@ Przewodnik krok-po-kroku konfiguracji Supabase Auth Dashboard dla prawidłowego 
 #### 1.1 Site URL
 
 **Development:**
+
 ```
 http://localhost:4321
 ```
 
 **Production:**
+
 ```
 https://pricehistory.pl
 ```
@@ -40,18 +42,21 @@ https://pricehistory.pl
 Dodaj następujące URLs do whitelist:
 
 **Development:**
+
 ```
 http://localhost:4321/**
 http://localhost:4321/auth/callback
 ```
 
 **Production:**
+
 ```
 https://pricehistory.pl/**
 https://pricehistory.pl/auth/callback
 ```
 
 **Dlaczego to ważne:**
+
 - `/**` pozwala na redirecty po logowaniu (returnUrl)
 - `/auth/callback` wymagany dla weryfikacji email (US-002 w przyszłości)
 
@@ -83,9 +88,7 @@ Możesz dostosować template w: Authentication → Email Templates → Confirm s
 <p>Jeśli nie zakładałeś konta, zignoruj tę wiadomość.</p>
 
 <hr />
-<p style="font-size: 12px; color: #666;">
-  PriceHistory - Śledź historię cen ofert z Otomoto.pl
-</p>
+<p style="font-size: 12px; color: #666;">PriceHistory - Śledź historię cen ofert z Otomoto.pl</p>
 ```
 
 **Change Email template:**
@@ -106,6 +109,7 @@ Zostaw domyślny (nie używany w MVP, może być przydatny później).
 - **JWT expiry:** `3600` sekund (1 godzina, default OK)
 
 **Wyjaśnienie:**
+
 - JWT expiry: Czas życia access token (automatycznie refreshowany)
 - Inactivity timeout: Całkowity czas sesji (7 dni zgodnie z PRD)
 
@@ -126,6 +130,7 @@ Zostaw domyślny (nie używany w MVP, może być przydatny później).
 #### 4.2 Rate Limiting (built-in Supabase)
 
 Supabase ma własny rate limiting:
+
 - ~100 requests/hour per IP dla auth endpoints
 - Dla dodatkowego rate limiting użyj tabel z migracji (poza scopem MVP)
 
@@ -138,6 +143,7 @@ Supabase ma własny rate limiting:
 #### 5.1 Development (lokalne testowanie)
 
 Supabase local używa Inbucket do przechwytywania emaili:
+
 - URL: `http://localhost:54324`
 - Wszystkie wysłane emaile widoczne w Inbucket UI
 
@@ -146,6 +152,7 @@ Supabase local używa Inbucket do przechwytywania emaili:
 #### 5.2 Production (cloud Supabase)
 
 **Opcja A: Używanie Supabase SMTP (default)**
+
 - Supabase Cloud ma własny SMTP
 - Działa out-of-the-box
 - Ograniczenie: 3-4 emaile/godzinę per user (może być za mało)
@@ -153,6 +160,7 @@ Supabase local używa Inbucket do przechwytywania emaili:
 **Opcja B: Custom SMTP (zalecane dla production)**
 
 Przykład z SendGrid:
+
 ```
 Host: smtp.sendgrid.net
 Port: 587
@@ -171,6 +179,7 @@ Inne opcje: Mailgun, AWS SES, Postmark
 #### 6.1 Utworzenie użytkownika testowego
 
 **Opcja A: Przez Dashboard**
+
 1. Authentication → Users → Add user
 2. Email: `test@example.com`
 3. Password: (ustaw silne hasło)
@@ -178,6 +187,7 @@ Inne opcje: Mailgun, AWS SES, Postmark
 5. Kliknij "Create user"
 
 **Opcja B: Przez SQL**
+
 ```sql
 -- W Supabase SQL Editor
 INSERT INTO auth.users (
@@ -216,12 +226,14 @@ INSERT INTO auth.users (
 #### 6.2 Weryfikacja konfiguracji
 
 Test przez Supabase CLI:
+
 ```bash
 # Sprawdź czy auth działa
 supabase functions invoke test-auth
 ```
 
 Lub test manualny:
+
 1. Otwórz `/login` w aplikacji
 2. Zaloguj się jako `test@example.com`
 3. Sprawdź czy redirect do `/dashboard` działa
@@ -251,6 +263,7 @@ Przed produkcją sprawdź:
 Supabase default SMTP ma limit ~4 emaile/h per user.
 
 **Rozwiązanie:**
+
 - Skonfiguruj custom SMTP (SendGrid, Mailgun)
 - W dev użyj "Auto Confirm User" (omija email)
 
@@ -260,6 +273,7 @@ Supabase default SMTP ma limit ~4 emaile/h per user.
 URL po logowaniu nie jest w whitelist Redirect URLs.
 
 **Rozwiązanie:**
+
 1. Sprawdź URL Configuration w dashboard
 2. Dodaj `https://yourdomain.com/**` do whitelist
 3. Restart Supabase (jeśli lokalny): `supabase stop && supabase start`
@@ -270,6 +284,7 @@ URL po logowaniu nie jest w whitelist Redirect URLs.
 Użytkownik może być soft-deleted.
 
 **Rozwiązanie:**
+
 ```sql
 -- Sprawdź wszystkich users (łącznie z deleted)
 SELECT email, deleted_at FROM auth.users WHERE email = 'test@example.com';
@@ -281,11 +296,13 @@ DELETE FROM auth.users WHERE email = 'test@example.com';
 ### Problem: Email nie przychodzi (production)
 
 **Diagnoza:**
+
 1. Sprawdź spam folder
 2. Sprawdź SMTP logs w dashboard
 3. Sprawdź czy sender email jest zweryfikowany
 
 **Rozwiązanie:**
+
 - Dla SendGrid: Zweryfikuj sender domain
 - Dla AWS SES: Wyjdź z sandbox mode
 - Test przez dashboard: Authentication → Users → Send password reset
@@ -309,6 +326,7 @@ SUPABASE_SERVICE_KEY=your-production-service-role-key
 ```
 
 **Gdzie znaleźć klucze:**
+
 - Local: `supabase status` (po `supabase start`)
 - Cloud: Dashboard → Project Settings → API → Project API keys
 
@@ -338,12 +356,14 @@ supabase studio
 ## 📚 Dodatkowe zasoby
 
 **Dokumentacja Supabase:**
+
 - Auth Overview: https://supabase.com/docs/guides/auth
 - Email Auth: https://supabase.com/docs/guides/auth/auth-email
 - Server-Side Auth (SSR): https://supabase.com/docs/guides/auth/server-side-rendering
 - Custom SMTP: https://supabase.com/docs/guides/auth/auth-smtp
 
 **Nasze dokumenty:**
+
 - Testing Guide: `.ai/auth-testing-guide.md`
 - Auth Spec: `.ai/auth-spec.md`
 - PRD: `.ai/prd.md`
@@ -365,4 +385,3 @@ Po wykonaniu wszystkich kroków:
 **Ostatnia aktualizacja:** 2025-01-03  
 **Status:** Gotowe do użycia  
 **Autor:** AI Assistant
-

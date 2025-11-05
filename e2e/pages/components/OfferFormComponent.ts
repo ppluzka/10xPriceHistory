@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator } from "@playwright/test";
 
 /**
  * Page Object Model for Offer Form Component
@@ -14,11 +14,11 @@ export class OfferFormComponent {
 
   constructor(page: Page) {
     this.page = page;
-    this.container = page.getByTestId('offer-form');
-    this.urlInput = page.getByTestId('offer-url-input');
-    this.submitButton = page.getByTestId('offer-submit-button');
-    this.validationError = page.getByTestId('offer-validation-error');
-    this.submitError = page.getByTestId('offer-submit-error');
+    this.container = page.getByTestId("offer-form");
+    this.urlInput = page.getByTestId("offer-url-input");
+    this.submitButton = page.getByTestId("offer-submit-button");
+    this.validationError = page.getByTestId("offer-validation-error");
+    this.submitError = page.getByTestId("offer-submit-error");
   }
 
   /**
@@ -76,7 +76,7 @@ export class OfferFormComponent {
    */
   async isSubmitting(): Promise<boolean> {
     const text = await this.submitButton.textContent();
-    return text?.includes('Dodawanie...') || false;
+    return text?.includes("Dodawanie...") || false;
   }
 
   /**
@@ -90,7 +90,7 @@ export class OfferFormComponent {
    * Get validation error message
    */
   async getValidationError(): Promise<string> {
-    return (await this.validationError.textContent()) || '';
+    return (await this.validationError.textContent()) || "";
   }
 
   /**
@@ -104,34 +104,27 @@ export class OfferFormComponent {
    * Get submit error message
    */
   async getSubmitError(): Promise<string> {
-    return (await this.submitError.textContent()) || '';
+    return (await this.submitError.textContent()) || "";
   }
 
   /**
    * Wait for form to be ready (not submitting)
    */
   async waitForReady() {
-    await this.submitButton.waitFor({ state: 'visible' });
-    await this.page.waitForFunction(
-      (buttonSelector) => {
-        const button = document.querySelector(buttonSelector);
-        return button?.textContent?.includes('Dodaj ofertę');
-      },
-      '[data-testid="offer-submit-button"]'
-    );
+    await this.submitButton.waitFor({ state: "visible" });
+    await this.page.waitForFunction((buttonSelector) => {
+      const button = document.querySelector(buttonSelector);
+      return button?.textContent?.includes("Dodaj ofertę");
+    }, '[data-testid="offer-submit-button"]');
   }
 
   /**
    * Wait for successful submission (form clears)
    */
   async waitForSuccess() {
-    await this.page.waitForFunction(
-      (inputSelector) => {
-        const input = document.querySelector(inputSelector) as HTMLInputElement;
-        return input?.value === '';
-      },
-      '[data-testid="offer-url-input"]'
-    );
+    await this.page.waitForFunction((inputSelector) => {
+      const input = document.querySelector(inputSelector) as HTMLInputElement;
+      return input?.value === "";
+    }, '[data-testid="offer-url-input"]');
   }
 }
-

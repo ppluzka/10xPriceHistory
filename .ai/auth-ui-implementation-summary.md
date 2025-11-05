@@ -22,12 +22,14 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 #### 2. Komponenty React (6 plików)
 
 **Formularze autentykacji:**
+
 - ✅ `src/components/auth/LoginForm.tsx` - Formularz logowania
 - ✅ `src/components/auth/RegisterForm.tsx` - Formularz rejestracji
 - ✅ `src/components/auth/ResendVerificationButton.tsx` - Ponowne wysłanie linku
 - ✅ `src/components/auth/index.ts` - Barrel export
 
 **Nawigacja:**
+
 - ✅ `src/components/navigation/Header.tsx` - Header dla zalogowanych
 - ✅ `src/components/navigation/PublicHeader.tsx` - Header dla niezalogowanych
 - ✅ `src/components/navigation/index.ts` - Barrel export
@@ -47,7 +49,9 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 ## 🎨 Szczegóły implementacji
 
 ### LoginForm.tsx
+
 **Funkcjonalności:**
+
 - ✅ Walidacja email (RFC 5322 simplified regex)
 - ✅ Walidacja hasła (min 8 znaków)
 - ✅ Real-time walidacja przy `onBlur`
@@ -62,7 +66,9 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 **API endpoint:** `POST /api/auth/login` (do implementacji)
 
 ### RegisterForm.tsx
+
 **Funkcjonalności:**
+
 - ✅ Walidacja email (format + max 255 znaków)
 - ✅ Walidacja hasła (min 8 znaków)
 - ✅ Walidacja potwierdzenia hasła
@@ -77,7 +83,9 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 **API endpoint:** `POST /api/auth/register` (do implementacji)
 
 ### ResendVerificationButton.tsx
+
 **Funkcjonalności:**
+
 - ✅ 60-sekundowy cooldown timer
 - ✅ Disabled state podczas wysyłania
 - ✅ Komunikaty sukcesu/błędu
@@ -86,7 +94,9 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 **API endpoint:** `POST /api/auth/resend-verification` (do implementacji)
 
 ### Header.tsx (dla zalogowanych)
+
 **Funkcjonalności:**
+
 - ✅ Logo z linkiem do /dashboard
 - ✅ Nawigacja: Dashboard, Ustawienia
 - ✅ Wyświetlanie emaila użytkownika
@@ -98,14 +108,18 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 **API endpoint:** `POST /api/auth/logout` (do implementacji)
 
 ### PublicHeader.tsx (dla niezalogowanych)
+
 **Funkcjonalności:**
+
 - ✅ Logo z linkiem do /
 - ✅ Przyciski "Zaloguj" i "Zarejestruj"
 - ✅ Responsywny hamburger menu (mobile)
 - ✅ Aktywne linki
 
 ### auth.utils.ts
+
 **Funkcje:**
+
 - ✅ `requireAuth()` - Guard dla chronionych stron
 - ✅ `requireGuest()` - Guard dla stron publicznych
 - ✅ `getReturnUrl()` - Pobiera returnUrl z query params
@@ -154,18 +168,21 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 ## 🎨 Stylizacja
 
 ### Wykorzystane komponenty Shadcn/ui:
+
 - Button
 - Input
 - Label
 - Card (CardHeader, CardTitle, CardContent, CardFooter)
 
 ### Tailwind utilities:
+
 - Dark mode support (`dark:`)
 - Responsive breakpoints (`md:`, `lg:`)
 - Color system (primary, destructive, muted-foreground)
 - Spacing system (zgodny z istniejącymi komponentami)
 
 ### Konsystencja z istniejącymi komponentami:
+
 ✅ Stylizacja zgodna z `OfferForm.tsx` i `PasswordChangeForm.tsx`
 
 ---
@@ -174,31 +191,33 @@ Zaimplementowano kompletną warstwę interfejsu użytkownika dla systemu autenty
 
 ### Wymagane endpointy:
 
-| Endpoint | Method | Status |
-|----------|--------|--------|
-| `/api/auth/register` | POST | ⏳ Do implementacji |
-| `/api/auth/login` | POST | ⏳ Do implementacji |
-| `/api/auth/logout` | POST | ⏳ Do implementacji |
-| `/api/auth/resend-verification` | POST | ⏳ Do implementacji |
-| `/api/auth/change-password` | POST | ⏳ Do implementacji |
-| `/api/auth/delete-account` | POST | ⏳ Do implementacji |
-| `/auth/callback` | GET | ⏳ Do implementacji |
+| Endpoint                        | Method | Status              |
+| ------------------------------- | ------ | ------------------- |
+| `/api/auth/register`            | POST   | ⏳ Do implementacji |
+| `/api/auth/login`               | POST   | ⏳ Do implementacji |
+| `/api/auth/logout`              | POST   | ⏳ Do implementacji |
+| `/api/auth/resend-verification` | POST   | ⏳ Do implementacji |
+| `/api/auth/change-password`     | POST   | ⏳ Do implementacji |
+| `/api/auth/delete-account`      | POST   | ⏳ Do implementacji |
+| `/auth/callback`                | GET    | ⏳ Do implementacji |
 
 ### Request/Response schemas:
 
 **POST /api/auth/register**
+
 ```typescript
 Request: { email: string, password: string, captchaToken: string }
 Response: 201 Created | 409 Conflict | 429 Too Many Requests
 ```
 
 **POST /api/auth/login**
+
 ```typescript
 Request: { email: string, password: string }
 Response: 200 OK + session cookie | 401 Unauthorized | 403 Forbidden
 ```
 
-*Pełna specyfikacja w `.ai/auth-spec.md` sekcja 3.1*
+_Pełna specyfikacja w `.ai/auth-spec.md` sekcja 3.1_
 
 ---
 
@@ -207,12 +226,14 @@ Response: 200 OK + session cookie | 401 Unauthorized | 403 Forbidden
 ### Co można przetestować już teraz (bez backendu):
 
 ✅ **Visual testing:**
+
 - Renderowanie wszystkich stron
 - Dark mode
 - Responsywność (mobile/desktop)
 - Layout i spacing
 
 ✅ **Interaction testing:**
+
 - Walidacja formularzy (client-side)
 - Error messages display
 - Loading states
@@ -220,6 +241,7 @@ Response: 200 OK + session cookie | 401 Unauthorized | 403 Forbidden
 - Hamburger menu toggle
 
 ✅ **Form validation:**
+
 - Email format validation
 - Password length validation
 - Password confirmation matching
@@ -231,7 +253,7 @@ Response: 200 OK + session cookie | 401 Unauthorized | 403 Forbidden
 ⏳ Session management  
 ⏳ Email verification flow  
 ⏳ API error responses  
-⏳ Redirects po autoryzacji  
+⏳ Redirects po autoryzacji
 
 ---
 
@@ -239,26 +261,26 @@ Response: 200 OK + session cookie | 401 Unauthorized | 403 Forbidden
 
 ### auth-spec.md compliance:
 
-| Sekcja | Zakres | Status |
-|--------|--------|--------|
-| 2.1.1 | Strony publiczne (Astro SSR) | ✅ 100% |
-| 2.1.2 | Komponenty React | ✅ 100% |
-| 2.1.4 | Komponenty nawigacyjne | ✅ 100% |
-| 2.2 | Layouty | ✅ 100% |
-| 2.3 | Przepływy użytkownika | ✅ UI ready |
-| 2.4 | Walidacja i komunikaty błędów | ✅ 100% |
-| 2.5 | Loading states i feedback | ✅ 100% |
+| Sekcja | Zakres                        | Status      |
+| ------ | ----------------------------- | ----------- |
+| 2.1.1  | Strony publiczne (Astro SSR)  | ✅ 100%     |
+| 2.1.2  | Komponenty React              | ✅ 100%     |
+| 2.1.4  | Komponenty nawigacyjne        | ✅ 100%     |
+| 2.2    | Layouty                       | ✅ 100%     |
+| 2.3    | Przepływy użytkownika         | ✅ UI ready |
+| 2.4    | Walidacja i komunikaty błędów | ✅ 100%     |
+| 2.5    | Loading states i feedback     | ✅ 100%     |
 
 ### PRD compliance:
 
-| User Story | UI Status |
-|------------|-----------|
-| US-001: Rejestracja | ✅ UI gotowe |
-| US-002: Weryfikacja email | ✅ UI gotowe |
-| US-003: Logowanie | ✅ UI gotowe |
-| US-004: Wylogowanie | ✅ UI gotowe |
-| US-005: Zmiana hasła | ⏳ Existing component, integracja z backend pending |
-| US-006: Usunięcie konta | ⏳ Existing component, integracja z backend pending |
+| User Story                | UI Status                                           |
+| ------------------------- | --------------------------------------------------- |
+| US-001: Rejestracja       | ✅ UI gotowe                                        |
+| US-002: Weryfikacja email | ✅ UI gotowe                                        |
+| US-003: Logowanie         | ✅ UI gotowe                                        |
+| US-004: Wylogowanie       | ✅ UI gotowe                                        |
+| US-005: Zmiana hasła      | ⏳ Existing component, integracja z backend pending |
+| US-006: Usunięcie konta   | ⏳ Existing component, integracja z backend pending |
 
 ---
 
@@ -298,6 +320,7 @@ src/
 ```
 
 **Statystyki:**
+
 - Nowych plików: 17
 - Zmodyfikowanych plików: 1
 - Łączne linie kodu (oszacowanie): ~1500 LOC
@@ -307,6 +330,7 @@ src/
 ## 🚀 Kolejne kroki (Backend phase)
 
 ### Faza 1: Fundament
+
 1. Utworzenie migracji bazy danych (auth_tables.sql)
 2. Konfiguracja Supabase Auth w Dashboard
 3. Modyfikacja `src/db/supabase.client.ts`
@@ -314,52 +338,60 @@ src/
 5. Aktualizacja typów (`src/env.d.ts`)
 
 ### Faza 2: API Endpoints
+
 1. Walidatory Zod (`src/lib/validators/auth.validators.ts`)
 2. Serwisy (`src/lib/services/auth.service.ts`, `captcha.service.ts`)
 3. Implementacja `/api/auth/*` endpoints
 4. Integracja captcha (hCaptcha lub Turnstile)
 
 ### Faza 3: Integracja
+
 1. Usunięcie placeholderów `user` z dashboard/settings
 2. Dodanie Header do chronionych stron
 3. Testowanie pełnego flow
 4. Rate limiting
 
 ### Faza 4: Testing & Deployment
+
 1. E2E testy (Playwright)
 2. Unit testy (Vitest)
 3. Deployment na VPS
 4. Monitoring
 
-*Szczegółowa kolejność w `.ai/auth-spec.md` sekcja 11*
+_Szczegółowa kolejność w `.ai/auth-spec.md` sekcja 11_
 
 ---
 
 ## 🎯 Kluczowe decyzje architektoniczne
 
 ### 1. Separation of Concerns
+
 - ✅ UI całkowicie oddzielone od logiki backendowej
 - ✅ Komponenty React dla interaktywności
 - ✅ Astro SSR dla stron i layouts
 - ✅ Utilities dla reużywalnej logiki
 
 ### 2. Progressive Enhancement
+
 - ✅ Client-side validation jako szybki feedback
 - ⏳ Server-side validation jako security layer (backend phase)
 - ✅ Graceful error handling
 
 ### 3. Type Safety
+
 - ✅ TypeScript dla wszystkich komponentów
 - ✅ Proper interfaces dla props
 - ⏳ Zod schemas dla API validation (backend phase)
 
 ### 4. Accessibility First
+
 - ✅ Semantic HTML
 - ✅ ARIA attributes
 - ✅ Keyboard navigation
 - ✅ Screen reader friendly
 
 ### 5. Mobile-First
+
 - ✅ Responsive design
 - ✅ Touch-friendly
 - ✅ Hamburger menu
@@ -369,26 +401,29 @@ src/
 ## 💡 Znane ograniczenia i uwagi
 
 ### Placeholder elements:
+
 1. **Captcha** - Obecnie placeholder z komunikatem. Wymaga integracji hCaptcha/Turnstile.
 2. **User object** - W stronach dashboard/settings używany hardcoded user dla development.
 3. **API responses** - Komponenty obsługują różne response codes, ale endpointy zwracają 501.
 
 ### Opcjonalne features (nie w MVP):
+
 - Password reset flow (strona utworzona jako placeholder)
 - 2FA (do przyszłości)
 - OAuth providers (do przyszłości)
 
 ### Do usunięcia po implementacji backend:
+
 ```typescript
 // Placeholder w dashboard.astro, settings.astro, etc:
 const user = {
   id: "dev-user-id",
-  email: "dev@example.com"
+  email: "dev@example.com",
 };
 
 // Zamienić na:
 const user = Astro.locals.user;
-if (!user) return Astro.redirect('/login');
+if (!user) return Astro.redirect("/login");
 ```
 
 ---
@@ -396,6 +431,7 @@ if (!user) return Astro.redirect('/login');
 ## ✅ Checklist zgodności
 
 ### Założenia projektowe:
+
 - [x] Astro 5 SSR
 - [x] React 19 components
 - [x] TypeScript 5
@@ -404,6 +440,7 @@ if (!user) return Astro.redirect('/login');
 - [x] Zgodność ze stylem `OfferForm.tsx` i `PasswordChangeForm.tsx`
 
 ### Funkcjonalności UI:
+
 - [x] Formularze z walidacją
 - [x] Loading states
 - [x] Error handling
@@ -412,6 +449,7 @@ if (!user) return Astro.redirect('/login');
 - [x] Accessibility
 
 ### Dokumentacja:
+
 - [x] README komponentów
 - [x] Przewodnik integracji
 - [x] Podsumowanie implementacji
@@ -428,7 +466,7 @@ Warstwa UI systemu autentykacji została w pełni zaimplementowana zgodnie ze sp
 ✅ Accessible (ARIA, semantic HTML)  
 ✅ Konsystentne stylistycznie z istniejącymi komponentami  
 ✅ Dobrze udokumentowane  
-✅ Gotowe do integracji z backendem  
+✅ Gotowe do integracji z backendem
 
 **Backend phase** może rozpocząć się natychmiast - wszystkie komponenty UI są gotowe do podłączenia prawdziwych API endpoints i Supabase Auth.
 
@@ -437,7 +475,6 @@ Warstwa UI systemu autentykacji została w pełni zaimplementowana zgodnie ze sp
 **Autor implementacji:** AI Assistant (Claude Sonnet 4.5)  
 **Data ukończenia:** 2025-11-02  
 **Czas implementacji:** ~1 session  
-**Linter errors:** 0  
+**Linter errors:** 0
 
 **Status:** ✅ **UKOŃCZONE - GOTOWE DO BACKEND INTEGRATION**
-

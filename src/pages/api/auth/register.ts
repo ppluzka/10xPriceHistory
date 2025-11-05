@@ -72,7 +72,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     const siteUrl = url.origin;
 
     // Attempt to sign up with Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: validated.data.email,
       password: validated.data.password,
       options: {

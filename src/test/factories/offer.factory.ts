@@ -14,7 +14,7 @@ export interface MockOffer {
   last_checked_at: string;
   created_at: string;
   updated_at: string;
-  status: 'active' | 'inactive' | 'error';
+  status: "active" | "inactive" | "error";
   error_message: string | null;
 }
 
@@ -31,19 +31,19 @@ export interface MockPriceHistory {
  */
 export function createMockOffer(overrides?: Partial<MockOffer>): MockOffer {
   const now = new Date().toISOString();
-  
+
   return {
     id: `offer-${Math.random().toString(36).substr(2, 9)}`,
     user_id: `user-${Math.random().toString(36).substr(2, 9)}`,
-    title: 'Test Product',
-    url: 'https://example.com/product/123',
+    title: "Test Product",
+    url: "https://example.com/product/123",
     current_price: 99.99,
     lowest_price: 89.99,
     highest_price: 119.99,
     last_checked_at: now,
     created_at: now,
     updated_at: now,
-    status: 'active',
+    status: "active",
     error_message: null,
     ...overrides,
   };
@@ -53,7 +53,7 @@ export function createMockOffer(overrides?: Partial<MockOffer>): MockOffer {
  * Creates multiple mock offers
  */
 export function createMockOffers(count: number, overrides?: Partial<MockOffer>): MockOffer[] {
-  return Array.from({ length: count }, (_, index) => 
+  return Array.from({ length: count }, (_, index) =>
     createMockOffer({
       title: `Test Product ${index + 1}`,
       ...overrides,
@@ -64,12 +64,9 @@ export function createMockOffers(count: number, overrides?: Partial<MockOffer>):
 /**
  * Creates a mock price history entry
  */
-export function createMockPriceHistory(
-  offerId: string,
-  overrides?: Partial<MockPriceHistory>
-): MockPriceHistory {
+export function createMockPriceHistory(offerId: string, overrides?: Partial<MockPriceHistory>): MockPriceHistory {
   const now = new Date().toISOString();
-  
+
   return {
     id: `price-${Math.random().toString(36).substr(2, 9)}`,
     offer_id: offerId,
@@ -86,18 +83,18 @@ export function createMockPriceHistory(
 export function createMockPriceHistorySeries(
   offerId: string,
   count: number,
-  startPrice: number = 100,
-  priceVariation: number = 10
+  startPrice = 100,
+  priceVariation = 10
 ): MockPriceHistory[] {
   const now = new Date();
-  
+
   return Array.from({ length: count }, (_, index) => {
     const date = new Date(now);
     date.setDate(date.getDate() - (count - index - 1)); // Go back in time
-    
+
     const priceChange = (Math.random() - 0.5) * priceVariation;
     const price = Math.round((startPrice + priceChange) * 100) / 100;
-    
+
     return createMockPriceHistory(offerId, {
       price,
       recorded_at: date.toISOString(),
@@ -117,10 +114,10 @@ export interface MockUser {
 
 export function createMockUser(overrides?: Partial<MockUser>): MockUser {
   const now = new Date().toISOString();
-  
+
   return {
     id: `user-${Math.random().toString(36).substr(2, 9)}`,
-    email: 'test@example.com',
+    email: "test@example.com",
     created_at: now,
     ...overrides,
   };
@@ -132,7 +129,7 @@ export function createMockUser(overrides?: Partial<MockUser>): MockUser {
 export interface MockUserPreferences {
   id: string;
   user_id: string;
-  check_frequency: 'daily' | 'weekly' | 'monthly';
+  check_frequency: "daily" | "weekly" | "monthly";
   email_notifications: boolean;
   created_at: string;
   updated_at: string;
@@ -143,15 +140,14 @@ export function createMockUserPreferences(
   overrides?: Partial<MockUserPreferences>
 ): MockUserPreferences {
   const now = new Date().toISOString();
-  
+
   return {
     id: `pref-${Math.random().toString(36).substr(2, 9)}`,
     user_id: userId,
-    check_frequency: 'daily',
+    check_frequency: "daily",
     email_notifications: true,
     created_at: now,
     updated_at: now,
     ...overrides,
   };
 }
-

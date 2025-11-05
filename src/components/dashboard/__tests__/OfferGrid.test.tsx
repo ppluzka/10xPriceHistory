@@ -34,9 +34,7 @@ describe("OfferGrid", () => {
   describe("Loading State", () => {
     it("should show skeleton when loading", () => {
       // Arrange & Act
-      render(
-        <OfferGrid offers={[]} isLoading={true} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={[]} isLoading={true} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.getByTestId("offer-grid-skeleton")).toBeInTheDocument();
@@ -48,9 +46,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(3);
 
       // Act
-      render(
-        <OfferGrid offers={offers} isLoading={true} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={true} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.queryByTestId("empty-state")).not.toBeInTheDocument();
@@ -61,23 +57,17 @@ describe("OfferGrid", () => {
   describe("Empty State", () => {
     it("should show empty state when no offers and not loading", () => {
       // Arrange & Act
-      render(
-        <OfferGrid offers={[]} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={[]} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.getByTestId("empty-state")).toBeInTheDocument();
       expect(screen.getByText("Brak ofert")).toBeInTheDocument();
-      expect(
-        screen.getByText(/dodaj pierwszą ofertę z otomoto.pl/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/dodaj pierwszą ofertę z otomoto.pl/i)).toBeInTheDocument();
     });
 
     it("should not show skeleton or offers in empty state", () => {
       // Arrange & Act
-      render(
-        <OfferGrid offers={[]} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={[]} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.queryByTestId("offer-grid-skeleton")).not.toBeInTheDocument();
@@ -91,9 +81,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(3);
 
       // Act
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       offers.forEach((offer) => {
@@ -107,9 +95,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(2);
 
       // Act
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.getByText("Twoje obserwowane oferty")).toBeInTheDocument();
@@ -120,9 +106,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(5);
 
       // Act
-      const { container } = render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      const { container } = render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       const grid = container.querySelector(".grid");
@@ -135,9 +119,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(1);
 
       // Act
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.getByTestId(`offer-card-${offers[0].id}`)).toBeInTheDocument();
@@ -149,9 +131,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(100);
 
       // Act
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       const offerCards = screen.getAllByTestId(/^offer-card-/);
@@ -166,9 +146,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(3);
       const offerToDelete = offers[0];
 
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Act
       const deleteButton = screen.getByRole("button", {
@@ -187,9 +165,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(3);
       const secondOffer = offers[1];
 
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Act
       const deleteButton = screen.getByRole("button", {
@@ -205,13 +181,11 @@ describe("OfferGrid", () => {
       // Arrange
       const user = userEvent.setup();
       const offers = createMockOfferDtos(2);
-      
+
       // Reset mock to ensure clean state
       mockOnDeleteOffer.mockClear();
 
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Act
       const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
@@ -231,9 +205,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(4);
 
       // Act
-      const { container } = render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      const { container } = render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       const grid = container.querySelector(".grid");
@@ -250,9 +222,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(2);
 
       // Act
-      render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       const heading = screen.getByRole("heading", { name: /twoje obserwowane oferty/i });
@@ -265,9 +235,7 @@ describe("OfferGrid", () => {
       const offers = createMockOfferDtos(3);
 
       // Act
-      const { container } = render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      const { container } = render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       const spaceDiv = container.querySelector(".space-y-4");
@@ -281,29 +249,19 @@ describe("OfferGrid", () => {
       // This test verifies behavior - component will crash with undefined
       // In real usage, this should never happen due to TypeScript and proper data flow
       expect(() => {
-        render(
-          <OfferGrid
-            offers={undefined as any}
-            isLoading={false}
-            onDeleteOffer={mockOnDeleteOffer}
-          />
-        );
+        render(<OfferGrid offers={undefined as any} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
       }).toThrow();
     });
 
     it("should handle transition from loading to loaded", () => {
       // Arrange
       const offers = createMockOfferDtos(2);
-      const { rerender } = render(
-        <OfferGrid offers={[]} isLoading={true} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      const { rerender } = render(<OfferGrid offers={[]} isLoading={true} onDeleteOffer={mockOnDeleteOffer} />);
 
       expect(screen.getByTestId("offer-grid-skeleton")).toBeInTheDocument();
 
       // Act
-      rerender(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      rerender(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.queryByTestId("offer-grid-skeleton")).not.toBeInTheDocument();
@@ -313,16 +271,12 @@ describe("OfferGrid", () => {
     it("should handle transition from loaded to empty", () => {
       // Arrange
       const offers = createMockOfferDtos(1);
-      const { rerender } = render(
-        <OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      const { rerender } = render(<OfferGrid offers={offers} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       expect(screen.getByTestId(`offer-card-${offers[0].id}`)).toBeInTheDocument();
 
       // Act
-      rerender(
-        <OfferGrid offers={[]} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />
-      );
+      rerender(<OfferGrid offers={[]} isLoading={false} onDeleteOffer={mockOnDeleteOffer} />);
 
       // Assert
       expect(screen.queryByTestId(/^offer-card-/)).not.toBeInTheDocument();
@@ -330,4 +284,3 @@ describe("OfferGrid", () => {
     });
   });
 });
-

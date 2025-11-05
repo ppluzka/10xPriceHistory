@@ -13,28 +13,30 @@ Utworzono helper `helpers/auth.helper.ts` do mockowania sesji autentykacji w tes
 Helper `mockAuthSession()` ustawia mock cookies i localStorage, które symulują zalogowanego użytkownika:
 
 ```typescript
-import { mockAuthSession } from './helpers/auth.helper';
+import { mockAuthSession } from "./helpers/auth.helper";
 
 test.beforeEach(async ({ page }) => {
   // Mock authenticated user
-  await mockAuthSession(page, 'test-user-123', 'test@example.com');
-  
+  await mockAuthSession(page, "test-user-123", "test@example.com");
+
   // Navigate to protected route
-  await page.goto('/dashboard');
+  await page.goto("/dashboard");
 });
 ```
 
 ### Dostępne funkcje
 
 #### `mockAuthSession(page, userId?, email?)`
+
 Ustawia mock cookies i localStorage dla zalogowanego użytkownika.
 
 ```typescript
 await mockAuthSession(page); // Default user
-await mockAuthSession(page, 'custom-id', 'custom@email.com');
+await mockAuthSession(page, "custom-id", "custom@email.com");
 ```
 
 #### `clearAuthSession(page)`
+
 Czyści wszystkie cookies i storage.
 
 ```typescript
@@ -42,21 +44,23 @@ await clearAuthSession(page);
 ```
 
 #### `isOnLoginPage(page)`
+
 Sprawdza, czy użytkownik został przekierowany na stronę logowania.
 
 ```typescript
 if (isOnLoginPage(page)) {
-  console.log('Not authenticated');
+  console.log("Not authenticated");
 }
 ```
 
 #### `waitForAuthRedirect(page, timeout?)`
+
 Czeka na przekierowanie na `/login` (lub timeout).
 
 ```typescript
 const wasRedirected = await waitForAuthRedirect(page, 2000);
 if (wasRedirected) {
-  test.skip(true, 'Auth required');
+  test.skip(true, "Auth required");
 }
 ```
 
@@ -67,7 +71,7 @@ if (wasRedirected) {
 ```typescript
 test.beforeEach(async ({ page }) => {
   await loginPage.navigate();
-  await loginPage.login('test@example.com', 'password'); // Timeout!
+  await loginPage.login("test@example.com", "password"); // Timeout!
   await dashboardPage.navigate();
 });
 ```
@@ -77,18 +81,18 @@ test.beforeEach(async ({ page }) => {
 ```typescript
 test.beforeEach(async ({ page }) => {
   // Mock auth session
-  await mockAuthSession(page, 'test-user-123', 'test@example.com');
-  
+  await mockAuthSession(page, "test-user-123", "test@example.com");
+
   // Navigate to dashboard
   await dashboardPage.navigate();
-  
+
   // Check if mock worked
   const wasRedirected = await waitForAuthRedirect(page, 2000);
   if (wasRedirected) {
-    test.skip(true, 'Auth mock failed');
+    test.skip(true, "Auth mock failed");
     return;
   }
-  
+
   await dashboardPage.waitForDashboardLoaded();
 });
 ```
@@ -117,14 +121,14 @@ VALUES ('test-user-123', 'test@example.com', 'hashed_password', NOW());
 ```typescript
 test.beforeEach(async ({ page }) => {
   const loginPage = new LoginPage(page);
-  
+
   // Real login
   await loginPage.navigate();
-  await loginPage.login('test@example.com', 'TestPassword123!');
-  
+  await loginPage.login("test@example.com", "TestPassword123!");
+
   // Wait for redirect
-  await page.waitForURL('**/dashboard', { timeout: 5000 });
-  
+  await page.waitForURL("**/dashboard", { timeout: 5000 });
+
   await dashboardPage.waitForDashboardLoaded();
 });
 ```
@@ -135,15 +139,15 @@ Zaloguj się raz i zapisz session:
 
 ```typescript
 // setup/auth.setup.ts
-test('authenticate', async ({ page }) => {
-  await page.goto('/login');
-  await page.fill('[data-testid="login-email-input"]', 'test@example.com');
-  await page.fill('[data-testid="login-password-input"]', 'password');
+test("authenticate", async ({ page }) => {
+  await page.goto("/login");
+  await page.fill('[data-testid="login-email-input"]', "test@example.com");
+  await page.fill('[data-testid="login-password-input"]', "password");
   await page.click('[data-testid="login-submit-button"]');
-  await page.waitForURL('**/dashboard');
-  
+  await page.waitForURL("**/dashboard");
+
   // Save auth state
-  await page.context().storageState({ path: 'playwright/.auth/user.json' });
+  await page.context().storageState({ path: "playwright/.auth/user.json" });
 });
 ```
 
@@ -154,13 +158,13 @@ Użyj w testach:
 export default defineConfig({
   projects: [
     {
-      name: 'setup',
+      name: "setup",
       testMatch: /.*\.setup\.ts/,
     },
     {
-      name: 'authenticated',
-      use: { storageState: 'playwright/.auth/user.json' },
-      dependencies: ['setup'],
+      name: "authenticated",
+      use: { storageState: "playwright/.auth/user.json" },
+      dependencies: ["setup"],
     },
   ],
 });
@@ -185,36 +189,36 @@ export default defineConfig({
 ## Przykład: Pełny test z auth
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { DashboardPage } from './pages/DashboardPage';
-import { mockAuthSession, waitForAuthRedirect } from './helpers/auth.helper';
+import { test, expect } from "@playwright/test";
+import { DashboardPage } from "./pages/DashboardPage";
+import { mockAuthSession, waitForAuthRedirect } from "./helpers/auth.helper";
 
-test.describe('Dashboard Tests', () => {
+test.describe("Dashboard Tests", () => {
   let dashboardPage: DashboardPage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
 
     // Mock auth
-    await mockAuthSession(page, 'test-user-123', 'test@example.com');
-    
+    await mockAuthSession(page, "test-user-123", "test@example.com");
+
     await dashboardPage.navigate();
-    
+
     // Verify auth worked
     const wasRedirected = await waitForAuthRedirect(page, 2000);
     if (wasRedirected) {
-      test.skip(true, 'Auth required but not available');
+      test.skip(true, "Auth required but not available");
       return;
     }
-    
+
     await dashboardPage.waitForDashboardLoaded();
   });
 
-  test('should display dashboard', async ({ page }) => {
+  test("should display dashboard", async ({ page }) => {
     await expect(page).toHaveURL(/dashboard/);
     await expect(dashboardPage.stats.container).toBeVisible();
   });
-  
+
   test.afterEach(async ({ page }) => {
     // Optional: clear auth state after each test
     // await clearAuthSession(page);
@@ -237,4 +241,3 @@ test.describe('Dashboard Tests', () => {
 - `e2e/dashboard-add-offer.spec.ts` - Testy dashboard z mock auth
 - `src/middleware/index.ts` - Middleware sprawdzający autentykację
 - `e2e/auth.spec.ts` - Testy logowania (bez mock)
-

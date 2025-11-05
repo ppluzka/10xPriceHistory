@@ -1,12 +1,15 @@
 # Plan implementacji widoku Dashboard
 
 ## 1. Przegląd
+
 Widok Dashboard jest głównym panelem użytkownika dostępnym po zalogowaniu. Jego celem jest prezentacja kluczowych statystyk dotyczących obserwowanych ofert, wyświetlenie listy tych ofert oraz umożliwienie dodawania nowych. Widok musi być w pełni responsywny i zapewniać płynne doświadczenie użytkownika poprzez obsługę stanów ładowania i stanów pustych.
 
 ## 2. Routing widoku
+
 Widok będzie dostępny pod ścieżką `/dashboard`. Strona `src/pages/dashboard.astro` będzie odpowiedzialna za routing, renderowanie po stronie serwera i przekazanie początkowych danych do komponentów klienckich. Dostęp do tej ścieżki będzie chroniony przez middleware aplikacji.
 
 ## 3. Struktura komponentów
+
 Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialności i reużywalności.
 
 ```
@@ -23,6 +26,7 @@ Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialno�
 ## 4. Szczegóły komponentów
 
 ### `DashboardView.tsx`
+
 - **Opis komponentu**: Główny komponent React po stronie klienta, który zarządza stanem całego dashboardu. Odpowiada za pobieranie danych, obsługę akcji użytkownika (dodawanie, usuwanie oferty) i przekazywanie danych do komponentów podrzędnych.
 - **Główne elementy**: Kontener `div` grupujący komponenty `DashboardStats`, `OfferForm` i `OfferGrid`.
 - **Obsługiwane interakcje**:
@@ -34,6 +38,7 @@ Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialno�
 - **Propsy**: `initialData: DashboardDto`.
 
 ### `DashboardStats.tsx`
+
 - **Opis komponentu**: Komponent prezentacyjny, wyświetlający globalne statystyki dotyczące obserwowanych ofert, takie jak liczba aktywnych ofert, średnia zmiana ceny oraz informacja o limicie ofert.
 - **Główne elementy**: Zestaw kart lub statystyk (`StatCard`) wyświetlających dane liczbowe i etykiety.
 - **Obsługiwane interakcje**: Brak.
@@ -42,6 +47,7 @@ Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialno�
 - **Propsy**: `summary: DashboardSummaryDto`, `offerLimit: number`.
 
 ### `OfferForm.tsx`
+
 - **Opis komponentu**: Formularz umożliwiający użytkownikowi dodanie nowej oferty poprzez wklejenie jej adresu URL z serwisu `otomoto.pl`.
 - **Główne elementy**: Element `<form>` zawierający `<input type="url">` i `<button type="submit">`.
 - **Obsługiwane interakcje**:
@@ -55,6 +61,7 @@ Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialno�
 - **Propsy**: `onOfferAdded: (newOffer: OfferDto) => void`.
 
 ### `OfferGrid.tsx`
+
 - **Opis komponentu**: Komponent odpowiedzialny za renderowanie siatki z ofertami. Zarządza wyświetlaniem stanu ładowania (`OfferGridSkeleton`) oraz stanu pustego (`EmptyState`), gdy użytkownik nie ma żadnych obserwowanych ofert.
 - **Główne elementy**: Responsywny kontener `grid` (CSS Grid), który dynamicznie renderuje komponent `OfferGridSkeleton`, `EmptyState` lub listę komponentów `OfferCard`.
 - **Obsługiwane interakcje**: Brak (delegowane do `OfferCard`).
@@ -63,6 +70,7 @@ Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialno�
 - **Propsy**: `offers: OfferDto[]`, `isLoading: boolean`, `onDeleteOffer: (offerId: string) => void`.
 
 ### `OfferCard.tsx`
+
 - **Opis komponentu**: Karta wyświetlająca kluczowe informacje o pojedynczej ofercie. Umożliwia nawigację do szczegółów oferty oraz jej usunięcie.
 - **Główne elementy**: `<a>` lub `<Link>` owijający całą kartę dla nawigacji, `<img>` dla miniatury, elementy tekstowe dla tytułu i ceny, `Badge` dla procentowej zmiany ceny oraz `Button` z ikoną do usuwania.
 - **Obsługiwane interakcje**:
@@ -73,6 +81,7 @@ Hierarchia komponentów została zaprojektowana w celu separacji odpowiedzialno�
 - **Propsy**: `offer: OfferDto`, `onDelete: (offerId: string) => void`.
 
 ## 5. Typy
+
 Implementacja będzie bazować na istniejących typach DTO zdefiniowanych w `src/types.ts`, które precyzyjnie odpowiadają strukturze danych z API.
 
 - **`DashboardDto`**: Główny typ danych dla widoku.
@@ -89,6 +98,7 @@ Implementacja będzie bazować na istniejących typach DTO zdefiniowanych w `src
   - `id, title, url, imageUrl, city, status, lastChecked, currentPrice, currency, percentChangeFromFirst, percentChangeFromPrevious`.
 
 ## 6. Zarządzanie stanem
+
 Stan będzie zarządzany lokalnie w komponencie `DashboardView.tsx` przy użyciu standardowych hooków React (`useState`, `useCallback`).
 
 - **Zmienne stanu**:
@@ -101,6 +111,7 @@ Stan będzie zarządzany lokalnie w komponencie `DashboardView.tsx` przy użyciu
   - `handleDeleteOffer` zaimplementuje aktualizację optymistyczną, natychmiast usuwając ofertę z lokalnego stanu i wysyłając żądanie do API w tle. W przypadku błędu, stan zostanie przywrócony, a użytkownik poinformowany.
 
 ## 7. Integracja API
+
 Komponenty będą komunikować się z backendem poprzez następujące punkty końcowe:
 
 - **`GET /api/dashboard`**:
@@ -120,12 +131,14 @@ Komponenty będą komunikować się z backendem poprzez następujące punkty ko�
   - **Typ odpowiedzi**: `204 No Content`.
 
 ## 8. Interakcje użytkownika
+
 - **Dodawanie oferty**: Użytkownik wkleja URL w formularzu i klika "Dodaj". Przycisk jest blokowany na czas przetwarzania, a po sukcesie nowa oferta pojawia się na liście.
 - **Usuwanie oferty**: Użytkownik klika ikonę kosza na karcie oferty. Wyświetla się modal z prośbą o potwierdzenie. Po potwierdzeniu, oferta natychmiast znika z UI (aktualizacja optymistyczna), a w tle wysyłane jest żądanie usunięcia.
 - **Przeglądanie szczegółów**: Kliknięcie dowolnego miejsca na karcie oferty (poza przyciskiem usuwania) przenosi użytkownika na stronę `/offer/[id]`.
 - **Odświeżanie danych**: Odświeżenie strony powoduje ponowne pobranie aktualnych danych z serwera.
 
 ## 9. Warunki i walidacja
+
 - **Formularz dodawania oferty (`OfferForm.tsx`)**:
   - Wartość w polu `input` musi być niepusta.
   - Wartość musi być poprawnym formalnie adresem URL.
@@ -133,11 +146,13 @@ Komponenty będą komunikować się z backendem poprzez następujące punkty ko�
   - W przypadku niespełnienia warunków, przycisk "Dodaj" jest nieaktywny lub wyświetlany jest komunikat błędu pod polem `input`.
 
 ## 10. Obsługa błędów
+
 - **Błąd pobierania danych (`GET /api/dashboard`)**: Jeśli wystąpi błąd serwera (np. status 500), `OfferGrid` wyświetli komunikat o błędzie zamiast szkieletu lub ofert.
 - **Błąd dodawania oferty (`POST /api/offers`)**: W przypadku błędu (np. przekroczenie limitu, błąd scrapingu), użytkownik zobaczy powiadomienie "toast" z informacją o przyczynie niepowodzenia.
 - **Błąd usuwania oferty (`DELETE /api/offers/[id]`)**: Jeśli aktualizacja optymistyczna się nie powiedzie, usunięta oferta zostanie przywrócona na liście, a użytkownik zobaczy powiadomienie "toast" z informacją o błędzie.
 
 ## 11. Kroki implementacji
+
 1.  **Utworzenie struktury plików**: Stworzenie wszystkich wymaganych plików komponentów (`DashboardView.tsx`, `DashboardStats.tsx`, etc.) oraz strony `dashboard.astro`.
 2.  **Implementacja strony Astro (`dashboard.astro`)**: Dodanie logiki pobierania danych po stronie serwera i przekazanie ich jako `initialData` do `DashboardView`.
 3.  **Implementacja `DashboardView.tsx`**: Stworzenie głównego komponentu, implementacja zarządzania stanem (`useState`) i logiki pobierania danych.

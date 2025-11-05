@@ -6,10 +6,7 @@ export const prerender = false;
 
 // Validation schema
 const ResetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Hasło musi mieć minimum 8 znaków")
-    .max(72, "Hasło może mieć maksymalnie 72 znaki"),
+  password: z.string().min(8, "Hasło musi mieć minimum 8 znaków").max(72, "Hasło może mieć maksymalnie 72 znaki"),
 });
 
 /**
@@ -102,4 +99,3 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
   }
 };
-

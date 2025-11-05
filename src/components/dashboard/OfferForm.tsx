@@ -1,6 +1,6 @@
 import { useState, useCallback, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import type { AddOfferCommand, AddOfferResponseDto } from "@/types";
+import type { AddOfferCommand } from "@/types";
 
 interface OfferFormProps {
   onOfferAdded: () => void;
@@ -75,7 +75,7 @@ export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: Off
           throw new Error(errorData.error || "Nie udało się dodać oferty");
         }
 
-        const result: AddOfferResponseDto = await response.json();
+        await response.json();
 
         // Clear form on success
         setUrl("");
@@ -114,7 +114,8 @@ export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: Off
           <div>
             <h2 className="text-xl font-semibold">Limit ofert został wykorzystany</h2>
             <p className="text-sm text-muted-foreground mt-2">
-              Osiągnąłeś maksymalny limit {offerLimit} aktywnych ofert. Aby dodać nową ofertę, najpierw usuń jedną z istniejących.
+              Osiągnąłeś maksymalny limit {offerLimit} aktywnych ofert. Aby dodać nową ofertę, najpierw usuń jedną z
+              istniejących.
             </p>
           </div>
         </div>
@@ -127,7 +128,9 @@ export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: Off
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold">Dodaj nową ofertę</h2>
-          <p className="text-sm text-muted-foreground">Wklej adres URL z otomoto.pl, aby rozpocząć śledzenie zmian cen</p>
+          <p className="text-sm text-muted-foreground">
+            Wklej adres URL z otomoto.pl, aby rozpocząć śledzenie zmian cen
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

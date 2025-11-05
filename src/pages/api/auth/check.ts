@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 
 /**
  * GET /api/auth/check
- * 
+ *
  * Helper endpoint do sprawdzenia stanu sesji
  * Użyj w konsoli przeglądarki lub do debugowania
  */
@@ -22,4 +22,3 @@ export const GET: APIRoute = async ({ locals }) => {
 };
 
 export const prerender = false;
-

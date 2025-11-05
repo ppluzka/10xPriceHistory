@@ -24,6 +24,7 @@ The testing strategy follows a comprehensive approach with two types of tests:
 ## Tech Stack
 
 ### Unit Testing
+
 - **Vitest** - Fast unit test framework with native Vite/Astro integration
 - **Testing Library** - React component testing utilities
 - **User Event** - Realistic user interaction simulation
@@ -32,6 +33,7 @@ The testing strategy follows a comprehensive approach with two types of tests:
 - **jsdom** - DOM implementation for Node.js
 
 ### E2E Testing
+
 - **Playwright** - Modern E2E testing framework
 - **Chromium** - Browser for test execution
 - **Page Object Model** - Design pattern for maintainable tests
@@ -78,8 +80,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
     // ...
   },
 });
@@ -101,6 +103,7 @@ See [src/test/README.md](./src/test/README.md) for detailed examples and guideli
 ### Common Test Patterns
 
 **Component Rendering:**
+
 ```typescript
 it('renders correctly', () => {
   render(<Button>Click me</Button>);
@@ -109,23 +112,25 @@ it('renders correctly', () => {
 ```
 
 **User Interactions:**
+
 ```typescript
 it('handles clicks', async () => {
   const handleClick = vi.fn();
   const user = userEvent.setup();
-  
+
   render(<Button onClick={handleClick}>Click</Button>);
   await user.click(screen.getByRole('button'));
-  
+
   expect(handleClick).toHaveBeenCalled();
 });
 ```
 
 **API Mocking:**
+
 ```typescript
 server.use(
-  http.get('/api/data', () => {
-    return HttpResponse.json({ data: 'test' });
+  http.get("/api/data", () => {
+    return HttpResponse.json({ data: "test" });
   })
 );
 ```
@@ -138,14 +143,12 @@ The Playwright configuration is located in `playwright.config.ts`:
 
 ```typescript
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   use: {
-    baseURL: 'http://localhost:4321',
-    trace: 'on-first-retry',
+    baseURL: "http://localhost:4321",
+    trace: "on-first-retry",
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });
 ```
 
@@ -165,27 +168,30 @@ See [e2e/README.md](./e2e/README.md) for detailed examples and guidelines.
 ### Common Test Patterns
 
 **Basic Page Test:**
+
 ```typescript
-test('displays login page', async ({ page }) => {
-  await page.goto('/login');
+test("displays login page", async ({ page }) => {
+  await page.goto("/login");
   await expect(page.locator('input[type="email"]')).toBeVisible();
 });
 ```
 
 **Using Page Objects:**
+
 ```typescript
-test('user can login', async ({ loginPage, dashboardPage }) => {
+test("user can login", async ({ loginPage, dashboardPage }) => {
   await loginPage.navigate();
-  await loginPage.login('user@example.com', 'password');
-  
+  await loginPage.login("user@example.com", "password");
+
   await expect(dashboardPage.header).toBeVisible();
 });
 ```
 
 **API Testing:**
+
 ```typescript
-test('API returns data', async ({ request }) => {
-  const response = await request.get('/api/offers');
+test("API returns data", async ({ request }) => {
+  const response = await request.get("/api/offers");
   expect(response.ok()).toBeTruthy();
 });
 ```
@@ -268,10 +274,10 @@ describe('Feature', () => {
     // Arrange - Setup test data and initial state
     const user = userEvent.setup();
     render(<Component initialValue="test" />);
-    
+
     // Act - Perform the action being tested
     await user.click(screen.getByRole('button'));
-    
+
     // Assert - Verify the expected outcome
     expect(screen.getByText('Success')).toBeInTheDocument();
   });
@@ -371,10 +377,7 @@ You can add testing to pre-commit hooks using Husky:
 // package.json
 {
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "vitest related --run"
-    ]
+    "*.{ts,tsx}": ["eslint --fix", "vitest related --run"]
   }
 }
 ```
@@ -384,16 +387,19 @@ You can add testing to pre-commit hooks using Husky:
 ### Unit Tests
 
 **VS Code:**
+
 - Install Vitest extension
 - Set breakpoints
 - Run tests in debug mode
 
 **UI Mode:**
+
 ```bash
 npm run test:ui
 ```
 
 **Browser DevTools:**
+
 ```bash
 npm run test:watch
 # Press 'b' to open in browser
@@ -402,25 +408,29 @@ npm run test:watch
 ### E2E Tests
 
 **Playwright Inspector:**
+
 ```bash
 npm run test:e2e:debug
 ```
 
 **UI Mode (Recommended):**
+
 ```bash
 npm run test:e2e:ui
 ```
 
 **Trace Viewer:**
+
 ```bash
 npx playwright show-trace trace.zip
 ```
 
 **Console Logging:**
+
 ```typescript
-test('debug', async ({ page }) => {
-  const text = await page.locator('.title').textContent();
-  console.log('Title:', text);
+test("debug", async ({ page }) => {
+  const text = await page.locator(".title").textContent();
+  console.log("Title:", text);
 });
 ```
 
@@ -450,11 +460,13 @@ Remember: Coverage is a tool, not a goal. Focus on meaningful tests rather than 
 ### Common Issues
 
 **Unit Tests:**
+
 - Tests fail with "not wrapped in act(...)": Use `await` with user events
 - Mocks not working: Define mocks at top level, clear between tests
 - Cannot find module: Check path aliases in `vitest.config.ts`
 
 **E2E Tests:**
+
 - Tests timeout: Increase timeout, ensure dev server is running
 - Element not found: Use proper auto-waiting locators
 - Flaky tests: Avoid manual timeouts, ensure proper test isolation
@@ -470,12 +482,14 @@ Remember: Coverage is a tool, not a goal. Focus on meaningful tests rather than 
 ## Resources
 
 ### Documentation
+
 - [Vitest](https://vitest.dev)
 - [Playwright](https://playwright.dev)
 - [Testing Library](https://testing-library.com)
 - [MSW](https://mswjs.io)
 
 ### Learning Resources
+
 - [Common Testing Mistakes](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 - [Testing Best Practices](https://testingjavascript.com)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
@@ -483,4 +497,3 @@ Remember: Coverage is a tool, not a goal. Focus on meaningful tests rather than 
 ---
 
 Happy Testing! 🧪✨
-

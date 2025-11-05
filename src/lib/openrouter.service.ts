@@ -69,7 +69,7 @@ class InMemoryRateLimiter implements RateLimiterInterface {
     this.limiter = pLimit(concurrency);
   }
 
-  async acquire(_key: string): Promise<void> {
+  async acquire(): Promise<void> {
     await this.limiter(() => Promise.resolve());
   }
 }

@@ -69,18 +69,11 @@ export default function EmptyState({ title, description, icon = "inbox" }: Empty
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center" data-testid="offers-empty-state">
-      <div className="mb-4">
-        {getIcon()}
-      </div>
-      
-      <h3 className="text-lg font-semibold mb-2">
-        {title}
-      </h3>
-      
-      <p className="text-sm text-muted-foreground max-w-md">
-        {description}
-      </p>
+      <div className="mb-4">{getIcon()}</div>
+
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+
+      <p className="text-sm text-muted-foreground max-w-md">{description}</p>
     </div>
   );
 }
-

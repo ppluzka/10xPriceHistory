@@ -31,10 +31,7 @@ export function createMockOfferDto(overrides?: Partial<OfferDto>): OfferDto {
 /**
  * Creates multiple mock OfferDto objects
  */
-export function createMockOfferDtos(
-  count: number,
-  overrides?: Partial<OfferDto>
-): OfferDto[] {
+export function createMockOfferDtos(count: number, overrides?: Partial<OfferDto>): OfferDto[] {
   return Array.from({ length: count }, (_, index) =>
     createMockOfferDto({
       title: `Test Car Offer ${index + 1}`,
@@ -48,9 +45,7 @@ export function createMockOfferDtos(
 /**
  * Creates a mock DashboardSummaryDto with default or custom values
  */
-export function createMockDashboardSummary(
-  overrides?: Partial<DashboardSummaryDto>
-): DashboardSummaryDto {
+export function createMockDashboardSummary(overrides?: Partial<DashboardSummaryDto>): DashboardSummaryDto {
   return {
     activeCount: 5,
     avgChange: -3.5,
@@ -63,9 +58,7 @@ export function createMockDashboardSummary(
 /**
  * Creates a mock DashboardDto with default or custom values
  */
-export function createMockDashboardDto(
-  overrides?: Partial<DashboardDto>
-): DashboardDto {
+export function createMockDashboardDto(overrides?: Partial<DashboardDto>): DashboardDto {
   const offers = overrides?.offers || createMockOfferDtos(5);
   const summary = overrides?.summary || createMockDashboardSummary();
 
@@ -190,4 +183,3 @@ export const dashboardScenarios = {
     offers: createMockOfferDtos(100),
   }),
 };
-

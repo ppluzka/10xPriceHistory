@@ -1,20 +1,25 @@
 # GET /dashboard - Quick Reference
 
 ## Endpoint
+
 ```
 GET /api/dashboard
 ```
 
 ## Purpose
+
 Get comprehensive dashboard overview with summary statistics and list of active offers. Perfect for homepage/overview screen.
 
 ## Authentication
+
 - **Required**: Yes (JWT Bearer token)
 
 ## Parameters
+
 **None** - Simple GET request, no query parameters
 
 ## Request Example
+
 ```bash
 curl -X GET 'http://localhost:4321/api/dashboard' \
   -H 'Authorization: Bearer <token>'
@@ -23,6 +28,7 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
 ## Response (200 OK)
 
 ### Structure
+
 ```typescript
 {
   summary: {
@@ -36,6 +42,7 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
 ```
 
 ### Full Example
+
 ```json
 {
   "summary": {
@@ -53,7 +60,7 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
       "city": "Warszawa",
       "status": "active",
       "lastChecked": "2025-10-31T12:00:00Z",
-      "currentPrice": 11500.00,
+      "currentPrice": 11500.0,
       "currency": "PLN",
       "percentChangeFromFirst": -4.17,
       "percentChangeFromPrevious": 2.5
@@ -66,7 +73,7 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
       "city": "Kraków",
       "status": "active",
       "lastChecked": "2025-10-31T11:00:00Z",
-      "currentPrice": 8500.00,
+      "currentPrice": 8500.0,
       "currency": "PLN",
       "percentChangeFromFirst": -10.2,
       "percentChangeFromPrevious": -1.5
@@ -79,7 +86,7 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
       "city": "Gdańsk",
       "status": "active",
       "lastChecked": "2025-10-31T10:00:00Z",
-      "currentPrice": 15800.00,
+      "currentPrice": 15800.0,
       "currency": "PLN",
       "percentChangeFromFirst": 5.6,
       "percentChangeFromPrevious": 3.2
@@ -89,6 +96,7 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
 ```
 
 ### Empty State
+
 ```json
 {
   "summary": {
@@ -103,30 +111,34 @@ curl -X GET 'http://localhost:4321/api/dashboard' \
 
 ## Summary Fields Explained
 
-| Field | Description | Interpretation |
-|-------|-------------|----------------|
-| `activeCount` | Number of offers with `status: "active"` | How many offers are being monitored |
-| `avgChange` | Average `percentChangeFromFirst` | Overall price trend (negative = prices falling) |
-| `largestDrop` | Most negative `percentChangeFromFirst` | Best deal (biggest price decrease) |
-| `largestRise` | Most positive `percentChangeFromFirst` | Worst deal (biggest price increase) |
+| Field         | Description                              | Interpretation                                  |
+| ------------- | ---------------------------------------- | ----------------------------------------------- |
+| `activeCount` | Number of offers with `status: "active"` | How many offers are being monitored             |
+| `avgChange`   | Average `percentChangeFromFirst`         | Overall price trend (negative = prices falling) |
+| `largestDrop` | Most negative `percentChangeFromFirst`   | Best deal (biggest price decrease)              |
+| `largestRise` | Most positive `percentChangeFromFirst`   | Worst deal (biggest price increase)             |
 
 ### Understanding the Numbers
 
 **activeCount: 3**
+
 - User is tracking 3 active offers
 - Excludes "removed" or "error" status offers
 
 **avgChange: -2.5**
+
 - On average, prices dropped 2.5%
 - Negative is good for buyers (prices going down)
 - Positive is bad for buyers (prices going up)
 
 **largestDrop: -10.2**
+
 - Best deal: one offer dropped 10.2%
 - This is the offer with ID 124 (Honda Civic)
 - Highlight this to user as best opportunity
 
 **largestRise: 5.6**
+
 - Worst deal: one offer increased 5.6%
 - This is the offer with ID 125 (BMW X5)
 - Maybe alert user about price increase
@@ -142,6 +154,7 @@ See [GET /offers quick reference](./GET-offers-quick-reference.md) for full fiel
 ## Error Responses
 
 ### 401 Unauthorized
+
 ```json
 {
   "error": "Unauthorized"
@@ -149,6 +162,7 @@ See [GET /offers quick reference](./GET-offers-quick-reference.md) for full fiel
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "error": "Internal Server Error"
@@ -162,15 +176,15 @@ See [GET /offers quick reference](./GET-offers-quick-reference.md) for full fiel
 ```typescript
 function Dashboard() {
   const [data, setData] = useState(null);
-  
+
   useEffect(() => {
     fetch('/api/dashboard')
       .then(r => r.json())
       .then(setData);
   }, []);
-  
+
   if (!data) return <Spinner />;
-  
+
   return (
     <div>
       <SummaryStats summary={data.summary} />
@@ -191,21 +205,21 @@ function SummaryStats({ summary }) {
         value={summary.activeCount}
         icon={<ChartIcon />}
       />
-      
+
       <StatCard
         title="Avg Change"
         value={`${summary.avgChange}%`}
         color={summary.avgChange < 0 ? 'green' : 'red'}
         trend={summary.avgChange < 0 ? 'down' : 'up'}
       />
-      
+
       <StatCard
         title="Best Deal"
         value={`${Math.abs(summary.largestDrop)}%`}
         subtitle={summary.largestDrop < 0 ? 'Price dropped' : 'Least increase'}
         highlight={summary.largestDrop < -5}
       />
-      
+
       <StatCard
         title="Price Alert"
         value={`${summary.largestRise}%`}
@@ -222,16 +236,16 @@ function SummaryStats({ summary }) {
 ```typescript
 function BestDealBanner({ dashboard }) {
   const { offers, summary } = dashboard;
-  
+
   // Find offer with largest drop
   const bestDeal = offers.find(
     o => o.percentChangeFromFirst === summary.largestDrop
   );
-  
+
   if (!bestDeal || summary.largestDrop >= 0) {
     return null;  // No significant drops
   }
-  
+
   return (
     <Alert variant="success">
       <Trophy />
@@ -292,20 +306,20 @@ function PriceTrendIndicator({ avgChange }) {
 ```typescript
 function DashboardWidget() {
   const { data, isLoading } = useDashboard();
-  
+
   if (isLoading) return <WidgetSkeleton />;
-  
+
   return (
     <Widget>
       <WidgetHeader>Your Offers</WidgetHeader>
       <WidgetBody>
-        <Stat 
-          label="Tracking" 
+        <Stat
+          label="Tracking"
           value={data.summary.activeCount}
           icon="📊"
         />
-        <Stat 
-          label="Avg Change" 
+        <Stat
+          label="Avg Change"
           value={`${data.summary.avgChange}%`}
           color={data.summary.avgChange < 0 ? 'green' : 'red'}
           icon={data.summary.avgChange < 0 ? '↓' : '↑'}
@@ -333,7 +347,7 @@ function PriceChangeChart({ offers }) {
     change: offer.percentChangeFromFirst,
     color: offer.percentChangeFromFirst < 0 ? 'green' : 'red'
   }));
-  
+
   return (
     <BarChart data={chartData}>
       <XAxis dataKey="name" />
@@ -347,15 +361,16 @@ function PriceChangeChart({ offers }) {
 
 ## Comparison with GET /offers
 
-| Feature | GET /dashboard | GET /offers |
-|---------|----------------|-------------|
-| **Summary stats** | ✅ Yes | ❌ No |
-| **Pagination** | ❌ No (100 max) | ✅ Yes |
-| **Sorting** | ❌ Fixed | ✅ Customizable |
-| **Use case** | Homepage/overview | Browse all offers |
-| **Query params** | None | page, size, sort |
+| Feature           | GET /dashboard    | GET /offers       |
+| ----------------- | ----------------- | ----------------- |
+| **Summary stats** | ✅ Yes            | ❌ No             |
+| **Pagination**    | ❌ No (100 max)   | ✅ Yes            |
+| **Sorting**       | ❌ Fixed          | ✅ Customizable   |
+| **Use case**      | Homepage/overview | Browse all offers |
+| **Query params**  | None              | page, size, sort  |
 
 **When to use GET /dashboard:**
+
 - Homepage/dashboard screen
 - Quick overview needed
 - Summary statistics important
@@ -363,6 +378,7 @@ function PriceChangeChart({ offers }) {
 - Widget/quick view
 
 **When to use GET /offers:**
+
 - Full list view
 - User wants to browse all offers
 - Pagination needed (>100 offers)
@@ -384,23 +400,26 @@ function PriceChangeChart({ offers }) {
 function useDashboard() {
   const [data, setData] = useState(null);
   const [lastFetch, setLastFetch] = useState(Date.now());
-  
+
   useEffect(() => {
     // Auto-refresh every 5 minutes
-    const interval = setInterval(() => {
-      fetchDashboard();
-    }, 5 * 60 * 1000);
-    
+    const interval = setInterval(
+      () => {
+        fetchDashboard();
+      },
+      5 * 60 * 1000
+    );
+
     return () => clearInterval(interval);
   }, []);
-  
+
   async function fetchDashboard() {
-    const response = await fetch('/api/dashboard');
+    const response = await fetch("/api/dashboard");
     const data = await response.json();
     setData(data);
     setLastFetch(Date.now());
   }
-  
+
   return { data, refresh: fetchDashboard, lastFetch };
 }
 ```
@@ -408,6 +427,7 @@ function useDashboard() {
 ## Statistical Interpretations
 
 ### All Prices Falling (Good for Buyers)
+
 ```json
 {
   "summary": {
@@ -417,11 +437,13 @@ function useDashboard() {
   }
 }
 ```
+
 - All offers decreased
 - largestRise is still negative (least decrease)
 - Great time to buy!
 
 ### All Prices Rising (Bad for Buyers)
+
 ```json
 {
   "summary": {
@@ -431,11 +453,13 @@ function useDashboard() {
   }
 }
 ```
+
 - All offers increased
 - largestDrop is still positive (least increase)
 - Maybe wait or buy quickly before more increases
 
 ### Mixed (Normal Market)
+
 ```json
 {
   "summary": {
@@ -445,6 +469,7 @@ function useDashboard() {
   }
 }
 ```
+
 - Some offers up, some down
 - On average slightly down
 - Normal market fluctuations
@@ -452,26 +477,34 @@ function useDashboard() {
 ## Common Questions
 
 ### Q: How many offers are returned?
+
 **A**: Up to 100 offers. If user has more, only first 100 are shown.
 
 ### Q: Can I paginate the dashboard?
+
 **A**: No. Use `GET /offers` with pagination for full list.
 
 ### Q: What if I have no offers?
+
 **A**: Returns zeros for all summary stats and empty offers array.
 
 ### Q: Do inactive offers affect summary?
-**A**: 
+
+**A**:
+
 - `activeCount`: No (only counts active)
 - Other stats: Yes (includes all offers for price calculations)
 
 ### Q: What if an offer has no price history?
+
 **A**: It's filtered out from avgChange, largestDrop, largestRise calculations.
 
 ### Q: How often should I refresh?
+
 **A**: 5-10 minutes is reasonable. Price checks happen every 6-48 hours anyway.
 
 ### Q: Is this different from GET /offers?
+
 **A**: Yes. Dashboard includes summary statistics and has fixed size (100).
 
 ## Related Endpoints
@@ -494,4 +527,3 @@ function useDashboard() {
 - ✅ **Informative**: 4 key statistics
 - ✅ **Practical**: Perfect for homepage/overview
 - ✅ **Consistent**: Same offer format as GET /offers
-

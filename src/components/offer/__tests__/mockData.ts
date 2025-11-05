@@ -155,4 +155,3 @@ export const mockPaginatedSingleHistory: PaginatedDto<PriceHistoryDto> = {
   size: 10,
   total: 1,
 };
-

@@ -12,6 +12,7 @@ Error: locator.click: Test timeout of 30000ms exceeded.
 ## Przyczyna
 
 Formularz logowania (`LoginForm.tsx`) ma walidację client-side, która **wyłącza przycisk submit** dopóki:
+
 - Pole email nie jest wypełnione (`!email.trim()`)
 - Pole hasło nie jest wypełnione (`!password`)
 - Formularz nie jest w stanie ładowania (`isLoading`)
@@ -51,9 +52,9 @@ this.passwordInput = page.locator('input[type="password"]');
 this.loginButton = page.locator('button[type="submit"]');
 
 // Po:
-this.emailInput = page.getByTestId('login-email-input');
-this.passwordInput = page.getByTestId('login-password-input');
-this.loginButton = page.getByTestId('login-submit-button');
+this.emailInput = page.getByTestId("login-email-input");
+this.passwordInput = page.getByTestId("login-password-input");
+this.loginButton = page.getByTestId("login-submit-button");
 ```
 
 #### Dodano czekanie na aktywację przycisku:
@@ -63,10 +64,10 @@ async login(email: string, password: string) {
   // Wypełnij pola
   await this.emailInput.fill(email);
   await this.passwordInput.fill(password);
-  
+
   // Poczekaj, aż przycisk będzie widoczny
   await this.loginButton.waitFor({ state: 'visible' });
-  
+
   // Poczekaj, aż przycisk będzie enabled (po walidacji)
   await this.page.waitForFunction(
     () => {
@@ -75,7 +76,7 @@ async login(email: string, password: string) {
     },
     { timeout: 5000 }
   );
-  
+
   // Kliknij aktywny przycisk
   await this.loginButton.click();
 }
@@ -103,12 +104,14 @@ async waitForLoginButtonEnabled(): Promise<void>
 ### Typowe pułapki:
 
 ❌ **Źle:**
+
 ```typescript
 await emailInput.fill(email);
 await submitButton.click(); // Button może być disabled!
 ```
 
 ✅ **Dobrze:**
+
 ```typescript
 await emailInput.fill(email);
 await passwordInput.fill(password);
@@ -131,4 +134,3 @@ npx playwright test auth
 - `e2e/pages/LoginPage.ts` - Zaktualizowany POM
 - `src/components/auth/LoginForm.tsx` - Dodane data-testid
 - `e2e/auth.spec.ts` - Testy używające LoginPage
-

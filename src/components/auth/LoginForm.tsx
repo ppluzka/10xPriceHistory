@@ -9,10 +9,7 @@ interface LoginFormProps {
   showRegisterLink?: boolean;
 }
 
-export default function LoginForm({ 
-  redirectTo = "/dashboard",
-  showRegisterLink = true 
-}: LoginFormProps) {
+export default function LoginForm({ redirectTo = "/dashboard", showRegisterLink = true }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,88 +22,91 @@ export default function LoginForm({
   // Validate email format
   const validateEmail = useCallback((value: string): boolean => {
     if (!value.trim()) {
-      setValidationErrors(prev => ({ ...prev, email: "Email jest wymagany" }));
+      setValidationErrors((prev) => ({ ...prev, email: "Email jest wymagany" }));
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
-      setValidationErrors(prev => ({ ...prev, email: "Wprowadź prawidłowy adres email" }));
+      setValidationErrors((prev) => ({ ...prev, email: "Wprowadź prawidłowy adres email" }));
       return false;
     }
 
-    setValidationErrors(prev => ({ ...prev, email: undefined }));
+    setValidationErrors((prev) => ({ ...prev, email: undefined }));
     return true;
   }, []);
 
   // Validate password
   const validatePassword = useCallback((value: string): boolean => {
     if (!value) {
-      setValidationErrors(prev => ({ ...prev, password: "Hasło jest wymagane" }));
+      setValidationErrors((prev) => ({ ...prev, password: "Hasło jest wymagane" }));
       return false;
     }
 
-    setValidationErrors(prev => ({ ...prev, password: undefined }));
+    setValidationErrors((prev) => ({ ...prev, password: undefined }));
     return true;
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setError(null);
 
-    // Validate all fields
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
+      // Validate all fields
+      const isEmailValid = validateEmail(email);
+      const isPasswordValid = validatePassword(password);
 
-    if (!isEmailValid || !isPasswordValid) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email.trim(), password }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        // Handle specific error codes
-        switch (response.status) {
-          case 401:
-            setError("Nieprawidłowy email lub hasło");
-            break;
-          case 403:
-            if (data.code === "EMAIL_NOT_VERIFIED") {
-              setError("Potwierdź email przed logowaniem");
-            } else {
-              setError("Brak dostępu");
-            }
-            break;
-          case 429:
-            setError("Zbyt wiele prób logowania, spróbuj za chwilę");
-            break;
-          default:
-            setError(data.error || "Wystąpił błąd, spróbuj ponownie");
-        }
+      if (!isEmailValid || !isPasswordValid) {
         return;
       }
 
-      // Redirect on success
-      window.location.href = redirectTo;
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Wystąpił błąd połączenia, spróbuj ponownie");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [email, password, redirectTo, validateEmail, validatePassword]);
+      setIsLoading(true);
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          // Handle specific error codes
+          switch (response.status) {
+            case 401:
+              setError("Nieprawidłowy email lub hasło");
+              break;
+            case 403:
+              if (data.code === "EMAIL_NOT_VERIFIED") {
+                setError("Potwierdź email przed logowaniem");
+              } else {
+                setError("Brak dostępu");
+              }
+              break;
+            case 429:
+              setError("Zbyt wiele prób logowania, spróbuj za chwilę");
+              break;
+            default:
+              setError(data.error || "Wystąpił błąd, spróbuj ponownie");
+          }
+          return;
+        }
+
+        // Redirect on success
+        window.location.href = redirectTo;
+      } catch (err) {
+        console.error("Login error:", err);
+        setError("Wystąpił błąd połączenia, spróbuj ponownie");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email, password, redirectTo, validateEmail, validatePassword]
+  );
 
   // Handle email blur
   const handleEmailBlur = useCallback(() => {
@@ -131,8 +131,8 @@ export default function LoginForm({
         <form id="login-form" onSubmit={handleSubmit} className="space-y-4">
           {/* General error message */}
           {error && (
-            <div 
-              className="rounded-md bg-destructive/10 border border-destructive/20 p-3" 
+            <div
+              className="rounded-md bg-destructive/10 border border-destructive/20 p-3"
               role="alert"
               data-testid="login-error-message"
             >
@@ -150,7 +150,7 @@ export default function LoginForm({
               onChange={(e) => {
                 setEmail(e.target.value);
                 if (validationErrors.email) {
-                  setValidationErrors(prev => ({ ...prev, email: undefined }));
+                  setValidationErrors((prev) => ({ ...prev, email: undefined }));
                 }
                 if (error) setError(null);
               }}
@@ -161,19 +161,14 @@ export default function LoginForm({
               autoComplete="email"
               data-testid="login-email-input"
             />
-            {validationErrors.email && (
-              <p className="text-sm text-destructive">{validationErrors.email}</p>
-            )}
+            {validationErrors.email && <p className="text-sm text-destructive">{validationErrors.email}</p>}
           </div>
 
           {/* Password field */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Hasło</Label>
-              <a
-                href="/forgot-password"
-                className="text-xs text-primary hover:underline"
-              >
+              <a href="/forgot-password" className="text-xs text-primary hover:underline">
                 Zapomniałeś hasła?
               </a>
             </div>
@@ -184,7 +179,7 @@ export default function LoginForm({
               onChange={(e) => {
                 setPassword(e.target.value);
                 if (validationErrors.password) {
-                  setValidationErrors(prev => ({ ...prev, password: undefined }));
+                  setValidationErrors((prev) => ({ ...prev, password: undefined }));
                 }
                 if (error) setError(null);
               }}
@@ -195,9 +190,7 @@ export default function LoginForm({
               autoComplete="current-password"
               data-testid="login-password-input"
             />
-            {validationErrors.password && (
-              <p className="text-sm text-destructive">{validationErrors.password}</p>
-            )}
+            {validationErrors.password && <p className="text-sm text-destructive">{validationErrors.password}</p>}
           </div>
         </form>
       </CardContent>
@@ -215,10 +208,7 @@ export default function LoginForm({
         {showRegisterLink && (
           <p className="text-sm text-center text-muted-foreground">
             Nie masz konta?{" "}
-            <a
-              href="/register"
-              className="text-primary hover:underline font-medium"
-            >
+            <a href="/register" className="text-primary hover:underline font-medium">
               Zarejestruj się
             </a>
           </p>
@@ -227,4 +217,3 @@ export default function LoginForm({
     </Card>
   );
 }
-

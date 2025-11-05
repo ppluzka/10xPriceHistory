@@ -132,11 +132,11 @@ Create a test file in the `e2e` directory:
 
 ```typescript
 // e2e/my-feature.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('my feature works', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('h1')).toBeVisible();
+test("my feature works", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("h1")).toBeVisible();
 });
 ```
 
@@ -146,19 +146,19 @@ For more complex E2E tests, create a page object:
 
 ```typescript
 // e2e/pages/MyPage.ts
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 export class MyPage extends BasePage {
   readonly myButton: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.myButton = page.locator('button#my-button');
+    this.myButton = page.locator("button#my-button");
   }
 
   async navigate() {
-    await this.goto('/my-page');
+    await this.goto("/my-page");
   }
 
   async clickMyButton() {
@@ -180,6 +180,7 @@ export class MyPage extends BasePage {
 Located at: `src/components/ui/button.test.tsx`
 
 This test demonstrates:
+
 - Component rendering
 - Style variants testing
 - User interaction testing
@@ -187,6 +188,7 @@ This test demonstrates:
 - Slot component testing
 
 Run it:
+
 ```bash
 npm test src/components/ui/button.test.tsx
 ```
@@ -196,6 +198,7 @@ npm test src/components/ui/button.test.tsx
 Located at: `e2e/auth.spec.ts`
 
 This test demonstrates:
+
 - Page navigation
 - Form interactions
 - Error handling
@@ -203,6 +206,7 @@ This test demonstrates:
 - Page Object Model usage
 
 Run it:
+
 ```bash
 npx playwright test auth.spec.ts
 ```
@@ -273,8 +277,8 @@ npm run test:e2e:headed
 Your testing environment is fully set up and ready to use. Start writing tests and happy testing!
 
 For more detailed information, check out:
+
 - [TESTING.md](./TESTING.md) - Complete testing documentation
 - [Vitest Documentation](https://vitest.dev)
 - [Playwright Documentation](https://playwright.dev)
 - [Testing Library Documentation](https://testing-library.com)
-

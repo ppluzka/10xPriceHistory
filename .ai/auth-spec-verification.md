@@ -18,15 +18,18 @@ Specyfikacja techniczna `auth-spec.md` jest w pełni zgodna z wymaganiami z `prd
 
 ### 2.1 Brak tabeli system_logs w migracji ❌ → ✅
 
-**Problem**: 
+**Problem**:
+
 - Funkcja `delete_user_account()` w migracji `20251103000001_delete_account_function.sql` loguje do tabeli `system_logs`
 - Tabela `system_logs` nie była zdefiniowana w migracji `20251103000000_auth_tables.sql`
 
-**Lokalizacja w PRD**: 
+**Lokalizacja w PRD**:
+
 - US-006, funkcja delete_user_account (linia 1639-1643)
 - Również używana w innych częściach systemu (scraping, monitoring)
 
 **Korekta wprowadzona**:
+
 ```sql
 CREATE TABLE IF NOT EXISTS system_logs (
   id SERIAL PRIMARY KEY,
@@ -44,12 +47,14 @@ CREATE TABLE IF NOT EXISTS system_logs (
 ### 2.2 Nazwy cookies Supabase - nieaktualne ⚠️ → ✅
 
 **Problem**:
+
 - Auth-spec wymieniał `sb-access-token` i `sb-refresh-token`
 - W Supabase v2 SSR używane jest `sb-<project-ref>-auth-token`
 
 **Lokalizacja**: Sekcja 4.2.1 (Session Management)
 
 **Korekta wprowadzona**:
+
 - Zaktualizowano nazwy cookies
 - Dodano informację o zależności od project ref
 - Dodano uwagę że `getSession()` automatycznie obsługuje cookies
@@ -61,10 +66,12 @@ CREATE TABLE IF NOT EXISTS system_logs (
 ### 2.3 Cleanup function - brak system_logs ⚠️ → ✅
 
 **Problem**:
+
 - Funkcja `cleanup_auth_logs()` nie czyściła `system_logs`
 - Retention policy: 90 dni dla system_logs
 
 **Korekta wprowadzona**:
+
 ```sql
 DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ```
@@ -78,6 +85,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### US-001: Rejestracja nowego konta ✅
 
 **Kryteria z PRD**:
+
 - [x] Formularz: email, hasło, potwierdzenie hasła → Sekcja 2.1.2 `RegisterForm.tsx`
 - [x] Walidacja email (regex) → Sekcja 3.2 `RegisterSchema`
 - [x] Hasło min 8 znaków → Sekcja 3.2 `RegisterSchema`
@@ -94,6 +102,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### US-002: Weryfikacja konta email ✅
 
 **Kryteria z PRD**:
+
 - [x] Email z linkiem → Supabase Auth (sekcja 4.4)
 - [x] Link ważny 24h → Supabase default (sekcja 4.4.1)
 - [x] Potwierdzenie w bazie → Supabase Auth automatycznie
@@ -108,6 +117,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### US-003: Logowanie do systemu ✅
 
 **Kryteria z PRD**:
+
 - [x] Formularz email + hasło → Sekcja 2.1.2 `LoginForm.tsx`
 - [x] Weryfikacja przez Supabase → Sekcja 3.1.2
 - [x] Sesja i redirect /dashboard → Sekcja 3.1.2, 4.2
@@ -122,6 +132,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### US-004: Wylogowanie z systemu ✅
 
 **Kryteria z PRD**:
+
 - [x] Przycisk "Wyloguj" w nawigacji → Sekcja 2.1.4 `Header.tsx`
 - [x] Zakończenie sesji Supabase → Sekcja 3.1.3
 - [x] Redirect do / → Sekcja 2.3.3
@@ -134,6 +145,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### US-005: Zmiana hasła ✅
 
 **Kryteria z PRD**:
+
 - [x] Formularz w /settings → Sekcja 2.1.2 `PasswordChangeForm.tsx`
 - [x] Pola: aktualne, nowe, potwierdzenie → Sekcja 2.1.2
 - [x] Weryfikacja aktualnego hasła → Sekcja 3.1.5 (re-authentication)
@@ -149,6 +161,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### US-006: Usunięcie konta ✅
 
 **Kryteria z PRD**:
+
 - [x] Opcja w /settings, sekcja "Niebezpieczne akcje" → Sekcja 2.1.2
 - [x] Modal z ostrzeżeniem → Sekcja 2.1.2 `DeleteAccountSection.tsx`
 - [x] Input "USUŃ" → Sekcja 3.2 `DeleteAccountSchema`
@@ -167,6 +180,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### 4.1 Nowe sekcje dokumentacji
 
 #### Sekcja 15: Integracja z istniejącymi funkcjonalnościami
+
 - **15.1**: Aktualizacja istniejących endpointów (DEFAULT_USER_ID → Astro.locals.current_user_id)
 - **15.2**: Automatyczne tworzenie user_preferences przy logowaniu
 - **15.3**: Poprawne użycie Supabase client z RLS (Astro.locals.supabase)
@@ -176,6 +190,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 **Wartość**: Eliminuje potencjalne problemy przy integracji auth z istniejącym kodem
 
 #### Sekcja 16: Notatki implementacyjne
+
 - **16.1**: Szczegółowa kolejność działań przy pierwszej implementacji
 - **16.2**: Testing strategy (unit, integration, manual)
 - **16.3**: Potencjalne pułapki (PKCE, captcha dev, IP za proxy, session timing)
@@ -183,6 +198,7 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 **Wartość**: Przyspiesza implementację, unika typowych błędów
 
 #### Sekcja 17: Kompatybilność z PRD
+
 - **17.1**: Mapowanie wszystkich US do sekcji auth-spec
 - **17.2**: Zgodność z harmonogramem (Tydzień 1)
 - **17.3**: Potwierdzenie stack technologicznego
@@ -196,12 +212,14 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### 5.1 Supabase Auth - zgodność ✅
 
 **PRD wymaga**:
+
 - Supabase Authentication
 - Row Level Security (RLS)
 - Email verification
 - Session management (7 dni)
 
 **Auth-spec dostarcza**:
+
 - ✅ Pełna integracja z Supabase Auth
 - ✅ RLS policies dla wszystkich tabel user-facing
 - ✅ Email verification z custom templates
@@ -212,10 +230,12 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### 5.2 Astro SSR - zgodność ✅
 
 **PRD wymaga**:
+
 - Astro 5 z trybem SSR (output: 'server')
 - Server-side rendering chronionych stron
 
 **Auth-spec dostarcza**:
+
 - ✅ Middleware sprawdzający sesję na każdym request
 - ✅ Server-side guards (requireAuth, requireGuest)
 - ✅ Protected routes automatycznie przekierowują do /login
@@ -225,10 +245,12 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### 5.3 React komponenty - zgodność ✅
 
 **PRD wymaga**:
+
 - React 19 dla interaktywnych komponentów
 - Shadcn/ui
 
 **Auth-spec dostarcza**:
+
 - ✅ Wszystkie formularze jako React components (client:load)
 - ✅ Wykorzystanie Shadcn/ui (Input, Button, Label, Alert, etc.)
 - ✅ Real-time validation, loading states, error handling
@@ -238,11 +260,13 @@ DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '90 days';
 ### 5.4 Rate limiting - zgodność ✅
 
 **PRD wymaga**:
+
 - 3 rejestracje/IP/24h
 - 10 dodań ofert/user/24h
 - Rate limiting w systemie
 
 **Auth-spec dostarcza**:
+
 - ✅ Tabele audit: registration_attempts, login_attempts
 - ✅ Rate limiting w endpointach auth
 - ✅ Elastyczna konfiguracja limitów (AUTH_RATE_LIMITS)
@@ -271,6 +295,7 @@ Następujące funkcjonalności **celowo nie są** w auth-spec, zgodnie z PRD sek
 **Opis**: Supabase Auth w SSR może mieć problemy z cookies w niektórych konfiguracjach proxy
 
 **Mitygacja**:
+
 - PKCE flow (włączony w auth-spec)
 - Testowanie w dev i production
 - Dokumentacja troubleshooting (sekcja 14.2)
@@ -282,6 +307,7 @@ Następujące funkcjonalności **celowo nie są** w auth-spec, zgodnie z PRD sek
 **Opis**: Astro.clientAddress może zwracać IP proxy, nie użytkownika
 
 **Mitygacja**:
+
 - Sprawdzanie `X-Forwarded-For`, `X-Real-IP` headers
 - Dokumentacja w sekcji 16.3
 - Fallback do IP proxy jeśli brak headers
@@ -293,6 +319,7 @@ Następujące funkcjonalności **celowo nie są** w auth-spec, zgodnie z PRD sek
 **Opis**: Zewnętrzne API captcha może być wolne lub niedostępne
 
 **Mitygacja**:
+
 - Timeout 30s na request
 - Retry mechanizm w CaptchaService
 - Dev environment: test keys lub wyłączenie captcha
@@ -304,6 +331,7 @@ Następujące funkcjonalności **celowo nie są** w auth-spec, zgodnie z PRD sek
 **Opis**: Błędy w RLS policies mogą blokować legalne operacje
 
 **Mitygacja**:
+
 - Policies już zdefiniowane w istniejącej migracji (20251011000000)
 - Testowanie RLS w SQL (sekcja 4.3)
 - Używanie Astro.locals.supabase (automatyczny kontekst sesji)
@@ -312,16 +340,16 @@ Następujące funkcjonalności **celowo nie są** w auth-spec, zgodnie z PRD sek
 
 ## 8. METRYKI ZGODNOŚCI
 
-| Kategoria | Zgodność | Uwagi |
-|-----------|----------|-------|
-| User Stories (US-001 do US-006) | 100% | Wszystkie kryteria pokryte |
-| Stack technologiczny | 100% | Astro 5, React 19, Supabase Auth |
-| Rate limiting | 100% | Zgodnie z wymaganiami PRD |
-| Bezpieczeństwo | 100% | RLS, captcha, validation, audit logs |
-| Harmonogram (Tydzień 1) | 100% | Auth w 3-4 dni (Faza 1-4) |
-| Migracje DB | 100% | Wszystkie tabele i functions |
-| Error handling | 100% | Centralna obsługa, custom errors |
-| Testing | 100% | Unit, integration, manual checklist |
+| Kategoria                       | Zgodność | Uwagi                                |
+| ------------------------------- | -------- | ------------------------------------ |
+| User Stories (US-001 do US-006) | 100%     | Wszystkie kryteria pokryte           |
+| Stack technologiczny            | 100%     | Astro 5, React 19, Supabase Auth     |
+| Rate limiting                   | 100%     | Zgodnie z wymaganiami PRD            |
+| Bezpieczeństwo                  | 100%     | RLS, captcha, validation, audit logs |
+| Harmonogram (Tydzień 1)         | 100%     | Auth w 3-4 dni (Faza 1-4)            |
+| Migracje DB                     | 100%     | Wszystkie tabele i functions         |
+| Error handling                  | 100%     | Centralna obsługa, custom errors     |
+| Testing                         | 100%     | Unit, integration, manual checklist  |
 
 **OGÓLNA ZGODNOŚĆ**: ✅ **100%**
 
@@ -347,6 +375,7 @@ Deweloper powinien zweryfikować:
 ### ✅ Specyfikacja auth-spec.md jest gotowa do implementacji
 
 **Mocne strony**:
+
 1. **Kompletność**: 100% pokrycie User Stories
 2. **Szczegółowość**: Każdy komponent, endpoint, migracja opisane
 3. **Praktyczność**: Przykłady kodu, testing strategy, troubleshooting
@@ -354,13 +383,14 @@ Deweloper powinien zweryfikować:
 5. **Bezpieczeństwo**: RLS, rate limiting, captcha, audit logs
 
 **Wprowadzone korekty (v1.1)**:
+
 1. ✅ Dodano tabelę system_logs w migracji
 2. ✅ Zaktualizowano nazwy cookies Supabase
 3. ✅ Rozszerzono cleanup function
 4. ✅ Dodano 3 nowe sekcje (15, 16, 17)
 5. ✅ Dodano uwagi o potencjalnych pułapkach
 
-**Rekomendacja**: 
+**Rekomendacja**:
 ✅ **Rozpocząć implementację zgodnie z Fazą 1 (sekcja 11.1)**
 
 ---
@@ -370,4 +400,3 @@ Deweloper powinien zweryfikować:
 **Przygotował**: AI Assistant (Claude Sonnet 4.5)  
 **Data**: 2025-01-03  
 **Status dokumentu auth-spec.md**: ✅ Zatwierdzony do implementacji (v1.1)
-

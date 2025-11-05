@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import type { 
-  PreferencesDto, 
-  UpdatePreferencesCommand, 
-  UpdatePreferencesResponseDto,
-  PasswordChangeViewModel 
-} from "@/types";
+import type { PreferencesDto, UpdatePreferencesCommand, PasswordChangeViewModel } from "@/types";
 
 interface UseSettingsReturn {
   preferences: PreferencesDto | null;
@@ -70,11 +65,11 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
         throw new Error("Nie udało się zaktualizować preferencji");
       }
 
-      const result: UpdatePreferencesResponseDto = await response.json();
-      
+      await response.json();
+
       // Aktualizuj lokalny stan
       setPreferences(data);
-      
+
       return;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Wystąpił błąd";
@@ -144,4 +139,3 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     deleteAccount,
   };
 }
-

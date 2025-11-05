@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator } from "@playwright/test";
 
 /**
  * Base Page Object Model class
@@ -22,7 +22,7 @@ export class BasePage {
    * Wait for page to be fully loaded
    */
   async waitForPageLoad() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
@@ -50,7 +50,6 @@ export class BasePage {
    * Get text content of an element
    */
   async getTextContent(locator: Locator): Promise<string> {
-    return (await locator.textContent()) || '';
+    return (await locator.textContent()) || "";
   }
 }
-

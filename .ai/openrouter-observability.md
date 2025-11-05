@@ -18,6 +18,7 @@ Dokument opisuje najlepsze praktyki monitorowania, logowania i debugowania OpenR
 ### Kluczowe metryki do śledzenia
 
 #### 1. Request Metrics
+
 - **Total Requests** - łączna liczba zapytań
 - **Success Rate** - procent udanych zapytań
 - **Error Rate** - procent błędów (per error code)
@@ -25,11 +26,13 @@ Dokument opisuje najlepsze praktyki monitorowania, logowania i debugowania OpenR
 - **Tokens Used** - łączne użycie tokenów
 
 #### 2. Rate Limiting Metrics
+
 - **Rate Limit Hits** - liczba odrzuceń przez rate limiter
 - **Current Rate Limit Usage** - aktualne wykorzystanie limitu per user
 - **Concurrency Usage** - aktualna liczba równoległych zapytań
 
 #### 3. Error Metrics
+
 - **Auth Errors** (401/403) - problemy z kluczem API
 - **Rate Limit Errors** (429) - przekroczenie limitów OpenRouter
 - **Timeout Errors** - przekroczenie timeout
@@ -76,15 +79,13 @@ export class MetricsCollector {
     if (success) {
       this.metrics.requests.success++;
     } else if (errorCode) {
-      this.metrics.requests.errors[errorCode] =
-        (this.metrics.requests.errors[errorCode] || 0) + 1;
+      this.metrics.requests.errors[errorCode] = (this.metrics.requests.errors[errorCode] || 0) + 1;
     }
   }
 
   recordTokens(tokens: number, model: string): void {
     this.metrics.tokens.total += tokens;
-    this.metrics.tokens.byModel[model] =
-      (this.metrics.tokens.byModel[model] || 0) + tokens;
+    this.metrics.tokens.byModel[model] = (this.metrics.tokens.byModel[model] || 0) + tokens;
   }
 
   recordLatency(durationMs: number): void {
@@ -215,9 +216,7 @@ export class StructuredLogger implements LoggerInterface {
       entry.correlationId = meta.correlationId as string;
     }
 
-    const logFn = level === LogLevel.ERROR ? console.error :
-                  level === LogLevel.WARN ? console.warn :
-                  console.log;
+    const logFn = level === LogLevel.ERROR ? console.error : level === LogLevel.WARN ? console.warn : console.log;
 
     logFn(JSON.stringify(entry));
   }
@@ -228,11 +227,11 @@ export class StructuredLogger implements LoggerInterface {
     const sanitized = { ...meta };
 
     // Mask sensitive fields
-    const sensitiveFields = ['apiKey', 'password', 'token', 'secret', 'authorization'];
+    const sensitiveFields = ["apiKey", "password", "token", "secret", "authorization"];
 
     for (const field of sensitiveFields) {
       if (field in sanitized) {
-        sanitized[field] = '***MASKED***';
+        sanitized[field] = "***MASKED***";
       }
     }
 
@@ -240,19 +239,19 @@ export class StructuredLogger implements LoggerInterface {
   }
 
   debug(message: string, meta?: Record<string, unknown>): void {
-    this.log(LogLevel.DEBUG, 'DEBUG', message, meta);
+    this.log(LogLevel.DEBUG, "DEBUG", message, meta);
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
-    this.log(LogLevel.INFO, 'INFO', message, meta);
+    this.log(LogLevel.INFO, "INFO", message, meta);
   }
 
   warn(message: string, meta?: Record<string, unknown>): void {
-    this.log(LogLevel.WARN, 'WARN', message, meta);
+    this.log(LogLevel.WARN, "WARN", message, meta);
   }
 
   error(message: string, meta?: Record<string, unknown>): void {
-    this.log(LogLevel.ERROR, 'ERROR', message, meta);
+    this.log(LogLevel.ERROR, "ERROR", message, meta);
   }
 }
 ```
@@ -263,10 +262,7 @@ export class StructuredLogger implements LoggerInterface {
 import { OpenRouterService } from "./openrouter.service";
 import { StructuredLogger, LogLevel } from "./logger.service";
 
-const logger = new StructuredLogger(
-  "OpenRouter",
-  import.meta.env.PROD ? LogLevel.INFO : LogLevel.DEBUG
-);
+const logger = new StructuredLogger("OpenRouter", import.meta.env.PROD ? LogLevel.INFO : LogLevel.DEBUG);
 
 const service = new OpenRouterService({
   apiKey: import.meta.env.OPENROUTER_API_KEY,
@@ -277,6 +273,7 @@ const service = new OpenRouterService({
 ### Log Aggregation
 
 Dla produkcji, rozważ integrację z:
+
 - **Datadog** - monitoring i logging
 - **Logtail** - agregacja logów
 - **Sentry** - error tracking
@@ -376,6 +373,7 @@ export const GET: APIRoute = async () => {
 - **Better Uptime** - monitoring z incident management
 
 Konfiguracja:
+
 ```bash
 # Sprawdzaj co 5 minut
 URL: https://yourdomain.com/api/health
@@ -391,6 +389,7 @@ Alert: email/slack/discord przy 3 kolejnych failures
 ### Kryteria alertów
 
 #### 1. Error Rate > 5%
+
 ```typescript
 if (metricsCollector.getSuccessRate() < 95) {
   alert("High error rate detected", {
@@ -401,6 +400,7 @@ if (metricsCollector.getSuccessRate() < 95) {
 ```
 
 #### 2. Authentication Failures
+
 ```typescript
 if (metrics.requests.errors["AUTH_ERROR"] > 0) {
   alert("Authentication failures - check API key", {
@@ -410,6 +410,7 @@ if (metrics.requests.errors["AUTH_ERROR"] > 0) {
 ```
 
 #### 3. Rate Limit Hits
+
 ```typescript
 if (metrics.rateLimits.hits > 100) {
   alert("High rate limit hits - consider upgrading plan", {
@@ -419,8 +420,10 @@ if (metrics.rateLimits.hits > 100) {
 ```
 
 #### 4. High Latency
+
 ```typescript
-if (metrics.latency.p95 > 10000) { // 10 seconds
+if (metrics.latency.p95 > 10000) {
+  // 10 seconds
   alert("High latency detected", {
     p95: metrics.latency.p95,
     p99: metrics.latency.p99,
@@ -472,9 +475,7 @@ export class AlertManager {
   constructor(private channels: AlertChannel[]) {}
 
   async alert(message: string, metadata: Record<string, unknown> = {}): Promise<void> {
-    await Promise.all(
-      this.channels.map((channel) => channel.send(message, metadata))
-    );
+    await Promise.all(this.channels.map((channel) => channel.send(message, metadata)));
   }
 }
 ```
@@ -533,6 +534,7 @@ const response = await tracer.trace("openrouter_request", async () => {
 ### Performance Budget
 
 Ustaw cele wydajności:
+
 - **API Response Time**: < 2s (p95)
 - **LLM Response Time**: < 5s (p95)
 - **Success Rate**: > 99%
@@ -591,10 +593,7 @@ const successRate = metricsCollector.getSuccessRate();
 import { OpenRouterService } from "./openrouter.service";
 import { StructuredLogger, LogLevel } from "./logger.service";
 
-const debugLogger = new StructuredLogger(
-  "OpenRouter",
-  import.meta.env.DEBUG ? LogLevel.DEBUG : LogLevel.INFO
-);
+const debugLogger = new StructuredLogger("OpenRouter", import.meta.env.DEBUG ? LogLevel.DEBUG : LogLevel.INFO);
 
 const service = new OpenRouterService({
   apiKey: import.meta.env.OPENROUTER_API_KEY,
@@ -651,10 +650,7 @@ export class ObservedOpenRouterService {
   private alerts: AlertManager;
 
   constructor(apiKey: string) {
-    const logger = new StructuredLogger(
-      "OpenRouter",
-      import.meta.env.PROD ? LogLevel.INFO : LogLevel.DEBUG
-    );
+    const logger = new StructuredLogger("OpenRouter", import.meta.env.PROD ? LogLevel.INFO : LogLevel.DEBUG);
 
     this.service = new OpenRouterService({
       apiKey,
@@ -663,9 +659,7 @@ export class ObservedOpenRouterService {
 
     this.tracer = new RequestTracer();
 
-    this.alerts = new AlertManager([
-      new SlackAlertChannel(import.meta.env.SLACK_WEBHOOK_URL),
-    ]);
+    this.alerts = new AlertManager([new SlackAlertChannel(import.meta.env.SLACK_WEBHOOK_URL)]);
   }
 
   async sendChatCompletion(params: SendChatParams) {
@@ -681,17 +675,12 @@ export class ObservedOpenRouterService {
       const duration = Date.now() - startTime;
       metricsCollector.recordRequest(true);
       metricsCollector.recordLatency(duration);
-      metricsCollector.recordTokens(
-        response.usage?.total_tokens || 0,
-        response.model
-      );
+      metricsCollector.recordTokens(response.usage?.total_tokens || 0, response.model);
 
       return response;
     } catch (error) {
       // Record error metrics
-      const errorCode = error instanceof OpenRouterServiceError
-        ? error.code
-        : "UNKNOWN_ERROR";
+      const errorCode = error instanceof OpenRouterServiceError ? error.code : "UNKNOWN_ERROR";
 
       metricsCollector.recordRequest(false, errorCode);
 
@@ -726,4 +715,3 @@ export class ObservedOpenRouterService {
 ---
 
 Przy pytaniach lub problemach z observability, sprawdź logi i metryki jako pierwszy krok debugowania.
-

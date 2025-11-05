@@ -56,11 +56,43 @@ const reactConfig = tseslint.config({
   },
 });
 
+const testConfig = tseslint.config({
+  files: ["**/__tests__/**", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/test/**"],
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+  },
+});
+
+const e2eConfig = tseslint.config({
+  files: ["e2e/**"],
+  rules: {
+    "react-hooks/rules-of-hooks": "off",
+  },
+});
+
+const scriptsConfig = tseslint.config({
+  files: ["scripts/**"],
+  languageOptions: {
+    globals: {
+      console: "readonly",
+      process: "readonly",
+      fetch: "readonly",
+    },
+  },
+  rules: {
+    "no-console": "off",
+  },
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   baseConfig,
   jsxA11yConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
-  eslintPluginPrettier
+  eslintPluginPrettier,
+  testConfig,
+  e2eConfig,
+  scriptsConfig
 );
