@@ -1,7 +1,9 @@
-name: Pull Request Checks
+name: Build
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch: # Umożliwia ręczne uruchomienie
 
@@ -125,10 +127,25 @@ jobs:
           name: unit-test-coverage
           path: coverage/
 
+      - name: Get PR number for normal builds
+        id: get-pr
+        if: github.event_name != 'pull_request'
+        run: |
+          PR_NUMBER=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls --jq '.[0].number' 2>/dev/null || echo '')
+          if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ] && [ "$PR_NUMBER" != "" ]; then
+            echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "Found PR number: $PR_NUMBER"
+          else
+            echo "No associated PR found for this commit"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Create status comment
         uses: peter-evans/create-or-update-comment@v5
+        if: github.event.pull_request.number || steps.get-pr.outputs.pr-number != ''
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ github.event.pull_request.number || steps.get-pr.outputs.pr-number }}
           body: |
             ## ✅ All checks passed!
 
@@ -143,4 +160,4 @@ jobs:
             - Unit test coverage report available in artifacts
             - E2E test report available in artifacts
 
-            This PR is ready for review. 🚀
+            ${{ (github.event.pull_request.number || steps.get-pr.outputs.pr-number) && 'This PR is ready for review. 🚀' || 'Build completed successfully! 🚀' }}
