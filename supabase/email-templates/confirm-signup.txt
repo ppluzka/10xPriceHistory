@@ -1,0 +1,20 @@
+Potwierdź swój adres email - PriceHistory
+
+Dziękujemy za rejestrację w PriceHistory!
+Jesteśmy zachwyceni, że dołączasz do naszej społeczności.
+
+Aby rozpocząć śledzenie historii cen ofert z Otomoto.pl, kliknij poniższy link, aby potwierdzić swój adres email:
+
+{{ .ConfirmationURL }}
+
+Ważność linku:
+Link weryfikacyjny jest ważny przez 24 godziny. Po tym czasie będziesz musiał wygenerować nowy link.
+
+---
+
+Jeśli nie zakładałeś konta w PriceHistory, możesz bezpiecznie zignorować tę wiadomość.
+
+PriceHistory
+Śledź historię cen ofert z Otomoto.pl
+{{ .SiteURL }}
+

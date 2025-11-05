@@ -39,11 +39,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
 
     // Check if user has valid session (from reset token)
+    // Use getUser() instead of getSession() for security - verifies with Auth server
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return new Response(
         JSON.stringify({
           error: "Link wygasł lub jest nieprawidłowy",

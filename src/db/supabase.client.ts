@@ -52,7 +52,25 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
         return parseCookieHeader(context.headers.get("Cookie") ?? "");
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => context.cookies.set(name, value, options));
+        // Wrap in try-catch to handle cases where response is already sent (e.g., after redirect)
+        // This can happen when getUser() or exchangeCodeForSession() sets cookies after a redirect
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => context.cookies.set(name, value, options));
+        } catch (error) {
+          // If response is already sent, silently ignore cookie setting errors
+          // The cookies were likely already included in the redirect response
+          if (
+            error instanceof Error &&
+            (error.name === "ResponseSentError" ||
+              error.message.includes("response has already been sent") ||
+              error.message.includes("cannot be altered"))
+          ) {
+            // Silently ignore - cookies were already set before redirect
+            return;
+          }
+          // Re-throw other errors
+          throw error;
+        }
       },
     },
   });

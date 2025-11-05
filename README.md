@@ -241,6 +241,48 @@ The following features from the PRD are not yet fully implemented:
 
 ## API Documentation
 
+### Authentication
+
+API endpoints use **session-based authentication** via Supabase Auth cookies. The authentication is handled automatically by the middleware.
+
+**How it works:**
+
+1. **Browser-based requests**: Cookies are automatically included with requests
+2. **Middleware validation**: Each request is validated by `src/middleware/index.ts`
+3. **User context**: Authenticated user ID is available in `locals.current_user_id`
+4. **Unauthorized requests**: Return `401 Unauthorized` if no valid session
+
+**For programmatic access (e.g., curl, Postman):**
+
+You need to include the Supabase session cookies. After logging in via the web interface, extract the cookies from your browser's developer tools and include them in requests:
+
+```bash
+# Example with cookies (replace with actual session cookies)
+curl http://localhost:4321/api/offers \
+  -H "Cookie: sb-<project-ref>-auth-token=..."
+```
+
+**Special case - CRON endpoint:**
+
+The `/api/cron/check-prices` endpoint uses **Bearer token authentication** instead of session cookies:
+
+```bash
+curl -X POST http://localhost:4321/api/cron/check-prices \
+  -H "Authorization: Bearer <CRON_SECRET>" \
+  -H "Content-Type: application/json" \
+  -d '{"triggered_by": "pg_cron"}'
+```
+
+**Public endpoints** (no authentication required):
+
+- `/api/auth/login`
+- `/api/auth/register`
+- `/api/auth/resend-verification`
+- `/api/auth/forgot-password`
+- `/api/auth/reset-password`
+
+---
+
 ### GET /api/offers
 
 Returns a paginated list of active offer subscriptions for the user.
@@ -287,14 +329,18 @@ Returns a paginated list of active offer subscriptions for the user.
 **Example Usage:**
 
 ```bash
-# Get first page with default settings
+# Get first page with default settings (requires authentication)
+# In browser: Cookies are automatically included
+# For curl: Include session cookies from browser after login
 curl http://localhost:4321/api/offers \
-  -H "Cookie: sb-access-token=..."
+  -H "Cookie: sb-<project-ref>-auth-token=<session-token>"
 
 # Get second page with 20 items, sorted by last checked
 curl "http://localhost:4321/api/offers?page=2&size=20&sort=last_checked" \
-  -H "Cookie: sb-access-token=..."
+  -H "Cookie: sb-<project-ref>-auth-token=<session-token>"
 ```
+
+**Note**: For browser-based requests, cookies are automatically included. For programmatic access, you need to extract the session cookie from your browser after logging in.
 
 ---
 
@@ -347,12 +393,14 @@ Adds a new Otomoto.pl offer subscription for the authenticated user. The endpoin
 **Example Usage:**
 
 ```bash
-# Add new offer subscription
+# Add new offer subscription (requires authentication)
 curl -X POST http://localhost:4321/api/offers \
   -H "Content-Type: application/json" \
-  -H "Cookie: sb-access-token=..." \
+  -H "Cookie: sb-<project-ref>-auth-token=<session-token>" \
   -d '{"url": "https://otomoto.pl/osobowe/bmw/seria-3/..."}'
 ```
+
+**Note**: In browser-based requests, cookies are automatically included. Extract session cookies from your browser after logging in for programmatic access.
 
 ---
 
@@ -392,9 +440,17 @@ Returns paginated price history for a specific offer.
 **Error Responses:**
 
 - `400 Bad Request` - Invalid offer ID or query parameters
-- `401 Unauthorized` - Authentication required
+- `401 Unauthorized` - Authentication required (no valid session)
 - `404 Not Found` - Offer not found or user not subscribed
 - `500 Internal Server Error` - Unexpected server error
+
+**Example Usage:**
+
+```bash
+# Get price history for offer ID 123
+curl "http://localhost:4321/api/offers/123/history?page=1&size=10" \
+  -H "Cookie: sb-<project-ref>-auth-token=<session-token>"
+```
 
 ---
 
@@ -426,8 +482,16 @@ Returns dashboard summary with statistics and list of offers.
 
 **Error Responses:**
 
-- `401 Unauthorized` - Authentication required
+- `401 Unauthorized` - Authentication required (no valid session)
 - `500 Internal Server Error` - Unexpected server error
+
+**Example Usage:**
+
+```bash
+# Get dashboard data (requires authentication)
+curl http://localhost:4321/api/dashboard \
+  -H "Cookie: sb-<project-ref>-auth-token=<session-token>"
+```
 
 ---
 
@@ -461,6 +525,22 @@ Scheduled endpoint for automated price checking. Called by `pg_cron` or external
 
 - `401 Unauthorized` - Invalid or missing CRON_SECRET
 - `500 Internal Server Error` - Processing failed
+
+**Authentication:**
+
+This endpoint uses **Bearer token authentication** instead of session cookies because it's called by external schedulers (e.g., pg_cron).
+
+**Example Usage:**
+
+```bash
+# Trigger price check (requires CRON_SECRET)
+curl -X POST http://localhost:4321/api/cron/check-prices \
+  -H "Authorization: Bearer <CRON_SECRET>" \
+  -H "Content-Type: application/json" \
+  -d '{"triggered_by": "pg_cron"}'
+```
+
+**Note**: `CRON_SECRET` must be set in environment variables and match the value sent in the Authorization header.
 
 ---
 

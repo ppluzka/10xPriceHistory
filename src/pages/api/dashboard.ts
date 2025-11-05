@@ -41,8 +41,18 @@ function getOpenRouterService(): OpenRouterService {
  */
 export const GET: APIRoute = async ({ locals }) => {
   try {
-    // Get user ID from middleware (using DEFAULT_USER_ID for now)
-    const currentUserId = locals.current_user_id as string;
+    // Get user ID from middleware - validate authentication
+    const currentUserId = locals.current_user_id;
+
+    if (!currentUserId) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: "Authentication required",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // Call service layer to get dashboard data
     const dashboardService = new DashboardService(locals.supabase, getOpenRouterService());
