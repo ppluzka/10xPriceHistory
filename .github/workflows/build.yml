@@ -1,8 +1,9 @@
 name: Pull Request Checks
 
 on:
-  pull_request:
+  push:
     branches: [main]
+  workflow_dispatch: # Umożliwia ręczne uruchomienie
 
 jobs:
   lint:
