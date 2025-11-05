@@ -72,7 +72,9 @@ export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: Off
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Nie udało się dodać oferty");
+          // Show detailed error message if available, otherwise show generic error
+          const errorMessage = errorData.details || errorData.error || "Nie udało się dodać oferty";
+          throw new Error(errorMessage);
         }
 
         await response.json();

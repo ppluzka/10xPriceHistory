@@ -7,7 +7,11 @@ import { createMockDashboardDto, dashboardScenarios } from "../../../test/factor
 
 // Mock child components to focus on DashboardView logic
 vi.mock("../../dashboard/DashboardStats", () => ({
-  default: ({ summary }: any) => <div data-testid="dashboard-stats">Stats: {summary.activeCount} active</div>,
+  default: ({ summary, offerLimit }: any) => (
+    <div data-testid="dashboard-stats">
+      Stats: {summary.activeCount} active, limit: {offerLimit}
+    </div>
+  ),
 }));
 
 vi.mock("../../dashboard/OfferForm", () => ({

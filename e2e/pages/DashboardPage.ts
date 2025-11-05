@@ -107,8 +107,26 @@ export class DashboardPage extends BasePage {
   async addOfferAndWait(url: string) {
     const initialCount = await this.offerGrid.getOffersCount();
 
+    // Wait for API response before checking form state
+    const responsePromise = this.page.waitForResponse(
+      (response) => response.url().includes("/api/offers") && response.request().method() === "POST",
+      { timeout: 30000 }
+    );
+
     await this.offerForm.submitOffer(url);
-    await this.offerForm.waitForSuccess();
+
+    // Wait for API response to complete
+    const response = await responsePromise;
+
+    // Check if API call was successful
+    if (!response.ok()) {
+      // If API failed, wait for error message instead of form clearing
+      await this.offerForm.submitError.waitFor({ state: "visible", timeout: 5000 });
+      throw new Error(`Failed to add offer: API returned ${response.status()}`);
+    }
+
+    // Wait for form to clear (successful submission)
+    await this.offerForm.waitForSuccess(30000);
     await this.offerGrid.waitForLoaded();
 
     if (initialCount === 0) {

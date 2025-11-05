@@ -120,11 +120,21 @@ export class OfferFormComponent {
 
   /**
    * Wait for successful submission (form clears)
+   * Waits for the input field to be cleared after successful submission
    */
-  async waitForSuccess() {
-    await this.page.waitForFunction((inputSelector) => {
-      const input = document.querySelector(inputSelector) as HTMLInputElement;
-      return input?.value === "";
-    }, '[data-testid="offer-url-input"]');
+  async waitForSuccess(timeout = 30000) {
+    // Wait for the input to be cleared (successful submission)
+    // Use a more reliable approach: wait for the input value to be empty
+    await this.urlInput.waitFor({ state: "attached" });
+
+    // Wait for the input value to be empty
+    await this.page.waitForFunction(
+      (selector) => {
+        const input = document.querySelector(selector) as HTMLInputElement;
+        return input && input.value === "";
+      },
+      '[data-testid="offer-url-input"]',
+      { timeout }
+    );
   }
 }

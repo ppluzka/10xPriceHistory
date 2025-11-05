@@ -420,7 +420,26 @@ export class OfferService {
    * @throws Error if rate limit exceeded, already subscribed, or extraction fails
    */
   async add(userId: string, url: string): Promise<AddOfferResponseDto> {
+    // Verify Supabase client has authentication context
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+
+    if (authError || !authUser) {
+      console.error("Authentication error in OfferService.add:", authError);
+      throw new Error(`Authentication required: ${authError?.message || "No user session"}`);
+    }
+
+    // Verify userId matches authenticated user (RLS will enforce this too)
+    if (authUser.id !== userId) {
+      console.error("User ID mismatch:", { provided: userId, authenticated: authUser.id });
+      throw new Error("User ID does not match authenticated user");
+    }
+
     // Step 1: Check active subscriptions limit (max 5)
+    // RLS policy already filters by auth.uid() = user_id, so we can omit the .eq() filter
+    // However, we keep it for clarity and to ensure we're querying the right user
     const { count: activeCount, error: countError } = await this.supabase
       .from("user_offer")
       .select("*", { count: "exact", head: true })
@@ -428,8 +447,20 @@ export class OfferService {
       .is("deleted_at", null);
 
     if (countError) {
-      console.error("Error checking active subscriptions:", countError);
-      throw new Error(`Failed to check subscription limit: ${countError.message}`);
+      console.error("Error checking active subscriptions:", {
+        error: countError,
+        code: countError.code,
+        message: countError.message,
+        details: countError.details,
+        hint: countError.hint,
+        userId,
+        authUserId: authUser.id,
+      });
+
+      // Provide more detailed error message
+      const errorMessage = countError.message || countError.details || countError.hint || "Unknown error";
+      const errorCode = countError.code || "UNKNOWN_ERROR";
+      throw new Error(`Failed to check subscription limit (${errorCode}): ${errorMessage}`);
     }
 
     if (activeCount !== null && activeCount >= 5) {

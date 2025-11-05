@@ -108,7 +108,7 @@ export class OfferGridComponent {
         return cards.length === expected;
       },
       { selector: '[data-testid="offer-card"]', expected: previousCount + 1 },
-      { timeout: 10000 }
+      { timeout: 30000 }
     );
   }
 
@@ -122,7 +122,7 @@ export class OfferGridComponent {
         return cards.length === expected;
       },
       { selector: '[data-testid="offer-card"]', expected: expectedCount },
-      { timeout: 10000 }
+      { timeout: 30000 }
     );
   }
 

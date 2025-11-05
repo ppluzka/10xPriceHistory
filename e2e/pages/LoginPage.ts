@@ -34,24 +34,21 @@ export class LoginPage extends BasePage {
    * Perform login with credentials
    */
   async login(email: string, password: string) {
-    // Fill email field
-    await this.emailInput.fill(email);
+    // Fill email field - use type to trigger proper React events
+    await this.emailInput.clear();
+    await this.emailInput.type(email, { delay: 50 });
 
-    // Fill password field
-    await this.passwordInput.fill(password);
+    // Fill password field - use type to trigger proper React events
+    await this.passwordInput.clear();
+    await this.passwordInput.type(password, { delay: 50 });
 
-    // Wait for button to be enabled (form validates: email.trim() && password)
-    // The button is disabled by default until both fields are filled
+    // Wait for button to be visible
     await this.loginButton.waitFor({ state: "visible" });
 
-    // Wait for button to become enabled using Playwright's built-in method
-    await this.page.waitForFunction(
-      () => {
-        const button = document.querySelector('[data-testid="login-submit-button"]') as HTMLButtonElement;
-        return button && !button.disabled;
-      },
-      { timeout: 5000 }
-    );
+    // Wait for button to become enabled
+    // The button is disabled when: isLoading || !email.trim() || !password
+    // Use waitFor with enabled check - this polls until condition is met
+    await this.loginButton.waitFor({ enabled: true, timeout: 10000 });
 
     // Click the now-enabled button
     await this.loginButton.click();

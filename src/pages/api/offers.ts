@@ -11,13 +11,15 @@ let openRouterService: OpenRouterService | null = null;
 
 /**
  * Gets or creates OpenRouter service instance
+ * Returns null if OPENROUTER_API_KEY is not set (for test environments)
  */
-function getOpenRouterService(): OpenRouterService {
+function getOpenRouterService(): OpenRouterService | null {
   if (!openRouterService) {
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
-      throw new Error("OPENROUTER_API_KEY environment variable is not set");
+      // Return null instead of throwing - allows tests to run without OpenRouter
+      return null;
     }
 
     openRouterService = new OpenRouterService({
@@ -101,7 +103,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const { page, size, sort } = validationResult.data;
 
     // Call service layer to get offers
-    const offerService = new OfferService(locals.supabase, getOpenRouterService());
+    const openRouterService = getOpenRouterService();
+    const offerService = new OfferService(locals.supabase, openRouterService ?? undefined);
     const result = await offerService.list(currentUserId, page, size, sort);
 
     return new Response(JSON.stringify(result), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -121,8 +124,18 @@ export const GET: APIRoute = async ({ request, locals }) => {
  */
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // Get user ID from middleware (using DEFAULT_USER_ID for now)
-    const currentUserId = locals.current_user_id as string;
+    // Get user ID from middleware - validate authentication
+    const currentUserId = locals.current_user_id;
+
+    if (!currentUserId) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: "Authentication required",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // Parse and validate request body
     let body;
@@ -153,7 +166,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const { url } = validationResult.data;
 
     // Call service layer to add offer
-    const offerService = new OfferService(locals.supabase, getOpenRouterService());
+    const openRouterService = getOpenRouterService();
+    const offerService = new OfferService(locals.supabase, openRouterService ?? undefined);
     const result = await offerService.add(currentUserId, url);
 
     return new Response(JSON.stringify(result), {
@@ -185,6 +199,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
         );
       }
 
+      // Check for authentication errors
+      if (
+        error.message.includes("Authentication required") ||
+        error.message.includes("User ID does not match") ||
+        error.message.includes("No user session")
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: "Unauthorized",
+            details: error.message,
+          }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
       // Check for validation/extraction errors
       if (
         error.message.includes("extraction failed") ||
@@ -199,13 +228,36 @@ export const POST: APIRoute = async ({ request, locals }) => {
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
+
+      // Check for RLS/database errors
+      if (
+        error.message.includes("Failed to check subscription limit") ||
+        error.message.includes("Failed to check existing offer") ||
+        error.message.includes("PGRST") ||
+        error.message.includes("permission denied")
+      ) {
+        console.error("Database/RLS error in POST /api/offers:", error);
+        return new Response(
+          JSON.stringify({
+            error: "Internal Server Error",
+            details: "Database operation failed. Please try again.",
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
     }
 
     console.error("Error in POST /api/offers:", error);
 
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 };

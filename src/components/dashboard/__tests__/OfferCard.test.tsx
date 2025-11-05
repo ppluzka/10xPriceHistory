@@ -392,11 +392,9 @@ describe("OfferCard", () => {
       const deleteButton = screen.getByLabelText("Usuń ofertę");
       await user.click(deleteButton);
 
-      // Act
-      const backdrop = screen.getByText("Usuń ofertę").closest(".fixed");
-      if (backdrop) {
-        await user.click(backdrop);
-      }
+      // Act - Click the backdrop button (has aria-label="Zamknij")
+      const backdrop = screen.getByLabelText("Zamknij");
+      await user.click(backdrop);
 
       // Assert
       expect(screen.queryByText("Usuń ofertę")).not.toBeInTheDocument();

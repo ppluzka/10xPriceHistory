@@ -7,7 +7,9 @@
  *
  * Environment variables required (from .env.test):
  * - SUPABASE_URL: Supabase instance URL
- * - SUPABASE_KEY: Supabase anon key
+ * - SUPABASE_SERVICE_ROLE_KEY: Supabase service role key (bypasses RLS)
+ *   NOTE: Service role key is required because RLS policies prevent anonymous clients
+ *   from reading user_offer records. This key bypasses RLS for cleanup operations.
  * - E2E_USERNAME_ID: Test user ID for filtering test data
  *
  * Note: Console statements are intentional for teardown logging
@@ -25,15 +27,20 @@ async function globalTeardown() {
   console.log("\n🧹 Starting E2E test teardown...");
 
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_KEY;
+  // Use service role key to bypass RLS policies
+  // RLS policies on user_offer only allow authenticated users to SELECT,
+  // so we need service role key to read and delete test data
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const e2eUserId = process.env.E2E_USERNAME_ID;
 
   // Validate environment variables
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
     console.error("❌ Missing required environment variables:");
     if (!supabaseUrl) console.error("  - SUPABASE_URL");
-    if (!supabaseKey) console.error("  - SUPABASE_KEY");
+    if (!supabaseServiceRoleKey) console.error("  - SUPABASE_SERVICE_ROLE_KEY");
     console.error("Please check your .env.test file");
+    console.error("\nNOTE: SUPABASE_SERVICE_ROLE_KEY is required to bypass RLS policies.");
+    console.error("      Without it, the teardown cannot access user_offer records.");
     process.exit(1);
   }
 
@@ -42,10 +49,17 @@ async function globalTeardown() {
   }
 
   try {
-    // Create Supabase client
-    const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+    // Create Supabase client with service role key to bypass RLS
+    // This is necessary because RLS policies on user_offer only allow
+    // authenticated users to SELECT, but we need to clean up test data
+    const supabase = createClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
-    console.log("🔌 Connected to Supabase");
+    console.log("🔌 Connected to Supabase (using service role key to bypass RLS)");
 
     // Clean up test data
     // If E2E_USERNAME_ID is set, delete all test data for that user
