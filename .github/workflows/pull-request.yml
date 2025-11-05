@@ -3,6 +3,7 @@ name: Pull Request Checks
 on:
   pull_request:
     branches: [main]
+  name: Pull Request Checks
 
 jobs:
   lint:
@@ -53,7 +54,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unit-test-coverage
@@ -68,11 +69,11 @@ jobs:
     env:
       NODE_VERSION: "22.14.0"
       CI: true
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      E2E_USERNAME_ID: ${{ secrets.E2E_USERNAME_ID }}
-      E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+      E2E_USERNAME_ID: ${{ vars.E2E_USERNAME_ID }}
+      E2E_USERNAME: ${{ vars.E2E_USERNAME }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -97,7 +98,7 @@ jobs:
         run: npm run test:e2e
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
