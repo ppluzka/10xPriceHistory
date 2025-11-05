@@ -9,9 +9,12 @@ A web application for tracking and visualizing price history of car listings on 
 1. [Tech Stack](#tech-stack)
 2. [Getting Started Locally](#getting-started-locally)
 3. [Available Scripts](#available-scripts)
-4. [Project Scope (MVP)](#project-scope-mvp)
-5. [Project Status](#project-status)
-6. [License](#license)
+4. [Project Status](#project-status)
+5. [Implemented Features](#implemented-features)
+6. [Known Limitations](#known-limitations)
+7. [API Documentation](#api-documentation)
+8. [Project Scope (MVP)](#project-scope-mvp)
+9. [License](#license)
 
 ---
 
@@ -24,7 +27,7 @@ A web application for tracking and visualizing price history of car listings on 
 - TypeScript 5
 - Tailwind CSS 4
 - shadcn/ui component library
-- Recharts or Chart.js for data visualization
+- Recharts for data visualization
 
 **Backend**
 
@@ -60,13 +63,15 @@ A web application for tracking and visualizing price history of car listings on 
 
 - Node.js 22.14.0 (managed via .nvmrc)
 - Git
+- Supabase account and project
+- OpenRouter.ai API key
 
 ### Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/PriceHistory.git
-cd PriceHistory
+git clone https://github.com/ppluzka/10xPriceHistory
+cd 10xPriceHistory
 
 # Install Node version
 nvm install
@@ -77,6 +82,9 @@ cp .env.example .env
 
 # Install dependencies
 npm install
+
+# Run database migrations (if applicable)
+# See Supabase dashboard for migration execution
 ```
 
 ### Run
@@ -133,18 +141,101 @@ All commands are run from the project root:
 
 ---
 
-## Project Scope (MVP)
+## Project Status
 
-This repository implements the core MVP features:
+✅ **MVP: ~85% Complete**
 
-- Support for tracking only Otomoto.pl listings
-- User authentication (email/password) via Supabase Auth
-- Add, view, and soft-delete up to **5** active offers (free tier)
-- Automatic price monitoring on a global schedule (default: 24 h)
-- AI-powered price extraction on first offer addition with fallback selectors
-- Storage of price history for **30 days**
-- Responsive line charts showing price trends and tooltips
-- Grid-based dashboard with price change badges (green for drops, red for increases)
+Core functionality is implemented and functional. The application supports user authentication, offer management, automated price monitoring, and data visualization. Some edge cases and polish features remain (see [Known Limitations](#known-limitations)).
+
+**Current Status:**
+- ✅ Core features implemented
+- ✅ Production-ready architecture
+- ⚠️ Some security enhancements pending
+- ⚠️ Onboarding and polish features pending
+
+---
+
+## Implemented Features
+
+### Authentication & User Management
+
+- ✅ User registration with email verification
+- ✅ Login/logout with session management
+- ✅ Password reset flow
+- ✅ Email verification with resend capability
+- ✅ Protected routes with middleware
+- ✅ Account settings page
+- ✅ Password change functionality
+- ✅ Account deletion (soft delete)
+
+### Offer Management
+
+- ✅ Add offers from Otomoto.pl URLs
+- ✅ URL validation (otomoto.pl domain only)
+- ✅ AI-powered data extraction (OpenRouter)
+- ✅ Fallback CSS selector extraction
+- ✅ View list of active offers
+- ✅ Soft-delete offers (preserves history)
+- ✅ Offer detail pages with full history
+- ✅ Rate limiting: 5 active offers, 10 additions per 24h
+
+### Price Monitoring
+
+- ✅ Automated price checking via cron endpoint
+- ✅ Configurable check frequency (6h, 12h, 24h, 48h)
+- ✅ Retry logic for failed extractions
+- ✅ Status management (active, error, removed)
+- ✅ 404/410 detection for removed offers
+- ✅ Price anomaly detection (>50% change warnings)
+
+### Data Visualization
+
+- ✅ Interactive line charts (Recharts)
+- ✅ Price history table
+- ✅ Percent change calculations (from first/previous)
+- ✅ Color-coded badges (green for drops, red for increases)
+- ✅ Offer statistics (min, max, avg, trend)
+- ✅ Dashboard with global statistics
+- ✅ Responsive design (mobile-friendly)
+
+### API Endpoints
+
+- ✅ `GET /api/offers` - List offers with pagination
+- ✅ `POST /api/offers` - Add new offer
+- ✅ `GET /api/offers/[id]` - Get offer details
+- ✅ `GET /api/offers/[id]/history` - Get price history
+- ✅ `POST /api/offers/[id]/recheck` - Manual price check
+- ✅ `GET /api/dashboard` - Dashboard summary
+- ✅ `POST /api/cron/check-prices` - Automated price checking
+- ✅ `GET /api/preferences` - User preferences
+- ✅ `PUT /api/preferences` - Update preferences
+- ✅ Authentication endpoints (login, register, logout, etc.)
+
+---
+
+## Known Limitations
+
+The following features from the PRD are not yet fully implemented:
+
+### Security & Rate Limiting
+
+- ⚠️ **Captcha on registration** - Not implemented (hCaptcha/Turnstile)
+- ⚠️ **IP-based registration limiting** - Max 3 registrations per IP/day not enforced
+- ⚠️ **Manual check rate limit** - 1 check per offer per hour not enforced
+
+### User Experience
+
+- ⚠️ **Onboarding tooltips** - First-time user guidance not implemented
+- ⚠️ **Enhanced landing page** - Basic landing exists, missing full content sections (Hero, Problem/Solution, Features, Pricing, FAQ)
+
+### Monitoring & Alerts
+
+- ⚠️ **Error alert system** - Monitoring logic exists, but email/webhook alerts for >15% error rate not configured
+- ⚠️ **Advanced retry delays** - Retry exists but may not match exact PRD spec (1min, 5min, 15min)
+
+### Configuration
+
+- ⚠️ **AI confidence threshold** - Code uses 0.8, PRD specifies 0.9 minimum
 
 ---
 
@@ -190,16 +281,19 @@ Returns a paginated list of active offer subscriptions for the user.
 **Error Responses:**
 
 - `400 Bad Request` - Invalid query parameters (with validation details)
+- `401 Unauthorized` - Authentication required
 - `500 Internal Server Error` - Unexpected server error
 
 **Example Usage:**
 
 ```bash
 # Get first page with default settings
-curl http://localhost:4321/api/offers
+curl http://localhost:4321/api/offers \
+  -H "Cookie: sb-access-token=..."
 
 # Get second page with 20 items, sorted by last checked
-curl "http://localhost:4321/api/offers?page=2&size=20&sort=last_checked"
+curl "http://localhost:4321/api/offers?page=2&size=20&sort=last_checked" \
+  -H "Cookie: sb-access-token=..."
 ```
 
 ---
@@ -228,6 +322,7 @@ Adds a new Otomoto.pl offer subscription for the authenticated user. The endpoin
 **Error Responses:**
 
 - `400 Bad Request` - Invalid URL, not from otomoto.pl domain, or data extraction failed
+- `401 Unauthorized` - Authentication required
 - `409 Conflict` - Offer URL already subscribed by the user
 - `429 Too Many Requests` - Rate limit exceeded (max 5 active subscriptions or 10 additions per 24h)
 - `500 Internal Server Error` - Unexpected server error
@@ -244,9 +339,9 @@ Adds a new Otomoto.pl offer subscription for the authenticated user. The endpoin
    - If offer exists but is assigned to other users → creates new subscription, user sees price history from this point forward
 
 3. **Data Extraction:**
-   - Fetches HTML from the URL (10-second timeout)
-   - Extracts: title, image, price, currency, city using CSS selectors
-   - Supports multiple selector fallbacks for robustness
+   - Fetches HTML from the URL (30-second timeout)
+   - Uses AI-powered extraction (OpenRouter) with fallback to CSS selectors
+   - Extracts: title, image, price, currency, city
    - Validates extracted data (price must be between 0 and 10,000,000)
 
 **Example Usage:**
@@ -255,21 +350,138 @@ Adds a new Otomoto.pl offer subscription for the authenticated user. The endpoin
 # Add new offer subscription
 curl -X POST http://localhost:4321/api/offers \
   -H "Content-Type: application/json" \
+  -H "Cookie: sb-access-token=..." \
   -d '{"url": "https://otomoto.pl/osobowe/bmw/seria-3/..."}'
-
-# Response
-{
-  "id": 123,
-  "message": "Offer added"
-}
 ```
 
 ---
 
-## Project Status
+### GET /api/offers/[id]/history
 
-🚧 **MVP in active development** 🚧  
-Features defined in the Product Requirements Document are being implemented. Contributions and issue reports are welcome!
+Returns paginated price history for a specific offer.
+
+**Path Parameters:**
+
+- `id` - Offer ID (positive integer)
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Default | Description                              |
+| --------- | ------ | -------- | ------- | ---------------------------------------- |
+| `page`    | number | No       | `1`     | Page number (must be ≥1)                 |
+| `size`    | number | No       | `10`    | Items per page (must be ≥1 and ≤1000)    |
+
+**Response (200 OK):**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "price": 45000.0,
+      "currency": "PLN",
+      "checkedAt": "2025-10-14T12:00:00Z"
+    }
+  ],
+  "page": 1,
+  "size": 10,
+  "total": 42
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid offer ID or query parameters
+- `401 Unauthorized` - Authentication required
+- `404 Not Found` - Offer not found or user not subscribed
+- `500 Internal Server Error` - Unexpected server error
+
+---
+
+### GET /api/dashboard
+
+Returns dashboard summary with statistics and list of offers.
+
+**Response (200 OK):**
+
+```json
+{
+  "summary": {
+    "activeCount": 5,
+    "avgChange": -2.5,
+    "largestDrop": -8.3,
+    "largestRise": 3.1
+  },
+  "offers": [
+    {
+      "id": 1,
+      "title": "BMW 320d 2015",
+      "currentPrice": 45000.0,
+      "percentChangeFromFirst": -5.2,
+      "status": "active"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized` - Authentication required
+- `500 Internal Server Error` - Unexpected server error
+
+---
+
+### POST /api/cron/check-prices
+
+Scheduled endpoint for automated price checking. Called by `pg_cron` or external scheduler.
+
+**Headers:**
+
+- `Authorization: Bearer <CRON_SECRET>` - Required for authentication
+
+**Request Body:**
+
+```json
+{
+  "triggered_by": "pg_cron"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "processed": 42,
+  "message": "Price check completed successfully"
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized` - Invalid or missing CRON_SECRET
+- `500 Internal Server Error` - Processing failed
+
+---
+
+## Project Scope (MVP)
+
+This repository implements the core MVP features as defined in the Product Requirements Document:
+
+- ✅ Support for tracking only Otomoto.pl listings
+- ✅ User authentication (email/password) via Supabase Auth
+- ✅ Email verification workflow
+- ✅ Add, view, and soft-delete up to **5** active offers (free tier)
+- ✅ Rate limiting: 10 offer additions per 24 hours
+- ✅ Automatic price monitoring via scheduled cron jobs (configurable frequency: 6h, 12h, 24h, 48h)
+- ✅ AI-powered price extraction on first offer addition with fallback selectors
+- ✅ Storage of price history (30-day retention for free tier)
+- ✅ Responsive line charts showing price trends with tooltips
+- ✅ Grid-based dashboard with price change badges (green for drops, red for increases)
+- ✅ Offer detail pages with statistics and history
+- ✅ User settings (password change, check frequency, account deletion)
+
+**See [Known Limitations](#known-limitations) for features not yet implemented.**
 
 ---
 
