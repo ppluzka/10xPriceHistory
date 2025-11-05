@@ -23,8 +23,8 @@ SettingsView
 | ------ | ----------------------- | --------- | ------------------------ |
 | GET    | `/api/preferences`      | ✅ Działa | Pobierz preferencje      |
 | PUT    | `/api/preferences`      | ✅ Działa | Aktualizuj częstotliwość |
-| PUT    | `/api/account/password` | ⏳ TODO   | Zmień hasło              |
-| DELETE | `/api/account`          | ⏳ TODO   | Usuń konto               |
+| POST   | `/api/auth/change-password` | ✅ Działa | Zmień hasło              |
+| POST   | `/api/auth/delete-account` | ✅ Działa | Usuń konto               |
 
 ## Użycie
 
@@ -133,9 +133,9 @@ toast.error("Wystąpił błąd");
 - Heading: `text-2xl sm:text-3xl`
 - Max width: `max-w-2xl`
 
-## Backend TODO
+## Backend Implementation ✅ UKOŃCZONE
 
-### 1. PUT /api/account/password
+### 1. POST /api/auth/change-password ✅ IMPLEMENTED
 
 ```typescript
 // Request
@@ -146,28 +146,43 @@ toast.error("Wystąpił błąd");
 
 // Response (success)
 {
-  message: "Password updated";
+  message: "Password changed successfully";
 }
 
 // Response (error)
 {
-  message: "Invalid current password";
+  error: "Current password is incorrect" | "Nieprawidłowe dane wejściowe" | ...;
+  message: string;
+  code?: "INVALID_CURRENT_PASSWORD" | "WEAK_PASSWORD" | ...;
 }
+
+// Implementacja: src/pages/api/auth/change-password.ts
+// Wymaga: aktywnej sesji użytkownika (middleware)
+// Supabase automatycznie wysyła email o zmianie hasła
+// Re-authentication: weryfikuje aktualne hasło przed zmianą
 ```
 
-### 2. DELETE /api/account
+### 2. POST /api/auth/delete-account ✅ IMPLEMENTED
 
 ```typescript
-// Response (success)
+// Request
 {
-  message: "Account deleted";
+  confirmation: "USUŃ"
 }
 
+// Response (success)
+{
+  message: "Account deleted successfully";
+}
+
+// Implementacja: src/pages/api/auth/delete-account.ts
 // Akcja po usunięciu:
-// - Usuń user_preferences
-// - Usuń offers użytkownika
-// - Usuń price_history
-// - Usuń użytkownika z Supabase Auth
+// - Wywołuje database function `delete_user_account()` która:
+//   - Soft-delete user_offer subscriptions
+//   - Anonimizuje email w auth.users
+//   - Usuwa password i personal data
+//   - Zachowuje price_history dla analytics
+// - Automatycznie wylogowuje użytkownika (signOut)
 // - Frontend przekieruje na "/"
 ```
 

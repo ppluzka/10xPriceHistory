@@ -12,9 +12,10 @@
 
 ### 2.1 Authentication
 
-#### POST /auth/register
+#### POST /auth/register ✅ IMPLEMENTED
 
 - Description: Register a new user and send verification email
+- Implementation: `/src/pages/api/auth/register.ts`
 - Request JSON:
   ```json
   {
@@ -31,9 +32,10 @@
   - 400: invalid email/password format or captcha failure
   - 429: too many registrations from IP
 
-#### POST /auth/login
+#### POST /auth/login ✅ IMPLEMENTED
 
 - Description: Log in and return JWT
+- Implementation: `/src/pages/api/auth/login.ts`
 - Request JSON:
   ```json
   { "email": "user@example.com", "password": "string" }
@@ -46,11 +48,65 @@
   - 400: missing credentials
   - 401: invalid credentials or unverified email
 
-#### POST /auth/logout
+#### POST /auth/logout ✅ IMPLEMENTED
 
 - Description: Revoke current JWT session
+- Implementation: `/src/pages/api/auth/logout.ts`
 - Headers: Authorization: Bearer <token>
 - Response 204 No Content
+
+#### POST /auth/change-password ✅ IMPLEMENTED
+
+- Description: Change password for authenticated user
+- Implementation: `/src/pages/api/auth/change-password.ts`
+- Features:
+  - Requires active session and current password verification
+  - Re-authentication step: verifies current password before allowing change
+  - Supabase automatically sends email notification about password change
+- Request JSON:
+  ```json
+  {
+    "currentPassword": "string",
+    "newPassword": "string"
+  }
+  ```
+- Response 200:
+  ```json
+  { "message": "Password changed successfully" }
+  ```
+- Errors:
+  - 400: validation error or weak password
+  - 401: invalid current password or no session
+
+#### POST /auth/delete-account ✅ IMPLEMENTED
+
+- Description: Delete user account (anonymize email and soft-delete data)
+- Implementation: `/src/pages/api/auth/delete-account.ts`
+- Features (per PRD US-006):
+  - Requires confirmation: user must type "USUŃ" to confirm deletion (validated with Zod schema)
+  - Validates active session before allowing deletion
+  - Calls database function `delete_user_account()` which:
+    - Soft-deletes all user's offer subscriptions (sets `deleted_at` in `user_offer`)
+    - Anonymizes email in `auth.users` to `deleted_{timestamp}@deleted.com`
+    - Removes password and clears all personal data (raw_user_meta_data, raw_app_meta_data)
+    - Preserves price history for analytics (data remains in database)
+    - Logs deletion to `system_logs` for audit trail
+  - Automatically signs out user after successful deletion (invalidates JWT and clears cookies)
+  - Uses `auth.uid()` in database function for security (users can only delete their own account)
+- Request JSON:
+  ```json
+  {
+    "confirmation": "USUŃ"
+  }
+  ```
+- Response 200:
+  ```json
+  { "message": "Account deleted successfully" }
+  ```
+- Errors:
+  - 400: invalid confirmation text (must be exactly "USUŃ") or invalid JSON
+  - 401: no active session
+  - 500: server error during deletion or sign out
 
 ### 2.2 Offers
 

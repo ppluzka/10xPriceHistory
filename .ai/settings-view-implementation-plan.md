@@ -194,10 +194,11 @@ Komponenty będą komunikować się z API za pośrednictwem funkcji udostępnion
   - **Typ odpowiedzi (sukces):** `UpdatePreferencesResponseDto` (`{ "message": "Preferences updated" }`)
   - **Obsługa:** Wyświetlenie powiadomienia "toast" o sukcesie lub błędzie.
 
-- **`PUT /api/account/password` (API do zaimplementowania)**
+- **`POST /api/auth/change-password` ✅ IMPLEMENTED**
   - **Akcja:** Wywoływane z `PasswordChangeForm`.
   - **Typ żądania:** `{ currentPassword: "...", newPassword: "..." }`
   - **Obsługa:** Wyświetlenie powiadomienia "toast", wyczyszczenie formularza po sukcesie.
+  - **Implementacja:** `/src/pages/api/auth/change-password.ts`
 
 - **`DELETE /api/account` (API do zaimplementowania)**
   - **Akcja:** Wywoływane z `DeleteAccountSection`.

@@ -158,8 +158,8 @@ describe("useSettings", () => {
 
       await result.current.changePassword(passwordData);
 
-      expect(mockFetch).toHaveBeenCalledWith("/api/account/password", {
-        method: "PUT",
+      expect(mockFetch).toHaveBeenCalledWith("/api/auth/change-password", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
@@ -211,10 +211,13 @@ describe("useSettings", () => {
 
       const { result } = renderHook(() => useSettings(initialPreferences));
 
-      await result.current.deleteAccount();
+      const confirmation = "USUŃ";
+      await result.current.deleteAccount(confirmation);
 
-      expect(mockFetch).toHaveBeenCalledWith("/api/account", {
-        method: "DELETE",
+      expect(mockFetch).toHaveBeenCalledWith("/api/auth/delete-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation }),
         credentials: "include",
       });
 
@@ -228,11 +231,13 @@ describe("useSettings", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: false,
+        json: async () => ({ message: "Nie udało się usunąć konta" }),
       });
 
       const { result } = renderHook(() => useSettings(initialPreferences));
 
-      await expect(result.current.deleteAccount()).rejects.toThrow("Nie udało się usunąć konta");
+      const confirmation = "USUŃ";
+      await expect(result.current.deleteAccount(confirmation)).rejects.toThrow("Nie udało się usunąć konta");
 
       await waitFor(() => {
         expect(result.current.error).toBe("Nie udało się usunąć konta");
@@ -251,12 +256,14 @@ describe("useSettings", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: false,
+        json: async () => ({ message: "Nie udało się usunąć konta" }),
       });
 
       const { result } = renderHook(() => useSettings(initialPreferences));
 
       try {
-        await result.current.deleteAccount();
+        const confirmation = "USUŃ";
+        await result.current.deleteAccount(confirmation);
       } catch {
         // Expected error
       }

@@ -146,7 +146,7 @@ src/
 
 - ✅ `GET /api/preferences` - pobieranie preferencji (już istnieje)
 - ✅ `PUT /api/preferences` - aktualizacja preferencji (już istnieje)
-- ⏳ `PUT /api/account/password` - zmiana hasła (placeholder, wymaga implementacji backend)
+- ✅ `POST /api/auth/change-password` - zmiana hasła (zaimplementowane w `/src/pages/api/auth/change-password.ts`)
 - ⏳ `DELETE /api/account` - usunięcie konta (placeholder, wymaga implementacji backend)
 
 ### Obsługa odpowiedzi:
@@ -242,8 +242,8 @@ src/
 
 ## Znane ograniczenia
 
-1. **API Endpoints**: Endpointy `PUT /api/account/password` i `DELETE /api/account` wymagają implementacji backend
-2. **Error Messages**: Komunikaty błędów mogą wymagać tłumaczenia/dostosowania po implementacji backend
+1. **API Endpoints**: Endpoint `DELETE /api/account` wymaga implementacji backend
+2. **Error Messages**: Komunikaty błędów są już zaimplementowane zgodnie z auth-spec.md
 3. **Password Strength**: Brak wskaźnika siły hasła (można dodać w przyszłości)
 4. **2FA**: Brak obsługi dwuskładnikowej autoryzacji (future feature)
 
@@ -251,10 +251,11 @@ src/
 
 ### Backend (wymagane):
 
-1. Implementacja `PUT /api/account/password`
-   - Walidacja aktualnego hasła
-   - Hash nowego hasła
-   - Aktualizacja w Supabase Auth
+1. ✅ Implementacja `POST /api/auth/change-password` - **ZAKOŃCZONE**
+   - ✅ Walidacja aktualnego hasła (re-authentication)
+   - ✅ Aktualizacja w Supabase Auth
+   - ✅ Automatyczne wysyłanie emaila przez Supabase
+   - ✅ Implementacja: `/src/pages/api/auth/change-password.ts`
 2. Implementacja `DELETE /api/account`
    - Usunięcie user_preferences
    - Usunięcie ofert użytkownika

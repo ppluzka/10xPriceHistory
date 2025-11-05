@@ -13,6 +13,7 @@ import type {
   ResponseFormat,
 } from "../../types";
 import { OpenRouterService } from "../openrouter.service";
+import { PreferencesService } from "./preferences.service";
 
 /**
  * Service for managing offers and their price history
@@ -521,6 +522,17 @@ export class OfferService {
     // For now, we'll use mock data - actual scraping will be implemented later
     const extractedData = await this.extractOfferData(url);
 
+    // Step 4.5: Get user's default frequency preference
+    const preferencesService = new PreferencesService(this.supabase);
+    let frequency: "6h" | "12h" | "24h" | "48h" = "24h"; // fallback to default
+    try {
+      const preferences = await preferencesService.get(userId);
+      frequency = preferences.defaultFrequency;
+    } catch (prefError) {
+      // If preferences fetch fails, log but continue with default "24h"
+      console.warn("Failed to fetch user preferences, using default frequency:", prefError);
+    }
+
     // Step 5: Insert new offer
     const { data: newOffer, error: insertOfferError } = await this.supabase
       .from("offers")
@@ -531,7 +543,7 @@ export class OfferService {
         selector: extractedData.selector,
         city: extractedData.city,
         status: "active",
-        frequency: "24h",
+        frequency,
         last_checked: new Date().toISOString(),
       })
       .select("id")

@@ -61,6 +61,19 @@ export class OfferFormComponent {
    */
   async submitOffer(url: string) {
     await this.fillUrl(url);
+    // Wait for button to be enabled after filling URL (React state update)
+    // The button is disabled when url.trim() is empty, so after filling it should become enabled
+    await this.submitButton.waitFor({ state: "visible" });
+    // Wait for button to be enabled (not disabled)
+    await this.submitButton.waitFor({ state: "attached" });
+    await this.page.waitForFunction(
+      (selector) => {
+        const button = document.querySelector(selector) as HTMLButtonElement;
+        return button && !button.disabled;
+      },
+      '[data-testid="offer-submit-button"]',
+      { timeout: 5000 }
+    );
     await this.clickSubmit();
   }
 

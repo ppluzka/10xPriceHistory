@@ -8,7 +8,7 @@ interface UseSettingsReturn {
   error: string | null;
   updateFrequency: (data: UpdatePreferencesCommand) => Promise<void>;
   changePassword: (data: PasswordChangeViewModel) => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (confirmation: string) => Promise<void>;
 }
 
 /**
@@ -84,8 +84,8 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     setError(null);
 
     try {
-      const response = await apiFetch("/api/account/password", {
-        method: "PUT",
+      const response = await apiFetch("/api/auth/change-password", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -109,16 +109,23 @@ export function useSettings(initialPreferences: PreferencesDto | null): UseSetti
     }
   };
 
-  const deleteAccount = async () => {
+  const deleteAccount = async (confirmation: string) => {
     setError(null);
 
     try {
-      const response = await apiFetch("/api/account", {
-        method: "DELETE",
+      const response = await apiFetch("/api/auth/delete-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          confirmation,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Nie udało się usunąć konta");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Nie udało się usunąć konta");
       }
 
       // Przekieruj na stronę główną po usunięciu konta

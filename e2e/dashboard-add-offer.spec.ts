@@ -111,6 +111,9 @@ test.describe("Dashboard - Add Offer", () => {
 
     // Add multiple offers with proper API response handling
     for (const offerUrl of offers) {
+      // Wait for form to be ready before submitting (important for subsequent submissions)
+      await dashboardPage.offerForm.waitForReady();
+
       // Wait for API response
       const responsePromise = page.waitForResponse(
         (response) => response.url().includes("/api/offers") && response.request().method() === "POST",
@@ -126,9 +129,14 @@ test.describe("Dashboard - Add Offer", () => {
       if (response.ok()) {
         await dashboardPage.offerForm.waitForSuccess(30000);
       } else {
-        // If failed (e.g., offer already exists), wait for error or just continue
-        // The form won't clear if there's an error, so we'll just wait a bit and continue
-        await page.waitForTimeout(1000);
+        // If failed (e.g., offer already exists), wait for error message and clear form manually
+        await dashboardPage.offerForm.submitError.waitFor({ state: "visible", timeout: 5000 }).catch(() => {
+          // Error message might not appear, continue anyway
+        });
+        // Clear the form manually to prepare for next submission
+        await dashboardPage.offerForm.clearUrl();
+        // Wait a bit for React state to update
+        await page.waitForTimeout(500);
       }
     }
 

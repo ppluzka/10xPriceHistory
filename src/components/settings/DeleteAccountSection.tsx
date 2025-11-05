@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 interface DeleteAccountSectionProps {
-  onDelete: () => Promise<void>;
+  onDelete: (confirmation: string) => Promise<void>;
 }
 
 const CONFIRMATION_TEXT = "USUŃ";
@@ -37,7 +37,7 @@ export default function DeleteAccountSection({ onDelete }: DeleteAccountSectionP
     setIsDeleting(true);
 
     try {
-      await onDelete();
+      await onDelete(confirmationInput);
       // Nie trzeba zamykać modala ani resetować stanu,
       // bo użytkownik zostanie przekierowany na stronę główną
     } catch (error) {

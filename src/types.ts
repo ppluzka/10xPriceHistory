@@ -118,6 +118,13 @@ export interface UpdatePreferencesResponseDto {
 }
 
 /**
+ * Response after deleting account
+ */
+export interface DeleteAccountResponseDto {
+  message: string;
+}
+
+/**
  * Summary section of the dashboard
  */
 export interface DashboardSummaryDto {
