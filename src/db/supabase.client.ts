@@ -18,12 +18,18 @@ export const cookieOptions: CookieOptionsWithName = {
 
 /**
  * Parses cookie header string into array of name/value pairs
- * Required for Supabase SSR cookie management
+ * Fallback method for reading cookies from raw Cookie header
  */
 function parseCookieHeader(cookieHeader: string): { name: string; value: string }[] {
+  if (!cookieHeader) return [];
   return cookieHeader.split(";").map((cookie) => {
-    const [name, ...rest] = cookie.trim().split("=");
-    return { name, value: rest.join("=") };
+    const trimmed = cookie.trim();
+    const equalIndex = trimmed.indexOf("=");
+    if (equalIndex === -1) return { name: trimmed, value: "" };
+    return {
+      name: trimmed.substring(0, equalIndex),
+      value: trimmed.substring(equalIndex + 1),
+    };
   });
 }
 
@@ -49,7 +55,10 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
     cookieOptions,
     cookies: {
       getAll() {
-        return parseCookieHeader(context.headers.get("Cookie") ?? "");
+        // Parse cookies from the Cookie header sent by the browser
+        // This is the source of truth for cookies in the request
+        const cookieHeader = context.headers.get("Cookie");
+        return parseCookieHeader(cookieHeader ?? "");
       },
       setAll(cookiesToSet) {
         // Wrap in try-catch to handle cases where response is already sent (e.g., after redirect)
