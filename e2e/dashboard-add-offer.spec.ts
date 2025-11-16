@@ -104,7 +104,7 @@ test.describe("Dashboard - Add Offer", () => {
     const offers = [
       "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6GzoTH.html",
       "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6GJ7AY.html",
-      "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6HIIUv.html",
+      "https://www.otomoto.pl/osobowe/oferta/dodge-challenger-ID6HIfixIUv.html",
     ];
 
     const initialCount = await dashboardPage.offerGrid.getOffersCount();

@@ -99,10 +99,20 @@ export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKe
  * Creates a Supabase client with service role key (bypasses RLS)
  * Use ONLY for server-side operations that need to bypass RLS (e.g., CRON jobs)
  *
+ * @param context - Optional Astro context for accessing Cloudflare runtime env
  * @returns Supabase client with service role privileges
  */
-export const createSupabaseServiceRoleClient = (): ReturnType<typeof createClient<Database>> => {
-  const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+export const createSupabaseServiceRoleClient = (context?: {
+  locals?: { runtime?: { env?: Record<string, unknown> } };
+}): ReturnType<typeof createClient<Database>> => {
+  // Try Cloudflare runtime first, then fallback to import.meta.env
+  let serviceRoleKey: string | undefined;
+  if (context?.locals?.runtime?.env) {
+    serviceRoleKey = context.locals.runtime.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined;
+  }
+  if (!serviceRoleKey) {
+    serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
 
   if (!serviceRoleKey) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured. Required for service operations.");

@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { OfferProcessorService } from "../../../../lib/services/offer-processor.service";
 import { OfferStatus } from "../../../../types";
 import { isFeatureEnabled } from "@/features/flags";
+import { getEnvRequired } from "../../../../lib/utils/env";
 
 /**
  * POST /api/offers/:id/recheck
@@ -86,7 +87,7 @@ export const POST = async ({ params, locals }: APIContext) => {
     }
 
     // Process offer
-    const openRouterApiKey = import.meta.env.OPENROUTER_API_KEY;
+    const openRouterApiKey = getEnvRequired({ locals }, "OPENROUTER_API_KEY");
     const offerProcessor = new OfferProcessorService(locals.supabase, openRouterApiKey);
 
     // Process the offer (this will update status, price history, etc.)

@@ -2,42 +2,10 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 import { OfferService } from "../../lib/services/offer.service";
-import { OpenRouterService } from "../../lib/openrouter.service";
+import { createOpenRouterServiceOrNull } from "../../lib/utils/openrouter";
 import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
-
-// Singleton instance for OpenRouter service
-let openRouterService: OpenRouterService | null = null;
-
-/**
- * Gets or creates OpenRouter service instance
- * Returns null if OPENROUTER_API_KEY is not set (for test environments)
- */
-function getOpenRouterService(): OpenRouterService | null {
-  if (!openRouterService) {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      // Return null instead of throwing - allows tests to run without OpenRouter
-      return null;
-    }
-
-    openRouterService = new OpenRouterService({
-      apiKey,
-      baseUrl: import.meta.env.OPENROUTER_BASE_URL,
-      defaultModel: import.meta.env.OPENROUTER_DEFAULT_MODEL,
-      timeoutMs: import.meta.env.OPENROUTER_TIMEOUT_MS
-        ? parseInt(import.meta.env.OPENROUTER_TIMEOUT_MS, 10)
-        : undefined,
-      maxRetries: import.meta.env.OPENROUTER_MAX_RETRIES
-        ? parseInt(import.meta.env.OPENROUTER_MAX_RETRIES, 10)
-        : undefined,
-    });
-  }
-
-  return openRouterService;
-}
 
 /**
  * Query parameters schema for GET /api/offers
@@ -128,7 +96,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const { page, size, sort } = validationResult.data;
 
     // Call service layer to get offers
-    const openRouterService = getOpenRouterService();
+    const openRouterService = createOpenRouterServiceOrNull({ locals });
     const offerService = new OfferService(locals.supabase, openRouterService ?? undefined);
     const result = await offerService.list(currentUserId, page, size, sort);
 
@@ -205,7 +173,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const { url } = validationResult.data;
 
     // Call service layer to add offer
-    const openRouterService = getOpenRouterService();
+    const openRouterService = createOpenRouterServiceOrNull({ locals });
     const offerService = new OfferService(locals.supabase, openRouterService ?? undefined);
     const result = await offerService.add(currentUserId, url);
 

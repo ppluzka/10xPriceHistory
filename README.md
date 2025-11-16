@@ -2,6 +2,8 @@
 
 A web application for tracking and visualizing price history of car listings on Otomoto.pl. PriceHistory automatically monitors selected offers, stores historical data, and renders interactive charts so users can make informed purchasing decisions.
 
+**🌐 Production:** [https://10xpricehistory.pages.dev/](https://10xpricehistory.pages.dev/)
+
 ---
 
 ## Table of Contents

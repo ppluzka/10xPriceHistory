@@ -1,7 +1,8 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 
-import { OpenRouterService, OpenRouterServiceError } from "../../lib/openrouter.service";
+import { OpenRouterServiceError } from "../../lib/openrouter.service";
+import { createOpenRouterService } from "../../lib/utils/openrouter";
 import type { ChatMessage, ResponseFormat } from "../../types";
 
 export const prerender = false;
@@ -53,38 +54,6 @@ const LLMRequestSchema = z.object({
     })
     .optional(),
 });
-
-/**
- * Singleton OpenRouter service instance
- */
-let openRouterService: OpenRouterService | null = null;
-
-/**
- * Gets or creates OpenRouter service instance
- */
-function getOpenRouterService(): OpenRouterService {
-  if (!openRouterService) {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      throw new Error("OPENROUTER_API_KEY environment variable is not set");
-    }
-
-    openRouterService = new OpenRouterService({
-      apiKey,
-      baseUrl: import.meta.env.OPENROUTER_BASE_URL,
-      defaultModel: import.meta.env.OPENROUTER_DEFAULT_MODEL,
-      timeoutMs: import.meta.env.OPENROUTER_TIMEOUT_MS
-        ? parseInt(import.meta.env.OPENROUTER_TIMEOUT_MS, 10)
-        : undefined,
-      maxRetries: import.meta.env.OPENROUTER_MAX_RETRIES
-        ? parseInt(import.meta.env.OPENROUTER_MAX_RETRIES, 10)
-        : undefined,
-    });
-  }
-
-  return openRouterService;
-}
 
 /**
  * POST /api/llm
@@ -158,7 +127,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     };
 
     // Get OpenRouter service
-    const service = getOpenRouterService();
+    const service = createOpenRouterService({ locals });
 
     // Send chat completion request
     const response = await service.sendChatCompletion({

@@ -162,6 +162,8 @@ export class MonitoringService {
    * @private
    */
   private async sendWebhookAlert(message: Record<string, unknown>): Promise<void> {
+    // Note: This is called from service methods, so we use import.meta.env as fallback
+    // For API routes, pass context through service methods if needed
     const webhookUrl = import.meta.env.ALERT_WEBHOOK_URL;
 
     if (!webhookUrl) {

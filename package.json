@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "dev:e2e": "astro dev --mode test",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "wrangler pages dev ./dist",
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

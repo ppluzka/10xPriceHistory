@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { OfferProcessorService } from "../../../lib/services/offer-processor.service";
 import { MonitoringService } from "../../../lib/services/monitoring.service";
 import { createSupabaseServiceRoleClient } from "../../../db/supabase.client";
+import { getEnvRequired } from "../../../lib/utils/env";
 
 /**
  * CRON Endpoint: /api/cron/check-prices
@@ -20,10 +21,10 @@ import { createSupabaseServiceRoleClient } from "../../../db/supabase.client";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   // Step 1: Verify cron secret
   const authHeader = request.headers.get("Authorization");
-  const cronSecret = import.meta.env.CRON_SECRET;
+  const cronSecret = getEnvRequired({ locals }, "CRON_SECRET");
 
   if (!cronSecret) {
     console.error("CRON_SECRET not configured");
@@ -43,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     // Step 2: Use service role client for CRON operations (bypasses RLS)
-    const supabaseService = createSupabaseServiceRoleClient();
+    const supabaseService = createSupabaseServiceRoleClient({ locals });
 
     // Get active offers (only those being tracked by at least one user)
     const { data: offers, error } = await supabaseService.from("offers").select("*").eq("status", "active");
@@ -75,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Step 3: Process offers in batches with timeout protection
     // Use service role client to bypass RLS for price_history inserts
-    const openRouterApiKey = import.meta.env.OPENROUTER_API_KEY;
+    const openRouterApiKey = getEnvRequired({ locals }, "OPENROUTER_API_KEY");
     const offerProcessor = new OfferProcessorService(supabaseService, openRouterApiKey);
 
     const batchSize = 10;

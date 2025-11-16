@@ -1,39 +1,9 @@
 import type { APIRoute } from "astro";
 
 import { DashboardService } from "../../lib/services/dashboard.service";
-import { OpenRouterService } from "../../lib/openrouter.service";
+import { createOpenRouterService } from "../../lib/utils/openrouter";
 
 export const prerender = false;
-
-// Singleton instance for OpenRouter service
-let openRouterService: OpenRouterService | null = null;
-
-/**
- * Gets or creates OpenRouter service instance
- */
-function getOpenRouterService(): OpenRouterService {
-  if (!openRouterService) {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      throw new Error("OPENROUTER_API_KEY environment variable is not set");
-    }
-
-    openRouterService = new OpenRouterService({
-      apiKey,
-      baseUrl: import.meta.env.OPENROUTER_BASE_URL,
-      defaultModel: import.meta.env.OPENROUTER_DEFAULT_MODEL,
-      timeoutMs: import.meta.env.OPENROUTER_TIMEOUT_MS
-        ? parseInt(import.meta.env.OPENROUTER_TIMEOUT_MS, 10)
-        : undefined,
-      maxRetries: import.meta.env.OPENROUTER_MAX_RETRIES
-        ? parseInt(import.meta.env.OPENROUTER_MAX_RETRIES, 10)
-        : undefined,
-    });
-  }
-
-  return openRouterService;
-}
 
 /**
  * GET /api/dashboard
@@ -55,7 +25,7 @@ export const GET: APIRoute = async ({ locals }) => {
     }
 
     // Call service layer to get dashboard data
-    const dashboardService = new DashboardService(locals.supabase, getOpenRouterService());
+    const dashboardService = new DashboardService(locals.supabase, createOpenRouterService({ locals }));
     const result = await dashboardService.get(currentUserId);
 
     return new Response(JSON.stringify(result), {
