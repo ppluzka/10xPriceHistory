@@ -21,7 +21,7 @@ export const prerender = false;
  * - 401: Unauthorized - no active session
  * - 500: Server error - database or sign out error
  */
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   // Check if auth feature is enabled
   if (!isFeatureEnabled("auth")) {
     return new Response(
@@ -41,6 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies,
+      locals,
     });
 
     // Step 2: Validate authorization - check for active session

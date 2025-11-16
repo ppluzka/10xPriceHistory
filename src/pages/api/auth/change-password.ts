@@ -22,7 +22,7 @@ export const prerender = false;
  * - 401: Unauthorized - invalid current password or no session
  * - 500: Server error
  */
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   // Check if auth feature is enabled
   if (!isFeatureEnabled("auth")) {
     return new Response(
@@ -42,6 +42,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies,
+      locals,
     });
 
     // 1. Sprawdzenie sesji (middleware)

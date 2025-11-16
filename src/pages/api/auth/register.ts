@@ -35,7 +35,7 @@ import { isFeatureEnabled } from "@/features/flags";
  *   details?: any;
  * }
  */
-export const POST: APIRoute = async ({ request, cookies, url }) => {
+export const POST: APIRoute = async ({ request, cookies, url, locals }) => {
   // Check if auth feature is enabled
   if (!isFeatureEnabled("auth")) {
     return new Response(
@@ -81,6 +81,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies: cookies,
+      locals,
     });
 
     // Get site URL for email redirects

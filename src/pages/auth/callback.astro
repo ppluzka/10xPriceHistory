@@ -20,6 +20,7 @@ if (code) {
     const supabase = createSupabaseServerInstance({
       headers: Astro.request.headers,
       cookies: Astro.cookies,
+      locals: Astro.locals,
     });
 
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);

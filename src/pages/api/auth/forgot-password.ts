@@ -14,7 +14,7 @@ const ForgotPasswordSchema = z.object({
  * POST /api/auth/forgot-password
  * Sends password reset email to user
  */
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   // Check if auth feature is enabled
   if (!isFeatureEnabled("auth")) {
     return new Response(
@@ -50,6 +50,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies,
+      locals,
     });
 
     // Get the origin for redirect URL

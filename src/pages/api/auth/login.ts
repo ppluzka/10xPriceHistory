@@ -36,7 +36,7 @@ import { isFeatureEnabled } from "@/features/flags";
  *   code?: string;
  * }
  */
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   // Check if auth feature is enabled
   if (!isFeatureEnabled("auth")) {
     return new Response(
@@ -73,6 +73,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies: cookies,
+      locals,
     });
 
     // Attempt to sign in with Supabase Auth

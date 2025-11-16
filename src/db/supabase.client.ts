@@ -1,9 +1,21 @@
 import type { AstroCookies } from "astro";
 import { createServerClient, type CookieOptionsWithName } from "@supabase/ssr";
 import type { Database } from "./database.types.ts";
+import { getEnvRequired } from "../lib/utils/env.ts";
 
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
+/**
+ * Gets Supabase URL from environment, supporting Cloudflare Pages runtime
+ */
+function getSupabaseUrl(context?: { locals?: { runtime?: { env?: Record<string, unknown> } } }): string {
+  return getEnvRequired(context, "SUPABASE_URL", "SUPABASE_URL environment variable is required");
+}
+
+/**
+ * Gets Supabase anon key from environment, supporting Cloudflare Pages runtime
+ */
+function getSupabaseAnonKey(context?: { locals?: { runtime?: { env?: Record<string, unknown> } } }): string {
+  return getEnvRequired(context, "SUPABASE_KEY", "SUPABASE_KEY environment variable is required");
+}
 
 /**
  * Cookie options for Supabase Auth
@@ -39,18 +51,25 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
  * IMPORTANT: Use this function in API routes and Astro pages that need auth
  * Do NOT import supabaseClient directly when you need session context
  *
- * @param context - Object containing headers and cookies from Astro context
+ * @param context - Object containing headers, cookies, and optionally locals from Astro context
  * @returns Configured Supabase client with session awareness
  *
  * @example
  * // In API route
  * const supabase = createSupabaseServerInstance({
  *   headers: request.headers,
- *   cookies: cookies
+ *   cookies: cookies,
+ *   locals: Astro.locals // Optional, for Cloudflare Pages runtime env access
  * });
  * const { data: { user } } = await supabase.auth.getUser();
  */
-export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
+export const createSupabaseServerInstance = (context: {
+  headers: Headers;
+  cookies: AstroCookies;
+  locals?: { runtime?: { env?: Record<string, unknown> } };
+}) => {
+  const supabaseUrl = getSupabaseUrl(context);
+  const supabaseAnonKey = getSupabaseAnonKey(context);
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookieOptions,
     cookies: {
@@ -91,9 +110,15 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
  * Legacy client for backwards compatibility
  * @deprecated Use createSupabaseServerInstance() in API routes and middleware
  * Only use this for client-side operations where session context is not needed
+ *
+ * Note: This uses import.meta.env which may not work on Cloudflare Pages.
+ * For server-side code, use createSupabaseServerInstance() instead.
  */
 import { createClient } from "@supabase/supabase-js";
-export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Fallback to import.meta.env for client-side usage (deprecated)
+const fallbackSupabaseUrl = import.meta.env.SUPABASE_URL;
+const fallbackSupabaseAnonKey = import.meta.env.SUPABASE_KEY;
+export const supabaseClient = createClient<Database>(fallbackSupabaseUrl || "", fallbackSupabaseAnonKey || "");
 
 /**
  * Creates a Supabase client with service role key (bypasses RLS)
@@ -118,6 +143,7 @@ export const createSupabaseServiceRoleClient = (context?: {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured. Required for service operations.");
   }
 
+  const supabaseUrl = getSupabaseUrl(context);
   return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,

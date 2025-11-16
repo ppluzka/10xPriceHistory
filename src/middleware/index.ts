@@ -35,6 +35,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const supabase = createSupabaseServerInstance({
     headers: context.request.headers,
     cookies: context.cookies,
+    locals: context.locals, // Pass locals for Cloudflare Pages runtime env access
   });
 
   // Make supabase client available in Astro.locals

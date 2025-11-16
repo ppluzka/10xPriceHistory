@@ -15,7 +15,7 @@ const ResetPasswordSchema = z.object({
  * Updates user password after they click reset link from email
  * Requires valid session from reset token
  */
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   // Check if auth feature is enabled
   if (!isFeatureEnabled("auth")) {
     return new Response(
@@ -51,6 +51,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const supabase = createSupabaseServerInstance({
       headers: request.headers,
       cookies,
+      locals,
     });
 
     // Check if user has valid session (from reset token)
