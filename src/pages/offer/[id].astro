@@ -3,6 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/navigation/Header";
 import OfferDetailsPage from "../../components/offer/OfferDetailsPage";
 import type { OfferDetailDto, PaginatedDto, PriceHistoryDto } from "../../types";
+import { isFeatureEnabled } from "../../features/flags";
 
 export const prerender = false;
 
@@ -11,6 +12,11 @@ export const prerender = false;
 const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/login");
+}
+
+// Check if offerdetails feature is enabled
+if (!isFeatureEnabled("offerdetails")) {
+  return Astro.redirect("/dashboard");
 }
 
 // Get offer ID from URL params

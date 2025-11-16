@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/utils";
+import { isFeatureEnabled } from "@/features/flags";
 
 interface HeaderProps {
   user: {
@@ -45,18 +46,22 @@ export default function Header({ user }: HeaderProps) {
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <a
-                href="/dashboard"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 transition-colors"
-              >
-                Dashboard
-              </a>
-              <a
-                href="/settings"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 transition-colors"
-              >
-                Ustawienia
-              </a>
+              {isFeatureEnabled("offers") && (
+                <a
+                  href="/dashboard"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 transition-colors"
+                >
+                  Dashboard
+                </a>
+              )}
+              {isFeatureEnabled("settings") && (
+                <a
+                  href="/settings"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50 transition-colors"
+                >
+                  Ustawienia
+                </a>
+              )}
             </nav>
           </div>
 

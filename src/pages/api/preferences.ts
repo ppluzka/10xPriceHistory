@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 import { PreferencesService } from "../../lib/services/preferences.service";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
@@ -17,6 +18,20 @@ const UpdatePreferencesSchema = z.object({
  * Returns user's preferences (creates default if doesn't exist)
  */
 export const GET: APIRoute = async ({ locals }) => {
+  // Check if settings feature is enabled
+  if (!isFeatureEnabled("settings")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware (using DEFAULT_USER_ID for now)
     const currentUserId = locals.current_user_id as string;
@@ -44,6 +59,20 @@ export const GET: APIRoute = async ({ locals }) => {
  * Updates user's preferences
  */
 export const PUT: APIRoute = async ({ request, locals }) => {
+  // Check if settings feature is enabled
+  if (!isFeatureEnabled("settings")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware (using DEFAULT_USER_ID for now)
     const currentUserId = locals.current_user_id as string;

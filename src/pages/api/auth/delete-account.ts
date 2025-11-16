@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
 import { DeleteAccountSchema } from "@/lib/validators/auth.validators";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
@@ -21,6 +22,20 @@ export const prerender = false;
  * - 500: Server error - database or sign out error
  */
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Check if auth feature is enabled
+  if (!isFeatureEnabled("auth")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Step 1: Create Supabase client with request context
     const supabase = createSupabaseServerInstance({

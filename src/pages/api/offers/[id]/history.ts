@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { OfferService } from "../../../../lib/services/offer.service";
 import { OpenRouterService } from "../../../../lib/openrouter.service";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
@@ -54,6 +55,20 @@ const QueryParamsSchema = z.object({
  * Returns paginated price history for a specific offer
  */
 export const GET: APIRoute = async ({ params, request, locals }) => {
+  // Check if offerdetails feature is enabled
+  if (!isFeatureEnabled("offerdetails")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware (using DEFAULT_USER_ID for now)
     const currentUserId = locals.current_user_id as string;

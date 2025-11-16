@@ -2,6 +2,7 @@ import type { OfferDto } from "@/types";
 import OfferCard from "./OfferCard";
 import OfferGridSkeleton from "./OfferGridSkeleton";
 import EmptyState from "../shared/EmptyState";
+import { isFeatureEnabled } from "@/features/flags";
 
 interface OfferGridProps {
   offers: OfferDto[];
@@ -11,6 +12,11 @@ interface OfferGridProps {
 }
 
 export default function OfferGrid({ offers, isLoading, onDeleteOffer, onRecheckOffer }: OfferGridProps) {
+  // Hide component if offers feature is disabled
+  if (!isFeatureEnabled("offers")) {
+    return null;
+  }
+
   // Show skeleton during initial load
   if (isLoading) {
     return <OfferGridSkeleton />;

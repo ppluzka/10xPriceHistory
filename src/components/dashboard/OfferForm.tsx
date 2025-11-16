@@ -2,6 +2,7 @@ import { useState, useCallback, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import type { AddOfferCommand } from "@/types";
 import { apiFetch } from "@/lib/utils";
+import { isFeatureEnabled } from "@/features/flags";
 
 interface OfferFormProps {
   onOfferAdded: () => void;
@@ -10,6 +11,11 @@ interface OfferFormProps {
 }
 
 export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: OfferFormProps) {
+  // Hide component if offers feature is disabled
+  if (!isFeatureEnabled("offers")) {
+    return null;
+  }
+
   const [url, setUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

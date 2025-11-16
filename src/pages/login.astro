@@ -1,12 +1,18 @@
 ---
 import AuthLayout from "@/layouts/AuthLayout.astro";
 import LoginForm from "@/components/auth/LoginForm";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
 // Check if user is already logged in - redirect to dashboard
 if (Astro.locals.user) {
   return Astro.redirect("/dashboard");
+}
+
+// Check if auth feature is enabled
+if (!isFeatureEnabled("auth")) {
+  return Astro.redirect("/");
 }
 
 // Get query params for messages and redirect

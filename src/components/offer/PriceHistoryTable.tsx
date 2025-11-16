@@ -1,12 +1,18 @@
 import type { PriceHistoryDto } from "@/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { isFeatureEnabled } from "@/features/flags";
 
 interface PriceHistoryTableProps {
   history: PriceHistoryDto[];
 }
 
 export default function PriceHistoryTable({ history }: PriceHistoryTableProps) {
+  // Hide component if offerdetails feature is disabled
+  if (!isFeatureEnabled("offerdetails")) {
+    return null;
+  }
+
   // Check if we have any data
   if (history.length === 0) {
     return (

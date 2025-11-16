@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { OfferService } from "../../lib/services/offer.service";
 import { OpenRouterService } from "../../lib/openrouter.service";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
@@ -64,6 +65,20 @@ const AddOfferCommandSchema = z.object({
  * Returns paginated list of active offer subscriptions for the authenticated user
  */
 export const GET: APIRoute = async ({ request, locals }) => {
+  // Check if offers feature is enabled
+  if (!isFeatureEnabled("offers")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware - validate authentication
     const currentUserId = locals.current_user_id;
@@ -133,6 +148,20 @@ export const GET: APIRoute = async ({ request, locals }) => {
  * Adds a new Otomoto.pl offer subscription for the authenticated user
  */
 export const POST: APIRoute = async ({ request, locals }) => {
+  // Check if offers feature is enabled
+  if (!isFeatureEnabled("offers")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware - validate authentication
     const currentUserId = locals.current_user_id;

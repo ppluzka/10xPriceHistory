@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { OfferService } from "../../../lib/services/offer.service";
 import { OpenRouterService } from "../../../lib/openrouter.service";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
@@ -46,6 +47,20 @@ const IdParamSchema = z.coerce.number().int().positive();
  * Returns detailed information about a specific offer including price statistics
  */
 export const GET: APIRoute = async ({ params, locals }) => {
+  // Check if offerdetails feature is enabled
+  if (!isFeatureEnabled("offerdetails")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware (using DEFAULT_USER_ID for now)
     const currentUserId = locals.current_user_id as string;
@@ -99,6 +114,20 @@ export const GET: APIRoute = async ({ params, locals }) => {
  * Unsubscribes user from an offer (soft-delete)
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
+  // Check if offers feature is enabled
+  if (!isFeatureEnabled("offers")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Get user ID from middleware (using DEFAULT_USER_ID for now)
     const currentUserId = locals.current_user_id as string;

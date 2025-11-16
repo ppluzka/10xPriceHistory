@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
 import { LoginSchema } from "@/lib/validators/auth.validators";
+import { isFeatureEnabled } from "@/features/flags";
 
 /**
  * POST /api/auth/login
@@ -36,6 +37,20 @@ import { LoginSchema } from "@/lib/validators/auth.validators";
  * }
  */
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Check if auth feature is enabled
+  if (!isFeatureEnabled("auth")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Parse and validate request body
     const body = await request.json();

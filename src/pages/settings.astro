@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import SettingsView from "../components/views/SettingsView";
 import Header from "../components/navigation/Header";
 import type { PreferencesDto } from "../types";
+import { isFeatureEnabled } from "../features/flags";
 
 export const prerender = false;
 
@@ -11,6 +12,11 @@ export const prerender = false;
 const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/login");
+}
+
+// Check if settings feature is enabled
+if (!isFeatureEnabled("settings")) {
+  return Astro.redirect("/dashboard");
 }
 
 // Fetch initial preferences data server-side

@@ -2,12 +2,18 @@ import type { PriceHistoryChartViewModel } from "@/types";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { TooltipProps } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { isFeatureEnabled } from "@/features/flags";
 
 interface PriceHistoryChartProps {
   data: PriceHistoryChartViewModel[];
 }
 
 export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
+  // Hide component if offerdetails feature is disabled
+  if (!isFeatureEnabled("offerdetails")) {
+    return null;
+  }
+
   // Check if we have enough data to display a chart
   if (data.length < 2) {
     return (

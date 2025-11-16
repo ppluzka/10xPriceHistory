@@ -2,7 +2,7 @@
 
 /**
  * Script to manually trigger price monitoring endpoint
- * Usage: node scripts/test-monitoring.js [--port 3000] [--secret YOUR_SECRET]
+ * Usage: node scripts/test-monitoring.js [--host localhost] [--port 3000] [--protocol http] [--secret YOUR_SECRET]
  */
 
 import { readFileSync } from "fs";
@@ -15,10 +15,20 @@ const __dirname = dirname(__filename);
 
 // Parse command line arguments
 const args = process.argv.slice(2);
+const hostArg = args.find((arg) => arg.startsWith("--host="));
 const portArg = args.find((arg) => arg.startsWith("--port="));
+const protocolArg = args.find((arg) => arg.startsWith("--protocol="));
 const secretArg = args.find((arg) => arg.startsWith("--secret="));
+// Default to localhost or use --host= argument
+const host = hostArg ? hostArg.split("=")[1] : "localhost";
 // Default to 3001 (Astro dev server default) or use --port= argument
-const port = portArg ? portArg.split("=")[1] : "3001";
+const port = portArg ? portArg.split("=")[1] : "3000";
+// Default protocol based on port: https for 443, http otherwise
+// Can be overridden with --protocol= argument
+let protocol = protocolArg ? protocolArg.split("=")[1] : null;
+if (!protocol) {
+  protocol = port === "443" ? "https" : "http";
+}
 const secret = secretArg ? secretArg.split("=")[1] : null;
 
 // Try to read CRON_SECRET from .env file
@@ -44,7 +54,11 @@ if (!cronSecret) {
   process.exit(1);
 }
 
-const url = `http://localhost:${port}/api/cron/check-prices`;
+// Build URL - omit port for default ports (80 for HTTP, 443 for HTTPS)
+const portNum = parseInt(port, 10);
+const shouldOmitPort = (protocol === "http" && portNum === 80) || (protocol === "https" && portNum === 443);
+const portPart = shouldOmitPort ? "" : `:${port}`;
+const url = `${protocol}://${host}${portPart}/api/cron/check-prices`;
 
 console.log("🚀 Testing price monitoring endpoint...");
 console.log(`📍 URL: ${url}`);

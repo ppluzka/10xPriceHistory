@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { isFeatureEnabled } from "@/features/flags";
 
 /**
  * GET /api/auth/check
@@ -7,6 +8,20 @@ import type { APIRoute } from "astro";
  * Użyj w konsoli przeglądarki lub do debugowania
  */
 export const GET: APIRoute = async ({ locals }) => {
+  // Check if auth feature is enabled
+  if (!isFeatureEnabled("auth")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   return new Response(
     JSON.stringify({
       authenticated: !!locals.user,

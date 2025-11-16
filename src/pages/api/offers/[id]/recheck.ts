@@ -1,6 +1,7 @@
 import type { APIContext } from "astro";
 import { OfferProcessorService } from "../../../../lib/services/offer-processor.service";
 import { OfferStatus } from "../../../../types";
+import { isFeatureEnabled } from "@/features/flags";
 
 /**
  * POST /api/offers/:id/recheck
@@ -20,6 +21,20 @@ import { OfferStatus } from "../../../../types";
 export const prerender = false;
 
 export const POST = async ({ params, locals }: APIContext) => {
+  // Check if offers feature is enabled
+  if (!isFeatureEnabled("offers")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     const offerId = params.id;
 

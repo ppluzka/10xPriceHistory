@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
+import { isFeatureEnabled } from "@/features/flags";
 
 export const prerender = false;
 
@@ -14,6 +15,20 @@ const ForgotPasswordSchema = z.object({
  * Sends password reset email to user
  */
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Check if auth feature is enabled
+  if (!isFeatureEnabled("auth")) {
+    return new Response(
+      JSON.stringify({
+        error: "Funkcjonalność jest niedostępna",
+        code: "FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Parse and validate request body
     const body = await request.json().catch(() => ({}));
