@@ -11,11 +11,6 @@ interface OfferFormProps {
 }
 
 export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: OfferFormProps) {
-  // Hide component if offers feature is disabled
-  if (!isFeatureEnabled("offers")) {
-    return null;
-  }
-
   const [url, setUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +109,11 @@ export default function OfferForm({ onOfferAdded, activeCount, offerLimit }: Off
     },
     [validationError, error]
   );
+
+  // Hide component if offers feature is disabled
+  if (!isFeatureEnabled("offers")) {
+    return null;
+  }
 
   // Show limit reached message instead of form
   if (isLimitReached) {

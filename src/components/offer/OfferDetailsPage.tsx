@@ -12,15 +12,15 @@ interface OfferDetailsPageProps {
 }
 
 export default function OfferDetailsPage({ initialOffer, initialHistory }: OfferDetailsPageProps) {
-  // Hide component if offerdetails feature is disabled
-  if (!isFeatureEnabled("offerdetails")) {
-    return null;
-  }
-
   const { offer, history, headerData, statsData, chartData, isLoading, isError } = useOfferData({
     initialOffer,
     initialHistory,
   });
+
+  // Hide component if offerdetails feature is disabled
+  if (!isFeatureEnabled("offerdetails")) {
+    return null;
+  }
 
   // Error state
   if (isError) {
