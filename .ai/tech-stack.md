@@ -45,6 +45,6 @@ Frontend - Astro z React dla komponentów interaktywnych:
 
     1.4.5 Infrastruktura
 
-- Hosting: VPS
+- Hosting: Cloudflare Pages jako hosting aplikacji Astro
 - CI/CD: Github Actions
 - Scheduled jobs: pg_cron w Supabase

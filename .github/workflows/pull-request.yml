@@ -3,7 +3,6 @@ name: Pull Request Checks
 on:
   pull_request:
     branches: [main]
-  name: Pull Request Checks
 
 jobs:
   lint:
