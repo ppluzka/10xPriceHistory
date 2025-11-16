@@ -78,7 +78,7 @@ test.describe("Dashboard - Add Offer", () => {
   test("should successfully add a new offer", async () => {
     // Use a real Otomoto.pl URL for testing
     // Note: This will make a real API call to scrape the page
-    const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/mazda-mx-30-ID6Hw05S.html";
+    const testOfferUrl = "https://www.otomoto.pl/osobowe/oferta/bmw-x5-ID6HLdpA.html";
 
     // Get initial state
     const initialOffersCount = await dashboardPage.offerGrid.getOffersCount();
