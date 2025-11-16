@@ -1,6 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PublicHeader from "@/components/navigation/PublicHeader";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import ScreenshotImage from "@/components/ScreenshotImage.astro";
 
 export const prerender = false;
 
@@ -24,24 +27,121 @@ const user = Astro.locals.user;
           </a>
         </div>
       ) : (
-        <div class="text-center space-y-4 mb-8">
-          <h1 class="text-4xl font-bold">Witaj w PriceHistory</h1>
-          <p class="text-lg text-muted-foreground">Śledź zmiany cen ogłoszeń na Otomoto.pl</p>
-          <div class="flex gap-4 justify-center">
-            <a
-              href="/register"
-              class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              Zacznij za darmo
-            </a>
-            <a
-              href="/login"
-              class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-            >
-              Zaloguj się
-            </a>
-          </div>
-        </div>
+        <>
+          {/* Hero Section */}
+          <section class="text-center space-y-4 mb-12 py-8">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight">Witaj w PriceHistory</h1>
+            <p class="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Automatycznie śledź zmiany cen ogłoszeń samochodowych na Otomoto.pl. 
+              Podejmuj świadome decyzje zakupowe dzięki pełnej historii cenowej.
+            </p>
+            <div class="flex gap-4 justify-center flex-wrap mt-6">
+              <Button asChild size="lg">
+                <a href="/register">Zacznij za darmo</a>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <a href="/login">Zaloguj się</a>
+              </Button>
+            </div>
+          </section>
+
+          {/* App Description & How It Works */}
+          <section class="mb-12">
+            <Card>
+              <CardHeader>
+                <CardTitle class="text-2xl">Czym jest PriceHistory?</CardTitle>
+                <CardDescription>
+                  PriceHistory rozwiązuje problem braku dostępu do historii cen ofert na Otomoto.pl. 
+                  System automatycznie monitoruje wybrane oferty, zapisuje historię cen i wizualizuje zmiany na interaktywnych wykresach.
+                </CardDescription>
+              </CardHeader>
+              <CardContent class="space-y-6">
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 class="font-semibold mb-2">1. Dodaj ofertę</h3>
+                    <p class="text-sm text-muted-foreground">
+                      Wklej URL oferty z Otomoto.pl. System automatycznie pobiera stronę, ekstrahuje dane przy użyciu AI 
+                      (tytuł, cena, zdjęcie, lokalizacja) i rozpoczyna monitorowanie.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold mb-2">2. Automatyczne monitorowanie</h3>
+                    <p class="text-sm text-muted-foreground">
+                      System regularnie sprawdza ceny w konfigurowalnych interwałach (6h, 12h, 24h, 48h), 
+                      ekstrahuje ceny przy użyciu zapisanych selektorów CSS lub AI jako fallback, i zapisuje do historii.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold mb-2">3. Historia i wizualizacja</h3>
+                    <p class="text-sm text-muted-foreground">
+                      Każda zmiana ceny jest zapisywana z datami sprawdzeń. Na dashboardzie znajdziesz interaktywne wykresy, 
+                      statystyki (min, max, średnia, trend) i kolorowe oznaczenia zmian cen.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold mb-2">Kluczowe funkcje</h3>
+                    <ul class="text-sm text-muted-foreground space-y-1">
+                      <li>• AI-powered ekstrakcja danych (GPT-4o-mini, Claude Haiku)</li>
+                      <li>• Wykrywanie anomalii cenowych (>50% zmiana)</li>
+                      <li>• Historia przechowywana przez 30 dni (darmowy plan)</li>
+                      <li>• Limit 5 ofert jednocześnie (darmowy plan)</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Screenshots Section */}
+          <section class="mb-12">
+            <h2 class="text-2xl font-bold text-center mb-6">Zobacz jak to wygląda</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dashboard</CardTitle>
+                  <CardDescription>Przegląd wszystkich obserwowanych ofert</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScreenshotImage
+                    src="/screenshots/dashboard.png"
+                    alt="Zrzut ekranu dashboardu PriceHistory"
+                    placeholderText="📸 Zrzut ekranu dashboardu (Dodaj screenshot: /public/screenshots/dashboard.png)"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Szczegóły oferty</CardTitle>
+                  <CardDescription>Historia cen i wykresy</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScreenshotImage
+                    src="/screenshots/offer-details.png"
+                    alt="Zrzut ekranu strony szczegółów oferty"
+                    placeholderText="📸 Zrzut ekranu strony szczegółów (Dodaj screenshot: /public/screenshots/offer-details.png)"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          {/* CTA Section */}
+          <section class="text-center py-8 bg-muted rounded-lg">
+            <h2 class="text-2xl font-bold mb-3">Gotowy, aby zacząć?</h2>
+            <p class="text-base text-muted-foreground mb-6 max-w-xl mx-auto">
+              Dołącz do użytkowników PriceHistory i zacznij śledzić zmiany cen ofert samochodowych już dziś.
+            </p>
+            <div class="flex gap-4 justify-center flex-wrap">
+              <Button asChild size="lg">
+                <a href="/register">Zarejestruj się za darmo</a>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <a href="/login">Masz już konto? Zaloguj się</a>
+              </Button>
+            </div>
+          </section>
+        </>
       )
     }
   </div>
