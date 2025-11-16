@@ -1,5 +1,6 @@
 import type { AstroCookies } from "astro";
 import { createServerClient, type CookieOptionsWithName } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types.ts";
 import { getEnvRequired } from "../lib/utils/env.ts";
 
@@ -109,16 +110,14 @@ export const createSupabaseServerInstance = (context: {
 /**
  * Legacy client for backwards compatibility
  * @deprecated Use createSupabaseServerInstance() in API routes and middleware
- * Only use this for client-side operations where session context is not needed
  *
- * Note: This uses import.meta.env which may not work on Cloudflare Pages.
- * For server-side code, use createSupabaseServerInstance() instead.
+ * REMOVED: This export was causing errors on Cloudflare Pages because it tried to access
+ * import.meta.env at module load time, which isn't available in Cloudflare runtime.
+ *
+ * If you need a client-side Supabase client, use createSupabaseServerInstance() with
+ * proper Astro context instead.
  */
-import { createClient } from "@supabase/supabase-js";
-// Fallback to import.meta.env for client-side usage (deprecated)
-const fallbackSupabaseUrl = import.meta.env.SUPABASE_URL;
-const fallbackSupabaseAnonKey = import.meta.env.SUPABASE_KEY;
-export const supabaseClient = createClient<Database>(fallbackSupabaseUrl || "", fallbackSupabaseAnonKey || "");
+// export const supabaseClient = ... // Removed to prevent Cloudflare Pages errors
 
 /**
  * Creates a Supabase client with service role key (bypasses RLS)
