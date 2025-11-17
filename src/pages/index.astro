@@ -4,6 +4,8 @@ import PublicHeader from "@/components/navigation/PublicHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ScreenshotImage from "@/components/ScreenshotImage.astro";
+import dashboardScreenshot from "@/assets/screenshots/dashboard.png";
+import offerDetailsScreenshot from "@/assets/screenshots/offer-details.png";
 
 export const prerender = false;
 
@@ -104,9 +106,9 @@ const user = Astro.locals.user;
                 </CardHeader>
                 <CardContent>
                   <ScreenshotImage
-                    src="/screenshots/dashboard.png"
+                    src={dashboardScreenshot.src}
                     alt="Zrzut ekranu dashboardu PriceHistory"
-                    placeholderText="📸 Zrzut ekranu dashboardu (Dodaj screenshot: /public/screenshots/dashboard.png)"
+                    placeholderText="📸 Zrzut ekranu dashboardu (Dodaj screenshot: /src/assets/screenshots/dashboard.png)"
                   />
                 </CardContent>
               </Card>
@@ -118,9 +120,9 @@ const user = Astro.locals.user;
                 </CardHeader>
                 <CardContent>
                   <ScreenshotImage
-                    src="/screenshots/offer-details.png"
+                    src={offerDetailsScreenshot.src}
                     alt="Zrzut ekranu strony szczegółów oferty"
-                    placeholderText="📸 Zrzut ekranu strony szczegółów (Dodaj screenshot: /public/screenshots/offer-details.png)"
+                    placeholderText="📸 Zrzut ekranu strony szczegółów (Dodaj screenshot: /src/assets/screenshots/offer-details.png)"
                   />
                 </CardContent>
               </Card>
